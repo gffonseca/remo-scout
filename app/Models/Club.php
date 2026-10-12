@@ -23,6 +23,11 @@ class Club extends Model
         return $this->hasMany(Player::class, 'current_club_id');
     }
 
+    public function externalIds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ClubExternalId::class);
+    }
+
     public static function findOrCreateByName(?string $name, string $country = 'Brasil'): ?self
     {
         $name = trim((string) $name);

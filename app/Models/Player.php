@@ -53,6 +53,8 @@ class Player extends Model
             'salary_confirmation' => Confirmation::class,
             'salary_observed_on' => 'date',
             'asking_price' => 'decimal:2',
+            'field_sources' => 'array',
+            'enriched_at' => 'datetime',
         ];
     }
 
@@ -147,6 +149,22 @@ class Player extends Model
     public function submittedReports(): HasMany
     {
         return $this->hasMany(ScoutingReport::class)->where('status', 'submetido')->latest('submitted_at');
+    }
+
+    public function seasonStats(): HasMany
+    {
+        return $this->hasMany(PlayerSeasonStat::class)->orderByDesc('season');
+    }
+
+    public function appearances(): HasMany
+    {
+        return $this->hasMany(Appearance::class);
+    }
+
+    public function externalId(string $provider): ?string
+    {
+        return $this->externalIds->firstWhere('provider', $provider)?->external_id
+            ?? $this->externalIds()->where('provider', $provider)->value('external_id');
     }
 
     public function videoReferences(): HasMany

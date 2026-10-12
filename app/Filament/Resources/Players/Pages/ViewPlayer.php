@@ -25,6 +25,26 @@ class ViewPlayer extends ViewRecord
         return $this->getRecord()->name;
     }
 
+    public function runSource(string $provider): void
+    {
+        /** @var Player $p */
+        $p = $this->getRecord()->fresh(['currentClub', 'externalIds']);
+        try {
+            $link = $provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p) : \App\Services\PlayerEnrichment::linkSofascore($p);
+            if (! in_array($link['status'], ['vinculado', 'ja_vinculado'], true)) {
+                Notification::make()->warning()->title($link['message'])
+                    ->body($link['status'] === 'revisar' ? 'Use "Escolher correspondência pendente" em Fontes externas.' : null)->send();
+
+                return;
+            }
+            $res = $provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::enrichTransfermarkt($p->fresh()) : \App\Services\PlayerEnrichment::enrichSofascore($p->fresh());
+            Notification::make()->success()->title($res['message'])->body('Fonte não oficial — dados marcados com a origem; divergências vão para Revisões de dados.')->send();
+            $this->redirect(PlayerResource::getUrl('view', ['record' => $p]));
+        } catch (\App\Sources\SourceException $e) {
+            Notification::make()->danger()->title('Fonte indisponível')->body($e->getMessage())->send();
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         /** @var Player $p */
@@ -47,6 +67,28 @@ class ViewPlayer extends ViewRecord
                 }),
             Action::make('dossie')->label('Dossiê PDF')->icon(Heroicon::OutlinedDocumentArrowDown)->color('gray')
                 ->url(route('dossie.player', $p))->openUrlInNewTab(),
+            ActionGroup::make([
+                Action::make('tmSync')->label('Transfermarkt: vincular e atualizar')->icon(Heroicon::OutlinedArrowPath)
+                    ->action(fn () => $this->runSource('transfermarkt')),
+                Action::make('sfSync')->label('Sofascore: vincular e atualizar estatísticas')->icon(Heroicon::OutlinedArrowPath)
+                    ->action(fn () => $this->runSource('sofascore')),
+                Action::make('candidates')->label('Escolher correspondência pendente')->icon(Heroicon::OutlinedUserCircle)
+                    ->visible(fn () => \App\Models\IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->exists())
+                    ->schema([
+                        \Filament\Forms\Components\Radio::make('candidate')->label('Qual destes é o atleta?')->required()
+                            ->options(fn () => \App\Models\IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->orderByDesc('score')
+                                ->get()->mapWithKeys(fn ($c) => [$c->id => '['.$c->provider.'] '.$c->label.' · aderência '.$c->score])),
+                    ])
+                    ->action(function (array $data) use ($p) {
+                        $c = \App\Models\IdentityCandidate::findOrFail($data['candidate']);
+                        $res = $c->provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p, $c->external_id) : \App\Services\PlayerEnrichment::linkSofascore($p, $c->external_id);
+                        Notification::make()->title($res['message'])->{$res['status'] === 'vinculado' ? 'success' : 'warning'}()->send();
+                        if ($res['status'] === 'vinculado') {
+                            $this->runSource($c->provider);
+                        }
+                    }),
+            ])->label('Fontes externas')->icon(Heroicon::OutlinedCircleStack)->button()->color('gray')
+                ->visible(fn () => auth()->user()->canEdit()),
             ActionGroup::make([
                 Action::make('news')->label('Pesquisar notícias do atleta')->icon(Heroicon::OutlinedNewspaper)
                     ->url(fn () => 'https://www.google.com/search?tbm=nws&q='.urlencode('"'.$p->name.'"'.($p->currentClub ? ' '.$p->currentClub->name : '').' futebol'))
