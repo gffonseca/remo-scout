@@ -75,6 +75,9 @@ class Player extends Model
     }
 
     /** Estados da verificação em que a URL externa não é exibida (o cadastro mostra as iniciais). */
+    /** Muda quando a regra de exibição muda, para o navegador não reaproveitar imagem antiga do cache. */
+    public const PHOTO_VERSION = '2';
+
     public const PHOTO_HIDDEN = ['quebrada', 'generica', 'nao_imagem', 'host_nao_permitido'];
 
     /** Há foto exibível (arquivo armazenado, ou URL externa não reprovada na verificação)? */
@@ -86,7 +89,7 @@ class Player extends Model
     /** URL exibível: sempre pelo próprio CIFUT (cache no bucket); a versão muda quando a foto muda. */
     public function photoUrl(): ?string
     {
-        return $this->hasPhoto() ? route('player.photo', ['player' => $this->id, 'v' => substr(sha1(($this->photo_path ?? '').'|'.($this->photo_url ?? '')), 0, 10)]) : null;
+        return $this->hasPhoto() ? route('player.photo', ['player' => $this->id, 'v' => substr(sha1(self::PHOTO_VERSION.'|'.($this->photo_path ?? '').'|'.($this->photo_url ?? '')), 0, 10)]) : null;
     }
 
     public function avatarUrl(): string
