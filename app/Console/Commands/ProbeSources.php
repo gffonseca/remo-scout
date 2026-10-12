@@ -31,6 +31,11 @@ class ProbeSources extends Command
                 continue;
             }
             $path = self::PROBES[$s->key] ?? null;
+            if ($s->transport === 'coletor_local') {
+                $this->line("[probe] {$s->key}: coletada pelo coletor local (Mac Mini); saúde vem da última execução");
+
+                continue;
+            }
             if (! $path) {
                 continue;
             }

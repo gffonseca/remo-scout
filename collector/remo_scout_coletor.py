@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""
+REMO SCOUT — coletor local da CBF.
+
+Roda no Mac Mini (IP brasileiro), porque os sites da CBF recusam acesso de servidores fora do Brasil.
+Só lê páginas públicas e repassa ao REMO SCOUT. Toda regra de negócio (lista branca, vínculo,
+revisão) fica no servidor. CPF/documentos são removidos aqui E ignorados lá.
+
+Configuração: arquivo ~/.config/remo-scout/coletor.env (chmod 600) com
+    REMO_SCOUT_URL=https://...
+    REMO_SCOUT_TOKEN=...
+Uso: python3 remo_scout_coletor.py [--so atletas|intermediarios] [--paginas N] [--dry-run]
+Só biblioteca padrão (Python 3.9+).
+"""
+import argparse
+import html
+import json
+import os
+import re
+import socket
+import sys
+import time
+import urllib.error
+import urllib.request
+
+VERSION = "1.0.0"
+UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
+CBF_SITE = "https://www.cbf.com.br"
+CBF_API = "https://www.cbf.com.br/api/cbf"
+INTERMEDIARIOS = "https://intermediario.cbf.com.br/intermediarios-cadastrados"
+SENSITIVE = re.compile(r"cpf|documento|^rg$|^rg_|passaporte|nome_m[aã]e|nome_pai|filiacao|endereco|telefone|celular|e_?mail", re.I)
+CPF_LIKE = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
+
+
+def log(msg):
+    print(time.strftime("%Y-%m-%d %H:%M:%S"), msg, flush=True)
+
+
+def load_config():
+    path = os.path.expanduser(os.environ.get("REMO_SCOUT_ENV", "~/.config/remo-scout/coletor.env"))
+    cfg = {}
+    if os.path.exists(path):
+        for line in open(path, encoding="utf-8"):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                cfg[k.strip()] = v.strip().strip('"').strip("'")
+    cfg.update({k: v for k, v in os.environ.items() if k.startswith("REMO_SCOUT_")})
+    if not cfg.get("REMO_SCOUT_URL") or not cfg.get("REMO_SCOUT_TOKEN"):
+        sys.exit("Configuração ausente: defina REMO_SCOUT_URL e REMO_SCOUT_TOKEN em " + path)
+    return cfg["REMO_SCOUT_URL"].rstrip("/"), cfg["REMO_SCOUT_TOKEN"]
+
+
+def scrub(obj):
+    """Remove recursivamente qualquer campo sensível (CPF, documentos, contatos pessoais)."""
+    if isinstance(obj, dict):
+        return {k: scrub(v) for k, v in obj.items() if not SENSITIVE.search(str(k))}
+    if isinstance(obj, list):
+        return [scrub(v) for v in obj]
+    if isinstance(obj, str) and CPF_LIKE.search(obj) and not obj.startswith("data:image"):
+        return CPF_LIKE.sub("[removido]", obj)
+    return obj
+
+
+class Http:
+    def __init__(self, interval_ms):
+        self.interval = max(0.8, interval_ms / 1000.0)
+        self.last = 0.0
+        self.requests = 0
+        self.errors = 0
+
+    def get(self, url, accept="application/json", retries=3):
+        for attempt in range(retries):
+            wait = self.interval - (time.time() - self.last)
+            if wait > 0:
+                time.sleep(wait)
+            self.last = time.time()
+            self.requests += 1
+            req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": accept, "Accept-Language": "pt-BR"})
+            try:
+                with urllib.request.urlopen(req, timeout=40) as r:
+                    return r.read().decode("utf-8", "replace")
+            except urllib.error.HTTPError as e:
+                if e.code in (404, 410):
+                    return None
+                log("CBF HTTP %s em %s (tentativa %d)" % (e.code, url, attempt + 1))
+            except (urllib.error.URLError, socket.timeout, ConnectionError) as e:
+                log("CBF falha de conexão em %s: %s (tentativa %d)" % (url, e, attempt + 1))
+            time.sleep(5 * (attempt + 1))
+        self.errors += 1
+        return None
+
+
+class Scout:
+    def __init__(self, base, token, dry=False):
+        self.base, self.token, self.dry = base, token, dry
+
+    def call(self, method, path, payload=None):
+        if self.dry and method == "POST":
+            return {"dry_run": True, "run_id": "dry"}
+        data = json.dumps(payload).encode("utf-8") if payload is not None else None
+        req = urllib.request.Request(self.base + "/api/coletor/" + path, data=data, method=method, headers={
+            "Authorization": "Bearer " + self.token, "Accept": "application/json", "Content-Type": "application/json",
+            "User-Agent": "remo-scout-coletor/" + VERSION})
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    return json.loads(r.read().decode("utf-8") or "{}")
+            except urllib.error.HTTPError as e:
+                body = e.read().decode("utf-8", "replace")[:300]
+                if e.code in (401, 404, 409, 422, 423):
+                    raise RuntimeError("REMO SCOUT recusou %s %s: HTTP %s %s" % (method, path, e.code, body))
+                log("REMO SCOUT HTTP %s em %s (tentativa %d)" % (e.code, path, attempt + 1))
+            except (urllib.error.URLError, socket.timeout, ConnectionError) as e:
+                log("REMO SCOUT indisponível (%s), tentativa %d" % (e, attempt + 1))
+            time.sleep(10 * (attempt + 1))
+        raise RuntimeError("REMO SCOUT indisponível para %s %s" % (method, path))
+
+
+def competition_id(http, slug, season):
+    page = http.get("%s/futebol-brasileiro/atletas/%s/%s" % (CBF_SITE, slug, season), accept="text/html")
+    if not page:
+        return None
+    m = re.search(r'competitionId\\?"\s*:\s*\\?"(\d+)', page)
+    return m.group(1) if m else None
+
+
+def run_athletes(http, scout, plan, season, max_pages):
+    cfg = plan.get("cbf_atletas")
+    if not cfg:
+        log("cbf_atletas desligada no REMO SCOUT; pulando")
+        return
+    run = scout.call("POST", "cbf_atletas/inicio", {"host": socket.gethostname(), "version": VERSION})["run_id"]
+    notes = []
+    errors_before = http.errors
+    try:
+        for comp in cfg["competitions"]:
+            cid = competition_id(http, comp["slug"], comp.get("season", season))
+            if not cid:
+                notes.append("%s: competição não encontrada na CBF" % comp["label"])
+                continue
+            page, total, sent = 1, 1, 0
+            while page <= total and page <= max_pages:
+                body = http.get("%s/atletas/campeonato/%s/pagina/%d" % (CBF_API, cid, page))
+                if body is None:
+                    notes.append("%s: falha na página %d" % (comp["label"], page))
+                    break
+                data = json.loads(body)
+                meta = (data.get("meta") or [{}])[0]
+                total = int(meta.get("total") or 1)
+                rows = scrub(data.get("atletas") or [])
+                if rows:
+                    scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "lista", "items": rows,
+                                                            "competition": {"slug": comp["slug"], "label": comp["label"], "season": comp.get("season", season), "cbf_competition_id": cid}})
+                    sent += len(rows)
+                page += 1
+            log("%s (%s): %d atletas enviados, %d páginas" % (comp["label"], cid, sent, min(total, max_pages)))
+            notes.append("%s: %d atletas" % (comp["label"], sent))
+
+        ids = scout.call("GET", "cbf_atletas/pendentes?limit=%d" % int(cfg.get("max_details", 150))).get("ids", []) if not scout.dry else []
+        batch, done = [], 0
+        for aid in ids:
+            body = http.get("%s/atletas/%s" % (CBF_API, re.sub(r"\D", "", str(aid))))
+            if body:
+                d = scrub(json.loads(body))
+                d.pop("jogos", None)  # súmulas por jogo não são usadas aqui
+                batch.append(d)
+            if len(batch) >= 10:
+                scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "detalhe", "items": batch})
+                done += len(batch)
+                batch = []
+        if batch:
+            scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "detalhe", "items": batch})
+            done += len(batch)
+        log("detalhes enviados: %d de %d pedidos" % (done, len(ids)))
+        notes.append("detalhes: %d de %d" % (done, len(ids)))
+    finally:
+        res = scout.call("POST", "cbf_atletas/fim", {"run_id": run, "requests_made": http.requests, "errors": http.errors - errors_before, "messages": notes[:50]})
+        log("cbf_atletas: %s" % json.dumps(res, ensure_ascii=False))
+
+
+ROW = re.compile(r"<tr>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*</tr>", re.S)
+
+
+def run_intermediaries(http, scout, plan, max_pages):
+    cfg = plan.get("cbf_intermediarios")
+    if not cfg:
+        log("cbf_intermediarios desligada no REMO SCOUT; pulando")
+        return
+    run = scout.call("POST", "cbf_intermediarios/inicio", {"host": socket.gethostname(), "version": VERSION})["run_id"]
+    errors_before, sent, page, notes = http.errors, 0, 1, []
+    limit = min(int(cfg.get("max_pages", 120)), max_pages)
+    try:
+        while page <= limit:
+            body = http.get("%s?page=%d" % (INTERMEDIARIOS, page), accept="text/html")
+            if body is None:
+                notes.append("falha na página %d" % page)
+                break
+            rows = [{"nome": html.unescape(re.sub(r"<[^>]+>", "", a)).strip(), "tipo": html.unescape(b).strip(), "publicacao": c.strip()}
+                    for a, b, c in ROW.findall(body)]
+            rows = scrub([r for r in rows if r["nome"] and r["nome"].upper() != "NOME"])
+            if not rows:
+                break
+            scout.call("POST", "cbf_intermediarios/lote", {"run_id": run, "kind": "intermediarios", "items": rows})
+            sent += len(rows)
+            if ("page=%d" % (page + 1)) not in body:
+                break
+            page += 1
+        notes.append("%d intermediários em %d páginas" % (sent, page))
+        log("intermediários enviados: %d (%d páginas)" % (sent, page))
+    finally:
+        res = scout.call("POST", "cbf_intermediarios/fim", {"run_id": run, "requests_made": http.requests, "errors": http.errors - errors_before, "messages": notes})
+        log("cbf_intermediarios: %s" % json.dumps(res, ensure_ascii=False))
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Coletor local da CBF para o REMO SCOUT")
+    ap.add_argument("--so", choices=["atletas", "intermediarios"])
+    ap.add_argument("--paginas", type=int, default=1000, help="limite de páginas por lista (teste)")
+    ap.add_argument("--dry-run", action="store_true", help="coleta mas não envia")
+    args = ap.parse_args()
+    base, token = load_config()
+    scout = Scout(base, token, args.dry_run)
+    plan = scout.call("GET", "plano")
+    http = Http(int(plan.get("interval_ms", 1500)))
+    season = str(plan.get("season"))
+    log("início — coletor %s, temporada %s" % (VERSION, season))
+    ok = True
+    for name, fn in (("atletas", lambda: run_athletes(http, scout, plan, season, args.paginas)),
+                     ("intermediarios", lambda: run_intermediaries(http, scout, plan, args.paginas))):
+        if args.so and args.so != name:
+            continue
+        try:
+            fn()
+        except Exception as e:  # uma fonte falhar não impede a outra
+            ok = False
+            log("ERRO em %s: %s" % (name, e))
+    log("fim — %d requisições à CBF, %d falhas" % (http.requests, http.errors))
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

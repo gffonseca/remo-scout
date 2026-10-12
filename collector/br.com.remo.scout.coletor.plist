@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>br.com.remo.scout.coletor</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>__HOME__/remo-scout-coletor/remo_scout_coletor.py</string>
+    </array>
+    <!-- Diário às 06:20 (horário do Mac). CBF atualiza inscrições ao longo do dia anterior. -->
+    <key>StartCalendarInterval</key>
+    <dict><key>Hour</key><integer>6</integer><key>Minute</key><integer>20</integer></dict>
+    <key>StandardOutPath</key><string>__HOME__/remo-scout-coletor/coletor.log</string>
+    <key>StandardErrorPath</key><string>__HOME__/remo-scout-coletor/coletor.log</string>
+    <key>LowPriorityIO</key><true/>
+    <key>Nice</key><integer>10</integer>
+</dict>
+</plist>

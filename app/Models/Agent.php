@@ -14,6 +14,11 @@ class Agent extends Model
 
     protected $guarded = ['id'];
 
+    public function cbfIntermediary(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(CbfIntermediary::class);
+    }
+
     public function players(): HasMany
     {
         return $this->hasMany(Player::class);

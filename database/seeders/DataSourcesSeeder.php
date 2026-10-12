@@ -29,7 +29,9 @@ class DataSourcesSeeder extends Seeder
             $s = DataSource::firstOrNew(['key' => $key]);
             $isNew = ! $s->exists;
             $s->fill(['name' => $name, 'kind' => $kind, 'requires_credential' => $cred, 'credential_env' => $env, 'notes' => $notes,
-                'terms_note' => $kind === 'nao_oficial' ? $na : null]);
+                'terms_note' => $kind === 'nao_oficial' ? $na : null,
+                // CBF recusa IP fora do Brasil: coleta pelo coletor local (Mac Mini), que envia para a API /api/coletor.
+                'transport' => in_array($key, ['cbf_atletas', 'cbf_intermediarios'], true) ? 'coletor_local' : 'direto']);
             if ($isNew) {
                 $s->fill(['enabled' => $enabled, 'base_url' => $url, 'min_interval_ms' => $interval, 'daily_quota' => $quota]);
             }

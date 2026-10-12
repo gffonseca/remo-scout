@@ -62,6 +62,9 @@ class AgentResource extends Resource
             ->columns([
                 TextColumn::make('name')->label('Empresário')->weight('bold')->searchable(['name', 'agency'])
                     ->description(fn (Agent $a) => $a->agency),
+                TextColumn::make('cbfIntermediary.published_on')->label('Registro CBF')->badge()->color('success')
+                    ->formatStateUsing(fn ($state) => 'desde '.$state->format('m/Y'))->placeholder('não localizado')
+                    ->tooltip('Intermediários cadastrados na CBF (registro público). Vínculo automático só por nome idêntico.'),
                 TextColumn::make('phone')->label('Telefone')->placeholder('—')->copyable(),
                 TextColumn::make('whatsapp')->label('WhatsApp')->placeholder('—')
                     ->url(fn (Agent $a) => $a->whatsappUrl(), true)->color('primary'),

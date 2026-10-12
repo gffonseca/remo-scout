@@ -9,6 +9,17 @@ return [
     'min_coverage' => (float) env('SCOUT_MIN_COVERAGE', 0.8),
     'import_max_rows' => (int) env('SCOUT_IMPORT_MAX_ROWS', 5000),
     // Credenciais de fontes (lidas do ambiente; config:cache exige passar por aqui). Nunca versionar valores.
+    // Coletor local (Mac Mini com IP brasileiro): CBF bloqueia acesso de fora do Brasil.
+    'collector_token' => env('COLLECTOR_TOKEN'),
+    'collector_season' => env('COLLECTOR_SEASON', '2026'),
+    'collector_competitions' => [
+        'campeonato-brasileiro/serie-a' => 'Série A',
+        'campeonato-brasileiro/serie-b' => 'Série B',
+        'campeonato-brasileiro/serie-c' => 'Série C',
+        'campeonato-brasileiro/serie-d' => 'Série D',
+        'copa-do-brasil/masculino' => 'Copa do Brasil',
+    ],
+
     'credentials' => [
         'API_FUTEBOL_KEY' => env('API_FUTEBOL_KEY'),
         'API_FOOTBALL_KEY' => env('API_FOOTBALL_KEY'),

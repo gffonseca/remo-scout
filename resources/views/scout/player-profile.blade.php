@@ -18,6 +18,7 @@
     $lvl = fn ($l) => $l ? '<span class="sc-level l-'.$l->value.'" title="'.e($l->getLabel()).'">'.($l->rank() ? $l->value : 'n/o').'</span>' : '<span class="sc-level l-none">n/o</span>';
     $roles = $p->roleAssessments->sortByDesc(fn ($a) => $a->level?->rank() ?? 0);
     $photo = $p->photoUrl();
+    $cbf = $p->cbf_id ? \App\Models\CbfAthlete::with('club')->where('cbf_id', $p->cbf_id)->first() : null;
     $crest = $p->currentClub?->crestUrl();
 @endphp
 <div style="display:flex;flex-direction:column;gap:1rem">
@@ -136,6 +137,9 @@
             <div class="sc-row"><span class="k">Altura</span><span class="v">{{ $p->height_cm ? number_format($p->height_cm / 100, 2, ',', '') . ' m' : 'n/i' }}</span></div>
             <div class="sc-row"><span class="k">Pé preferencial</span><span class="v">{{ $p->preferred_foot->getLabel() }}</span></div>
             <div class="sc-row"><span class="k">ID CBF</span><span class="v">{{ $p->cbf_id ?? 'n/i' }}</span></div>
+            @if ($cbf)
+                <div class="sc-row"><span class="k">Inscrição CBF</span><span class="v" title="Registro público CBF, visto {{ $cbf->last_seen_at?->format('d/m/Y') }}">{{ $cbf->club?->name ?? $cbf->club_name }}{{ ($c = collect($cbf->competitions ?? [])->sortKeysDesc()->first()) ? ' · '.implode(', ', $c) : '' }}</span></div>
+            @endif
             <div class="sc-row"><span class="k">Passaporte comunitário</span><span class="v">{{ $p->eu_passport === null ? 'n/i' : ($p->eu_passport ? 'Sim' : 'Não') }}</span></div>
             <div class="sc-row"><span class="k">Idiomas</span><span class="v">{{ $p->languages ? implode(', ', $p->languages) : 'n/i' }}</span></div>
             <div class="sc-row"><span class="k">Empresário</span><span class="v">{{ $p->agent?->name ?? ($p->agent_name ?: 'n/i') }}</span></div>

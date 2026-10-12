@@ -261,7 +261,7 @@ class PlayerEnrichment
     }
 
     /** @return array{0:int,1:int} [preenchidos, revisões] */
-    private static function propose(Player $p, string $field, $value, string $provider): array
+    public static function propose(Player $p, string $field, $value, string $provider): array
     {
         if ($value === null || $value === '') {
             return [0, 0];

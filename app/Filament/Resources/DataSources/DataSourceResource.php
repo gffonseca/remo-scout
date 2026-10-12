@@ -60,7 +60,8 @@ class DataSourceResource extends Resource
     {
         return $table->defaultSort('kind')
             ->columns([
-                TextColumn::make('name')->label('Fonte')->weight('bold')->description(fn (DataSource $s) => $s->notes)->wrap(),
+                TextColumn::make('name')->label('Fonte')->weight('bold')->wrap()
+                    ->description(fn (DataSource $s) => ($s->transport === 'coletor_local' ? 'Via coletor local (Mac Mini, diário 06:20). ' : '').$s->notes),
                 TextColumn::make('kind')->label('Tipo')->badge()->formatStateUsing(fn ($state, DataSource $s) => $s->kindLabel())
                     ->color(fn ($state) => ['nao_oficial' => 'warning', 'api_comercial' => 'info', 'documento_publico' => 'success', 'oficial_credenciado' => 'primary'][$state] ?? 'gray'),
                 ToggleColumn::make('enabled')->label('Ativa')->disabled(fn () => ! auth()->user()->isCoordinator()),
@@ -74,6 +75,7 @@ class DataSourceResource extends Resource
             ])
             ->recordActions([
                 Action::make('probe')->label('Testar')->icon(Heroicon::OutlinedSignal)->iconButton()
+                    ->hidden(fn (DataSource $r) => $r->transport === 'coletor_local')
                     ->action(function (DataSource $record) {
                         Artisan::call('scout:probe-sources', ['--only' => $record->key]);
                         $out = trim(Artisan::output()) ?: 'Fonte desativada ou sem teste definido.';

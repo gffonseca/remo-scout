@@ -27,7 +27,7 @@ class AccessTest extends ScoutTestCase
         $p = Player::create(['name' => 'Render']);
         $n = RecruitmentNeed::create(['title' => 'Vaga', 'position' => 'LE']);
         foreach (['/', '/atletas', '/atletas/create', "/atletas/{$p->id}", '/necessidades', "/necessidades/{$n->id}", '/relatorios', '/relatorios/create',
-            '/papeis', '/especialidades', '/quadro-prospeccao', '/importar-planilha', '/importacoes', '/clubes', '/competicoes', '/empresarios', '/auditoria'] as $url) {
+            '/papeis', '/especialidades', '/quadro-prospeccao', '/importar-planilha', '/importacoes', '/clubes', '/competicoes', '/empresarios', '/auditoria', '/inscritos-cbf', '/fontes'] as $url) {
             $this->get($url)->assertOk();
         }
     }
