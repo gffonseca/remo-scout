@@ -175,4 +175,15 @@ class SquadPlannerTest extends ScoutTestCase
         $this->assertSame('1', ContractObservationsRelationManager::getBadge($p, ViewPlayer::class));
         $this->assertNull(VideoReferencesRelationManager::getBadge($p, ViewPlayer::class));
     }
+
+    public function test_new_starter_in_empty_starter_slot_keeps_alternatives_numbered(): void
+    {
+        $plan = $this->plan();
+        $slot = $this->slot($plan, 'GOL');
+        $alt = Player::create(['name' => 'Reserva', 'primary_position' => 'GOL']);
+        $new = Player::create(['name' => 'Novo titular', 'primary_position' => 'GOL']);
+        SquadPlanner::addPick($slot, $alt->id, false);
+        SquadPlanner::addPick($slot, $new->id, true);
+        $this->assertSame([1, 2], $slot->picks()->pluck('depth')->all());
+    }
 }

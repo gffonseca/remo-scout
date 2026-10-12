@@ -24,14 +24,17 @@ class NeedSearch
         $pos = $need->position->value;
         $inPipeline = ProspectCase::where('recruitment_need_id', $need->id)->pluck('player_id')->flip();
 
-        return Player::query()
+        $players = Player::query()
             ->whereNot(fn ($w) => $w->provisional())
             ->where(fn ($q) => $q->where('primary_position', $pos)->orWhereJsonContains('positions', $pos)
                 ->orWhere(fn ($u) => $u->whereNull('primary_position')->where(fn ($x) => $x->whereNull('positions')->orWhereJsonLength('positions', 0))))
-            ->with(['currentClub', 'roleAssessments', 'specialtyAssessments'])
-            ->get()
-            ->map(function (Player $p) use ($need, $inPipeline) {
-                $items = RequirementCheck::evaluate($need, $p);
+            ->with(['currentClub', 'roleAssessments.author', 'specialtyAssessments'])
+            ->get();
+        $ctx = RequirementCheck::context($need, $players); // dados da necessidade uma vez só (sem consulta por atleta)
+
+        return $players
+            ->map(function (Player $p) use ($need, $inPipeline, $ctx) {
+                $items = RequirementCheck::evaluate($need, $p, null, $ctx);
                 $failed = collect($items)->where('status', RequirementStatus::NaoAtende->value)->pluck('item')->all();
                 $pending = collect($items)->where('status', RequirementStatus::Pendente->value)->pluck('item')->all();
 

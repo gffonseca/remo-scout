@@ -90,4 +90,20 @@ class WatchlistTest extends ScoutTestCase
         $this->get(WatchlistResource::getUrl())->assertOk()->assertSee('Monitorado')->assertSee('vencida');
         $this->assertFalse(auth()->user()->can('create', WatchlistItem::class));
     }
+
+    public function test_free_agent_signing_alerts_and_return_to_previous_club_alerts_again(): void
+    {
+        $p = Player::create(['name' => 'Livre no mercado']);
+        $i = $this->item(['player' => $p]);
+        $this->assertNotNull($i->club_baseline_at); // sem clube também é linha de base
+        $this->assertSame(0, WatchlistAlerts::run());
+        $a = Club::create(['name' => 'Clube Novo']);
+        $p->update(['current_club_id' => $a->id]);
+        $this->assertSame(1, WatchlistAlerts::run());
+        $p->update(['current_club_id' => null]);
+        $this->assertSame(1, WatchlistAlerts::run());
+        $this->travel(1)->days();
+        $p->update(['current_club_id' => $a->id]); // volta ao mesmo clube outro dia: é outra transição, alerta de novo
+        $this->assertSame(1, WatchlistAlerts::run());
+    }
 }

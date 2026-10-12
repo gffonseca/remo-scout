@@ -106,7 +106,10 @@ class SquadPlanner
                 $depth = max(2, (int) $slot->picks()->max('depth') + 1);
             }
 
-            return SquadPlanPick::create(['squad_plan_slot_id' => $slot->id, 'player_id' => $playerId, 'depth' => $depth]);
+            $pick = SquadPlanPick::create(['squad_plan_slot_id' => $slot->id, 'player_id' => $playerId, 'depth' => $depth]);
+            self::compact($slot); // posto sem titular: as alternativas não podem ficar com buraco na numeração
+
+            return $pick->fresh();
         });
     }
 

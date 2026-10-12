@@ -80,4 +80,16 @@ class CatalogApprovalTest extends ScoutTestCase
         $this->actingAs($this->user('coordenador'));
         $this->get('/calibracao')->assertOk()->assertSee('Calibrar')->assertSee('2 nível(is)');
     }
+
+    public function test_new_phase_without_criteria_demotes_active_role(): void
+    {
+        $r = TacticalRole::first();
+        $r->forceFill(['phases' => ['com_posse'], 'behaviors' => 'Ataca o espaço às costas da linha', 'status' => 'proposta', 'level_guide' => $this->guide(['com_posse'])])->save();
+        $coord = $this->user('coordenador');
+        CatalogApproval::approve($r->fresh(), $coord);
+        $this->actingAs($coord);
+        $r = $r->fresh();
+        $r->update(['phases' => ['com_posse', 'sem_posse']]); // nem o coordenador deixa fase sem critério num perfil ativo
+        $this->assertSame('proposta', $r->fresh()->status->value);
+    }
 }

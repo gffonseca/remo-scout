@@ -68,7 +68,7 @@ class TacticalRoleResource extends Resource
                 TagsInput::make('aliases')->label('Apelidos/sinônimos')->columnSpan(2),
                 Select::make('status')->label('Status')->options(CatalogStatus::class)->default('proposta')->required()
                     ->disabled(fn (string $operation) => $operation === 'edit' || ! auth()->user()->isCoordinator())->dehydrated(fn (string $operation) => $operation === 'create')
-                    ->options(fn () => auth()->user()->isCoordinator() ? CatalogStatus::class : ['proposta' => 'Proposta'])
+                    ->options(fn (string $operation) => $operation === 'edit' ? CatalogStatus::class : (auth()->user()->isCoordinator() ? ['proposta' => 'Proposta', 'arquivado' => 'Arquivado'] : ['proposta' => 'Proposta'])) // ativo só pelo Aprovar
                     ->helperText('Aprovar (ativo) só pelo botão "Aprovar perfil", com critérios A–D completos.'),
             ]),
             Section::make('Critérios observáveis por nível (A–D), por fase')->columns(2)

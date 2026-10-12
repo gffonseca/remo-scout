@@ -16,7 +16,18 @@ class WatchlistItem extends Model
 
     protected function casts(): array
     {
-        return ['next_review_on' => 'date', 'last_reviewed_at' => 'datetime'];
+        return ['next_review_on' => 'date', 'last_reviewed_at' => 'datetime', 'club_baseline_at' => 'datetime'];
+    }
+
+    /** Linha de base do clube no momento em que o atleta entra na watchlist (sem clube também é base). */
+    protected static function booted(): void
+    {
+        static::creating(function (self $i) {
+            if ($i->club_baseline_at === null && $i->player_id) {
+                $i->last_seen_club_id ??= Player::whereKey($i->player_id)->value('current_club_id');
+                $i->club_baseline_at = now();
+            }
+        });
     }
 
     public function player(): BelongsTo

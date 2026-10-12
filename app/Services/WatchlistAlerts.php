@@ -37,10 +37,10 @@ class WatchlistAlerts
                 $n += static::alert($item, 'revisao:'.$item->next_review_on->toDateString(), 'revisao',
                     "Revisão de {$p->name} vencida desde ".$item->next_review_on->format('d/m/Y').'.');
             }
-            if ($item->last_seen_club_id === null) {
-                $item->update(['last_seen_club_id' => $p->current_club_id]);
-            } elseif ($p->current_club_id !== $item->last_seen_club_id) {
-                $n += static::alert($item, 'clube:'.($p->current_club_id ?? 'sem'), 'clube',
+            if ($item->club_baseline_at === null) {
+                $item->update(['last_seen_club_id' => $p->current_club_id, 'club_baseline_at' => now()]);
+            } elseif ($p->current_club_id !== $item->last_seen_club_id) { // nulo = "sem clube", um estado válido
+                $n += static::alert($item, 'clube:'.($item->last_seen_club_id ?? 'sem').'>'.($p->current_club_id ?? 'sem').':'.$today->toDateString(), 'clube',
                     "{$p->name} mudou de clube no cadastro: agora ".($p->currentClub?->name ?? 'sem clube').'.');
                 $item->update(['last_seen_club_id' => $p->current_club_id]);
             }

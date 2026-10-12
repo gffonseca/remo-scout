@@ -51,7 +51,7 @@ class SpecialtyResource extends Resource
                 TextInput::make('code')->label('Código')->required()->unique(ignoreRecord: true)->alphaDash()->disabledOn('edit'),
                 Select::make('status')->label('Status')->default('proposta')->required()
                     ->disabled(fn (string $operation) => $operation === 'edit' || ! auth()->user()->isCoordinator())->dehydrated(fn (string $operation) => $operation === 'create')
-                    ->options(fn () => auth()->user()->isCoordinator() ? CatalogStatus::class : ['proposta' => 'Proposta'])
+                    ->options(fn (string $operation) => $operation === 'edit' ? CatalogStatus::class : (auth()->user()->isCoordinator() ? ['proposta' => 'Proposta', 'arquivado' => 'Arquivado'] : ['proposta' => 'Proposta'])) // ativo só pelo Aprovar
                     ->helperText('Aprovar só pelo botão "Aprovar", com critérios A–D completos.'),
                 TagsInput::make('aliases')->label('Sinônimos')->columnSpanFull(),
                 Textarea::make('description')->label('Descrição')->rows(2)->columnSpanFull(),

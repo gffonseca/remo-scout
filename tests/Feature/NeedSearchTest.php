@@ -2,14 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\RecruitmentNeeds\Pages\SearchCandidates;
 use App\Filament\Resources\RecruitmentNeeds\RecruitmentNeedResource;
-use App\Models\Club;
 use App\Models\Player;
 use App\Models\PlayerExternalId;
 use App\Models\ProspectCase;
 use App\Models\RecruitmentNeed;
+use App\Models\TacticalRole;
 use App\Services\NeedSearch;
 use App\Support\BudgetFit;
+use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 
 /** F11 — pesquisa da necessidade com os mesmos critérios; orçamento em 4 estados; desconhecido = pendência. */
 class NeedSearchTest extends ScoutTestCase
@@ -99,7 +102,7 @@ class NeedSearchTest extends ScoutTestCase
         $n = $this->need();
         $p = $this->player(['name' => 'Para o quadro']);
         $this->actingAs($this->user('analista'));
-        \Livewire\Livewire::test(\App\Filament\Resources\RecruitmentNeeds\Pages\SearchCandidates::class, ['record' => $n->id])
+        Livewire::test(SearchCandidates::class, ['record' => $n->id])
             ->call('addToBoard', $p->id)->assertHasNoErrors();
         $this->assertTrue(ProspectCase::where('recruitment_need_id', $n->id)->where('player_id', $p->id)->exists());
 
@@ -109,7 +112,29 @@ class NeedSearchTest extends ScoutTestCase
     {
         $n = $this->need();
         $this->actingAs($this->user('leitor'));
-        \Livewire\Livewire::test(\App\Filament\Resources\RecruitmentNeeds\Pages\SearchCandidates::class, ['record' => $n->id])
+        Livewire::test(SearchCandidates::class, ['record' => $n->id])
             ->call('addToBoard', Player::create(['name' => 'Outro', 'primary_position' => 'LE'])->id)->assertForbidden();
+    }
+
+    public function test_query_count_does_not_grow_with_players(): void
+    {
+        $role = TacticalRole::first();
+        $n = $this->need(['tactical_role_id' => $role->id, 'target_level' => 'B', 'mandatory_requirements' => ['Aceita morar em Belém']]);
+        $count = function (int $players) use ($n) {
+            for ($i = 0; $i < $players; $i++) {
+                $this->player(['birth_date' => now()->subYears(24)]);
+            }
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            NeedSearch::run($n);
+            $q = count(DB::getQueryLog());
+            DB::disableQueryLog();
+
+            return $q;
+        };
+        $this->actingAs($this->user('coordenador'));
+        $few = $count(5);
+        $many = $count(45); // 50 no total
+        $this->assertLessThanOrEqual($few + 2, $many, "consultas: {$few} com 5 atletas, {$many} com 50");
     }
 }

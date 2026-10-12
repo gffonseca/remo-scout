@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
@@ -53,7 +54,7 @@ class Comparador extends Page
             'players' => $players, 'grid' => Comparator::roleGrid($players), 'bases' => $bases, 'base' => $base,
             'stats' => Comparator::statRows($players, $base),
             'needs' => RecruitmentNeed::whereIn('status', ['aberta', 'em_andamento'])->orderBy('title')->pluck('title', 'id')->all(),
-            'needModel' => $this->need ? RecruitmentNeed::find($this->need) : null,
+            'needModel' => $this->need && Str::isUuid($this->need) ? RecruitmentNeed::find($this->need) : null,
             'financial' => auth()->user()->canViewFinancial(),
         ];
     }
