@@ -11,7 +11,7 @@ class DataSourcesSeeder extends Seeder
     /** Cota mensal do contrato e horas máximas esperadas entre ingestões (diagnóstico "atrasada"). */
     private const LIMITS = [
         'api_futebol' => ['expected_refresh_hours' => 30],
-        'dados_futebol' => ['monthly_quota' => 30000],
+        'dados_futebol' => ['monthly_quota' => 30000, 'expected_refresh_hours' => 192], // elencos: semanal
         'cbf_atletas' => ['expected_refresh_hours' => 30], // coletor do Mac diário às 06:20
     ];
 

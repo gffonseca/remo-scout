@@ -102,6 +102,13 @@ class DataSourceResource extends Resource
                             RunArtisanSync::dispatch('scout:sync-api-futebol', ['--max' => 300, '--user' => auth()->id()]);
                             Notification::make()->success()->title('Sincronização enviada ao worker')->body('Acompanhe em Execuções.')->send();
                         }),
+                    Action::make('syncSquads')->label('Atualizar elencos agora')->icon(Heroicon::OutlinedUserGroup)
+                        ->visible(fn (DataSource $r) => $r->key === 'dados_futebol' && auth()->user()->isCoordinator())
+                        ->requiresConfirmation()->modalDescription('Remo e clubes dos atletas prioritários (até 40 clubes, cerca de 2 chamadas por clube). Só retrato de elenco; não altera cadastro.')
+                        ->action(function () {
+                            RunArtisanSync::dispatch('scout:sync-dados-futebol', ['--max' => 40, '--user' => auth()->id()]);
+                            Notification::make()->success()->title('Atualização de elencos enviada ao worker')->send();
+                        }),
                     Action::make('enrichPriority')->label('Enriquecer lista prioritária')->icon(Heroicon::OutlinedSparkles)
                         ->visible(fn (DataSource $r) => in_array($r->key, ['transfermarkt', 'sofascore'], true) && auth()->user()->isCoordinator())
                         ->requiresConfirmation()->modalDescription('Vincula e enriquece até 40 atletas prioritários, com intervalo entre chamadas. Casos ambíguos ficam para escolha manual.')

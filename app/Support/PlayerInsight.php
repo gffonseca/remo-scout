@@ -105,4 +105,25 @@ class PlayerInsight
         'VOL' => [50, 96], 'MC' => [50, 78], 'MEI' => [50, 58], 'MD' => [84, 66], 'ME' => [16, 66],
         'PD' => [84, 40], 'PE' => [16, 40], 'SA' => [50, 38], 'CA' => [50, 20],
     ];
+
+    /**
+     * Retrato de elenco (Dados Futebol) do atleta ligado por ID confirmado: confirma o clube, aponta outro clube ou saída.
+     * Só informa; não altera o cadastro.
+     */
+    public static function squadNote(\App\Models\Player $p): ?string
+    {
+        $e = \App\Models\ClubSquadEntry::with('club')->where('player_id', $p->id)->orderByRaw('left_at is not null')->latest('last_seen_at')->first();
+        if (! $e) {
+            return null;
+        }
+        $when = $e->last_seen_at->timezone(config('scout.display_timezone'))->format('d/m/Y');
+        if (! $e->isCurrent()) {
+            return "Dados Futebol: saiu do elenco do {$e->club->name} (último retrato em que constava: {$when}).";
+        }
+        $shirt = $e->shirt_number ? ", camisa {$e->shirt_number}" : '';
+
+        return $e->club_id === $p->current_club_id
+            ? "Dados Futebol confirma no elenco{$shirt} ({$when})."
+            : "Atenção: Dados Futebol o lista no elenco do {$e->club->name}{$shirt} ({$when}). Cadastro não alterado.";
+    }
 }

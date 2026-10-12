@@ -8,3 +8,4 @@ Schedule::command('scout:sync-api-futebol --max=400')->dailyAt('09:00')->without
 Schedule::command('scout:enrich transfermarkt --scope=priority --limit=40')->dailyAt('10:00')->withoutOverlapping(90);
 Schedule::command('scout:enrich sofascore --scope=shortlist --limit=20')->weeklyOn(1, '10:30')->withoutOverlapping(90);
 Schedule::command('scout:sync-crests')->weeklyOn(0, '09:30')->withoutOverlapping();
+Schedule::command('scout:sync-dados-futebol --max=40')->weeklyOn(1, '11:00')->withoutOverlapping(60); // elencos: segunda 08:00 Belém

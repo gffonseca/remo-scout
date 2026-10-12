@@ -197,7 +197,8 @@ class PlayerResource extends Resource
                 TextEntry::make('positions')->label('Outras posições')->badge()->placeholder('—'),
                 TextEntry::make('preferred_foot')->label('Pé')->badge(),
                 TextEntry::make('height_cm')->label('Altura')->suffix(' cm')->placeholder('não informada'),
-                TextEntry::make('currentClub.name')->label('Clube atual')->placeholder('não informado'),
+                TextEntry::make('currentClub.name')->label('Clube atual')->placeholder('não informado')
+                    ->helperText(fn (Player $record) => \App\Support\PlayerInsight::squadNote($record)),
                 TextEntry::make('latestContract.status')->label('Situação contratual')->badge()->placeholder('sem observação'),
                 TextEntry::make('latestContract.contract_end')->label('Fim de contrato (observado)')->date('d/m/Y')->placeholder('não informado')
                     ->helperText(fn (Player $r) => $r->latestContract ? $r->latestContract->confirmation->getLabel().' · '.$r->latestContract->observed_on->format('d/m/Y') : null),
