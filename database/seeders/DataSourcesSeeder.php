@@ -8,6 +8,13 @@ use Illuminate\Database\Seeder;
 /** Catálogo de fontes. Idempotente: não altera "enabled" nem saúde de fontes já existentes. */
 class DataSourcesSeeder extends Seeder
 {
+    /** Cota mensal do contrato e horas máximas esperadas entre ingestões (diagnóstico "atrasada"). */
+    private const LIMITS = [
+        'api_futebol' => ['expected_refresh_hours' => 30],
+        'dados_futebol' => ['monthly_quota' => 30000],
+        'cbf_atletas' => ['expected_refresh_hours' => 30], // coletor do Mac diário às 06:20
+    ];
+
     public function run(): void
     {
         $na = 'Fonte não oficial: termos do site restringem coleta automatizada. Uso autorizado por Gustavo em 11/10/2026 — consulta sob demanda, com intervalo e cache.';
@@ -21,7 +28,8 @@ class DataSourcesSeeder extends Seeder
             ['cbf_intermediarios', 'CBF — intermediários cadastrados', 'documento_publico', true, false, null, 'https://intermediario.cbf.com.br', 3000, 300, 'Registro público de intermediários; alimenta o cadastro de empresários.'],
             ['cbf_parceiros', 'CBF — API de parceiros', 'oficial_credenciado', false, true, 'CBF_PARTNER_CREDENTIAL', 'https://campeonatos.cbf.com.br', 1000, null, 'Exige credencial oficial solicitada pelo clube.'],
             ['api_football', 'API-Football', 'api_comercial', false, true, 'API_FOOTBALL_KEY', 'https://v3.football.api-sports.io', 300, 75000, 'Aguardando assinatura (plano Ultra, US$ 29/mês anunciado).'],
-            ['sportmonks', 'Sportmonks', 'api_comercial', false, true, 'SPORTMONKS_TOKEN', 'https://api.sportmonks.com/v3/football', 500, null, 'Aguardando trial/assinatura.'],
+            ['dados_futebol', 'Dados Futebol', 'api_comercial', true, true, 'DADOS_FUTEBOL_KEY', 'https://api.dadosfutebol.com.br', 1000, 1000, 'Plano Pro (1.000/dia, 30.000/mês). Útil para elenco atual (clube, camisa), artilharia e estatística coletiva. Estatística é só por time e com cobertura irregular; posição e idade dos atletas não são confiáveis. Não serve para avaliação individual.'],
+            ['sportmonks', 'Sportmonks', 'api_comercial', false, true, 'SPORTMONKS_TOKEN', 'https://api.sportmonks.com/v3/football', 500, null, 'Chave recebida em 12/10/2026, plano Free: só Dinamarca e Escócia, nenhuma liga brasileira. Brasil exige plano pago (decisão do Gustavo).'],
             ['soccersapi', 'SoccersAPI', 'api_comercial', false, true, 'SOCCERSAPI_TOKEN', 'https://api.soccersapi.com/v2.2', 500, null, 'Aguardando chave.'],
             ['spider_ogol', 'ogol via spider.cloud', 'nao_oficial', false, true, 'SPIDER_CLOUD_KEY', 'https://api.spider.cloud', 2000, null, $na.' Aguardando chave paga.'],
         ];
@@ -34,6 +42,12 @@ class DataSourcesSeeder extends Seeder
                 'transport' => in_array($key, ['cbf_atletas', 'cbf_intermediarios'], true) ? 'coletor_local' : 'direto']);
             if ($isNew) {
                 $s->fill(['enabled' => $enabled, 'base_url' => $url, 'min_interval_ms' => $interval, 'daily_quota' => $quota]);
+            }
+            // Limites e expectativa de atualização: só preenche o que ainda está vazio (admin pode ajustar na tela).
+            foreach (self::LIMITS[$key] ?? [] as $field => $value) {
+                if ($s->{$field} === null) {
+                    $s->{$field} = $value;
+                }
             }
             $s->save();
         }

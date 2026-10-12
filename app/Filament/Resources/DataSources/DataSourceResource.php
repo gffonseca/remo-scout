@@ -52,6 +52,9 @@ class DataSourceResource extends Resource
             TextInput::make('base_url')->label('Endereço base')->url()->helperText('Ex.: trocar a instância pública do transfermarkt-api por uma própria.'),
             TextInput::make('min_interval_ms')->label('Intervalo mínimo entre chamadas (ms)')->numeric()->minValue(200),
             TextInput::make('daily_quota')->label('Cota diária (requisições)')->numeric()->minValue(1),
+            TextInput::make('monthly_quota')->label('Cota mensal (requisições)')->numeric()->minValue(1),
+            TextInput::make('expected_refresh_hours')->label('Atualização esperada a cada (horas)')->numeric()->minValue(1)
+                ->helperText('Sem ingestão concluída nesse prazo, a fonte aparece como "Atrasada". Vazio = sob demanda.'),
             Textarea::make('notes')->label('Notas')->rows(3)->columnSpanFull(),
         ]);
     }
@@ -68,9 +71,18 @@ class DataSourceResource extends Resource
                 TextColumn::make('health')->label('Saúde')->badge()
                     ->color(fn ($state) => ['ok' => 'success', 'degradado' => 'warning', 'bloqueado' => 'danger', 'sem_credencial' => 'gray', 'nao_testado' => 'gray'][$state] ?? 'gray')
                     ->formatStateUsing(fn ($state) => ['ok' => 'OK', 'degradado' => 'Instável', 'bloqueado' => 'Bloqueada', 'sem_credencial' => 'Aguardando credencial', 'nao_testado' => 'Não testada'][$state] ?? $state)
-                    ->tooltip(fn (DataSource $s) => $s->last_error ? 'Último erro: '.$s->last_error : null),
-                TextColumn::make('quota')->label('Cota hoje')->state(fn (DataSource $s) => $s->daily_quota ? ($s->daily_quota - $s->remainingQuota()).' / '.$s->daily_quota : '—'),
-                TextColumn::make('last_success_at')->label('Último sucesso')->since()->placeholder('nunca'),
+                    ->tooltip(fn (DataSource $s) => $s->last_error ? 'Último erro: '.$s->last_error : null)
+                    ->description(fn (DataSource $s) => $s->circuitOpen()
+                        ? 'Pausada até '.$s->circuit_open_until->timezone(config('scout.display_timezone'))->format('d/m H:i').' ('.$s->consecutive_failures.' falhas seguidas)'
+                        : null),
+                TextColumn::make('quota')->label('Cota')->state(fn (DataSource $s) => collect([
+                    $s->daily_quota ? $s->usedToday().' / '.$s->daily_quota.' hoje' : null,
+                    $s->monthly_quota ? $s->usedThisMonth().' / '.$s->monthly_quota.' no mês' : null,
+                ])->filter()->implode(' · ') ?: '—'),
+                TextColumn::make('freshness')->label('Atualização')->badge()->state(fn (DataSource $s) => $s->freshnessLabel())
+                    ->color(fn (DataSource $s) => ['em_dia' => 'success', 'atrasado' => 'danger', 'nunca' => 'warning'][$s->freshness()] ?? 'gray')
+                    ->tooltip(fn (DataSource $s) => ($at = $s->lastIngestedAt()) ? 'Última ingestão concluída: '.$at->timezone(config('scout.display_timezone'))->format('d/m/Y H:i') : null),
+                TextColumn::make('last_success_at')->label('Último contato ok')->since()->placeholder('nunca'),
                 TextColumn::make('runs_count')->label('Execuções')->counts('runs')->alignEnd(),
             ])
             ->recordActions([

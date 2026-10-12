@@ -33,6 +33,7 @@ return [
 
     'credentials' => [
         'API_FUTEBOL_KEY' => env('API_FUTEBOL_KEY'),
+        'DADOS_FUTEBOL_KEY' => env('DADOS_FUTEBOL_KEY'),
         'API_FOOTBALL_KEY' => env('API_FOOTBALL_KEY'),
         'SPORTMONKS_TOKEN' => env('SPORTMONKS_TOKEN'),
         'SOCCERSAPI_TOKEN' => env('SOCCERSAPI_TOKEN'),
