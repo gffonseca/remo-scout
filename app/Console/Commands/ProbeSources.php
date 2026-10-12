@@ -36,7 +36,17 @@ class ProbeSources extends Command
             }
             $path = self::PROBES[$s->key] ?? null;
             if ($s->transport === 'coletor_local') {
-                $this->line("[probe] {$s->key}: coletada pelo coletor local (Mac Mini); saúde vem da última execução");
+                // F17: sem ingestão concluída no prazo esperado (Mac desligado, coletor parado) → atrasada, não saudável.
+                $fresh = $s->freshness();
+                if (in_array($fresh, ['atrasado', 'nunca'], true)) {
+                    $at = $s->lastIngestedAt();
+                    $s->update(['health' => 'atrasado', 'last_error_at' => now(), 'last_error' => 'Coletor local sem execução concluída '
+                        .($at ? 'desde '.$at->timezone(config('scout.display_timezone'))->format('d/m H:i') : 'registrada')
+                        .' (esperado a cada '.$s->expected_refresh_hours.' h). Verifique se o Mac Mini está ligado.']);
+                    $this->line("[probe] {$s->key}: ATRASADA (coletor local)");
+                } else {
+                    $this->line("[probe] {$s->key}: coletor local em dia");
+                }
 
                 continue;
             }

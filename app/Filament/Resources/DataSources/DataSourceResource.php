@@ -69,8 +69,8 @@ class DataSourceResource extends Resource
                     ->color(fn ($state) => ['nao_oficial' => 'warning', 'api_comercial' => 'info', 'documento_publico' => 'success', 'oficial_credenciado' => 'primary'][$state] ?? 'gray'),
                 ToggleColumn::make('enabled')->label('Ativa')->disabled(fn () => ! auth()->user()->isCoordinator()),
                 TextColumn::make('health')->label('Saúde')->badge()
-                    ->color(fn ($state) => ['ok' => 'success', 'degradado' => 'warning', 'bloqueado' => 'danger', 'sem_credencial' => 'gray', 'nao_testado' => 'gray'][$state] ?? 'gray')
-                    ->formatStateUsing(fn ($state) => ['ok' => 'OK', 'degradado' => 'Instável', 'bloqueado' => 'Bloqueada', 'sem_credencial' => 'Aguardando credencial', 'nao_testado' => 'Não testada'][$state] ?? $state)
+                    ->color(fn ($state) => ['ok' => 'success', 'degradado' => 'warning', 'bloqueado' => 'danger', 'atrasado' => 'danger', 'sem_credencial' => 'gray', 'nao_testado' => 'gray'][$state] ?? 'gray')
+                    ->formatStateUsing(fn ($state) => ['ok' => 'OK', 'degradado' => 'Instável', 'bloqueado' => 'Bloqueada', 'atrasado' => 'Atrasada', 'sem_credencial' => 'Aguardando credencial', 'nao_testado' => 'Não testada'][$state] ?? $state)
                     ->tooltip(fn (DataSource $s) => $s->last_error ? 'Último erro: '.$s->last_error : null)
                     ->description(fn (DataSource $s) => $s->circuitOpen()
                         ? 'Pausada até '.$s->circuit_open_until->timezone(config('scout.display_timezone'))->format('d/m H:i').' ('.$s->consecutive_failures.' falhas seguidas)'

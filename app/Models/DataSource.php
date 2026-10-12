@@ -105,10 +105,10 @@ class DataSource extends Model
         return $this->circuit_open_until !== null && $this->circuit_open_until->isFuture();
     }
 
-    /** Última ingestão concluída (o teste diário de saúde não conta como dado atualizado). */
+    /** Última ingestão concluída ou parcial (o teste diário de saúde não conta como dado atualizado). */
     public function lastIngestedAt(): ?\Carbon\CarbonInterface
     {
-        $at = $this->runs()->reorder()->where('status', 'concluido')->max('finished_at');
+        $at = $this->runs()->reorder()->whereIn('status', ['concluido', 'parcial'])->max('finished_at');
 
         return $at ? \Illuminate\Support\Carbon::parse($at) : null;
     }

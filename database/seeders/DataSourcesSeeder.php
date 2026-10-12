@@ -13,8 +13,9 @@ class DataSourcesSeeder extends Seeder
         'api_futebol' => ['expected_refresh_hours' => 30],
         'api_football' => ['expected_refresh_hours' => 30],
         'dados_futebol' => ['monthly_quota' => 30000, 'expected_refresh_hours' => 192], // elencos: semanal
-        'cbf_atletas' => ['expected_refresh_hours' => 30],
-        'football_data' => ['expected_refresh_hours' => 192], // coletor do Mac diário às 06:20
+        'cbf_atletas' => ['expected_refresh_hours' => 30], // coletor do Mac diário às 06:20
+        'cbf_intermediarios' => ['expected_refresh_hours' => 30],
+        'football_data' => ['expected_refresh_hours' => 192], // semanal
     ];
 
     public function run(): void

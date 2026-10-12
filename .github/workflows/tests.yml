@@ -68,3 +68,6 @@ jobs:
           DB_USERNAME: scout
           DB_PASSWORD: scout
         run: php artisan test
+
+      - name: Testes do coletor local (Python, sem rede)
+        run: python3 collector/test_coletor.py
