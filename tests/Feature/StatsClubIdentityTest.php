@@ -132,13 +132,14 @@ class StatsClubIdentityTest extends ScoutTestCase
         DB::table('cbf_athletes')->insert(['id' => (string) Str::uuid(), 'cbf_id' => '555', 'name' => 'Legado', 'club_cbf_id' => '90', 'club_name' => 'Paysandu', 'club_id' => $club->id, 'created_at' => now(), 'updated_at' => now()]);
         $row = fn (array $a) => DB::table('player_season_stats')->insert($a + ['id' => (string) Str::uuid(), 'player_id' => $p->id, 'competition_name' => 'X', 'season' => '2026', 'created_at' => now(), 'updated_at' => now()]);
         $row(['provider' => 'transfermarkt', 'competition_key' => 'BRA2', 'club_name' => '199']);
+        $row(['provider' => 'transfermarkt', 'competition_key' => 'BRA2', 'club_name' => '537']); // duas passagens com código (caso real de produção)
         $row(['provider' => 'transfermarkt', 'competition_key' => 'BRA3', 'club_name' => 'Remo']);
         $row(['provider' => 'transfermarkt', 'competition_key' => 'BRA3', 'club_name' => 'REMO']); // só a caixa difere: era permitido
         $row(['provider' => 'cbf', 'competition_key' => 'cbf-total', 'club_name' => 'Paysandu', 'appearances' => 5]);
         $m->up();
 
+        $this->assertSame(['199', '537'], PlayerSeasonStat::where('competition_key', 'BRA2')->orderBy('club_external_id')->pluck('club_external_id')->all());
         $tm = PlayerSeasonStat::where('provider', 'transfermarkt')->where('competition_key', 'BRA2')->first();
-        $this->assertSame('199', $tm->club_external_id);
         $this->assertNull($tm->club_name);
         $this->assertSame(2, PlayerSeasonStat::where('competition_key', 'BRA3')->count());
         $cbf = PlayerSeasonStat::where('provider', 'cbf')->first();
