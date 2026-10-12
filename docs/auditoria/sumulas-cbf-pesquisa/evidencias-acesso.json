@@ -1,0 +1,48 @@
+{
+  "data": "2026-10-12",
+  "pdfs_testados": 5,
+  "documentos": [
+    {
+      "url": "https://conteudo.cbf.com.br/sumulas/2026/424140b.pdf",
+      "http": 200,
+      "bytes": 85145,
+      "paginas": 2,
+      "texto_extraivel": true,
+      "sha256": "ec29a9acd28036c4c7a54afbb10bac3a49dea443c13110d1d739e0d95da9692c"
+    },
+    {
+      "url": "https://conteudo.cbf.com.br/sumulas/2026/424140rdj.pdf",
+      "http": 200,
+      "bytes": 15449,
+      "paginas": 2,
+      "texto_extraivel": true,
+      "sha256": "5c1b3dfca867e991b3ea3c669d321507141538461bbc15518cb33aced666ae2d"
+    },
+    {
+      "url": "https://conteudo.cbf.com.br/sumulas/2026/424140se.pdf",
+      "http": 200,
+      "bytes": 45258,
+      "paginas": 3,
+      "texto_extraivel": true,
+      "sha256": "5da9d86199c041ab96fc5d4f695155074fe060abf2acda1cfa165e0dbf514dd3"
+    },
+    {
+      "url": "https://conteudo.cbf.com.br/sumulas/2026/142168se.pdf",
+      "http": 200,
+      "bytes": 44534,
+      "paginas": 3,
+      "texto_extraivel": true,
+      "sha256": "cece75da5063a40102451b7987ec26a35a84d61f46554834134b325aa796c6dc"
+    },
+    {
+      "url": "https://conteudo.cbf.com.br/sumulas/2026/142292se.pdf",
+      "http": 200,
+      "bytes": 44532,
+      "paginas": 3,
+      "texto_extraivel": true,
+      "sha256": "1e5c0ff18fbba7894b8cc80a777dbf148b12cc1da937a6acd5fea850d2bef6b0"
+    }
+  ],
+  "escopo": "Downloads amostrados e inspeção do catálogo; não comprova cobertura global ou autorização para ingestão permanente.",
+  "divergencia_data_rdj": "RDJ Remo × Santos 08/04/2026; outros documentos/página 04/08/2026. Conferir representação."
+}

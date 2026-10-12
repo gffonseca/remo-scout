@@ -1,6 +1,6 @@
 # CHECKPOINT — REMO SCOUT
 
-Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 3 do refinamento concluído; deploy autorizado).
+Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 3 publicado; branch `confiabilidade` aguardando autorização).
 
 ## Decisões vigentes (ver docs/PROMPT-v2.md §2)
 - Usuários: Gustavo (admin/piloto), Rafael (coordenador), 2 analistas (a contratar), Executivo de Futebol (leitor; financeiro por permissão).
@@ -73,3 +73,12 @@ Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 3 do refinamen
   preferências de tabela por usuário, perfil em abas, Ctrl+K com atalhos e planejador de elenco (com/sem posse, carências, cenários).
 - Revisão independente: 4 achados (2 médios), todos corrigidos. Detalhes em docs/auditoria/BLOCO-3-ENTREGA.md.
 - Próximo: Bloco 4 — notícias via Claude API (aguarda chave e teto do Gustavo), F19 operação, ensaio de restauração no Mac Mini, F21, piloto.
+
+## 12/10/2026 — prompt mestre: confiabilidade (branch `confiabilidade`, não publicada)
+- Bloco 3 publicado antes do prompt mestre (merge PR #2 `5a90628`, autorizado). A partir do prompt mestre: nada em produção sem autorização específica.
+- Clube como código: causa no Transfermarkt; clube canônico × ID da fonte × rótulo; backfill `scout:stats-clubs` com prévia/trilha/reversão.
+- Estatísticas: 9 estados por atleta na tela Cobertura de dados; perfil não esconde linhas; `scout:enrich --scope=cobertura`.
+- Fotos: foto da API-Football com vínculo confiável; `scout:photos` (backfill, verificação, relatório); iniciais como placeholder.
+- F03: especialidade obrigatória exige limiar. F01: teste com sessão real e desafio MFA.
+- Pro Soccer (portal do próprio Remo): coletor de descoberta no Mac Mini; aguarda senha no Chaves do Mac Mini. Fora: documentos, saúde, financeiro, cláusulas/valores.
+- Detalhes: docs/auditoria/CONFIABILIDADE-ENTREGA.md. Próximo: súmulas CBF, Football-Data (licença), comparativo de fontes, Pro Soccer após a descoberta.

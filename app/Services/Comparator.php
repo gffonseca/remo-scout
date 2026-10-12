@@ -56,7 +56,7 @@ class Comparator
     {
         $ids = DB::table('compare_pins')->where('user_id', $u->id)->orderBy('created_at')->pluck('player_id');
 
-        return Player::with(['currentClub', 'latestContract', 'roleAssessments.tacticalRole', 'specialtyAssessments.specialty', 'seasonStats',
+        return Player::with(['currentClub', 'latestContract', 'roleAssessments.tacticalRole', 'specialtyAssessments.specialty', 'seasonStats.club',
             'submittedReports' => fn ($q) => $q->visibleTo($u)])
             ->whereIn('id', $ids)->get()->sortBy(fn ($p) => $ids->search($p->id))->values();
     }

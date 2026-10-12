@@ -40,6 +40,7 @@ class Player extends Model
     protected function casts(): array
     {
         return [
+            'photo_checked_at' => 'datetime',
             'aliases' => 'array',
             'positions' => 'array',
             'birth_date' => 'date',
@@ -73,10 +74,19 @@ class Player extends Model
         return $this->belongsTo(Club::class, 'current_club_id');
     }
 
-    /** URL exibível da foto: arquivo enviado (URL temporária no bucket privado) > URL da fonte. */
+    /** Estados da verificação em que a URL externa não é exibida (o cadastro mostra as iniciais). */
+    public const PHOTO_HIDDEN = ['quebrada', 'generica', 'nao_imagem', 'host_nao_permitido'];
+
+    /** URL exibível da foto: arquivo enviado/armazenado (URL temporária, gerada na hora) > URL da fonte verificada ou ainda não verificada. */
     public function photoUrl(): ?string
     {
-        return Media::url($this->photo_path) ?? $this->photo_url;
+        return Media::url($this->photo_path)
+            ?? ($this->photo_url && ! in_array($this->photo_status, self::PHOTO_HIDDEN, true) ? $this->photo_url : null);
+    }
+
+    public function avatarUrl(): string
+    {
+        return $this->photoUrl() ?? Media::initialsAvatar($this->name);
     }
 
     /** Acrescenta cidadania declarada por uma fonte (sem duplicar país). Não confirma documento. */
@@ -126,6 +136,15 @@ class Player extends Model
     {
         // F15: passaporte comunitário "Sim" exige documento conferido (evidência + responsável + data).
         static::saving(function (self $p) {
+            // Foto enviada pelo departamento: origem e responsável registrados (a da CBF fica em players/cbf/).
+            if ($p->isDirty('photo_path') && filled($p->photo_path) && ! str_starts_with($p->photo_path, 'players/cbf/')) {
+                $p->photo_source = 'upload';
+                $p->photo_uploaded_by = auth()->id();
+                $p->photo_status = null;
+            }
+            if ($p->isDirty('photo_path') && str_starts_with((string) $p->photo_path, 'players/cbf/')) {
+                $p->photo_source = 'cbf';
+            }
             if ($p->isDirty('eu_passport') || $p->isDirty('eu_passport_evidence')) {
                 if ($p->eu_passport === true && blank($p->eu_passport_evidence)) {
                     throw ValidationException::withMessages(['eu_passport' => 'Passaporte comunitário só pode ser "Sim" com o documento conferido descrito na evidência.']);
@@ -227,6 +246,11 @@ class Player extends Model
     public function specialtyAssessments(): HasMany
     {
         return $this->hasMany(PlayerSpecialtyAssessment::class);
+    }
+
+    public function identityCandidates(): HasMany
+    {
+        return $this->hasMany(IdentityCandidate::class);
     }
 
     public function prospectCases(): HasMany

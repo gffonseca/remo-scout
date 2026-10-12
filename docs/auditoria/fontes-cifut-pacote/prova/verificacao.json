@@ -1,0 +1,62 @@
+{
+  "url": "https://football-data.co.uk/new/BRA.csv",
+  "sha256": "02604bab08431da8bf22b1f80e62ce075883fc50be843b6c02f0102127c2ae2b",
+  "bytes": 644551,
+  "linhas": 5609,
+  "colunas": 25,
+  "campos": [
+    "Country",
+    "League",
+    "Season",
+    "Date",
+    "Time",
+    "Home",
+    "Away",
+    "HG",
+    "AG",
+    "Res",
+    "PSCH",
+    "PSCD",
+    "PSCA",
+    "MaxCH",
+    "MaxCD",
+    "MaxCA",
+    "AvgCH",
+    "AvgCD",
+    "AvgCA",
+    "BFECH",
+    "BFECD",
+    "BFECA",
+    "B365CH",
+    "B365CD",
+    "B365CA"
+  ],
+  "temporadas": {
+    "2012": 380,
+    "2013": 380,
+    "2014": 380,
+    "2015": 380,
+    "2016": 380,
+    "2017": 380,
+    "2018": 380,
+    "2019": 380,
+    "2020": 380,
+    "2021": 380,
+    "2022": 380,
+    "2023": 380,
+    "2024": 380,
+    "2025": 380,
+    "2026": 289
+  },
+  "competicoes": {
+    "Serie A": 5609
+  },
+  "chaves_duplicadas": 0,
+  "resultados_ausentes_linhas": [
+    1893
+  ],
+  "invalidos": [],
+  "linhas_remo": 29,
+  "validado_em": "2026-10-12T13:25:13.706003+00:00",
+  "limite": "Consistência interna; sem verificação externa dos placares nem autorização de uso comercial."
+}

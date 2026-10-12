@@ -71,6 +71,6 @@ class PlayerStatsViewTest extends ScoutTestCase
         $this->assertStringContainsString('a CBF não publica minutos', $html);
         $this->assertStringContainsString('Temporadas anteriores (1 linhas)', $html);
         $this->assertStringContainsString('Série Antiga', $html);
-        $this->assertStringNotContainsString('Só inscrito', $html); // linha sem nenhum dado não polui
+        $this->assertStringContainsString('Só inscrito', $html); // prompt mestre 3.6: linha não some por campo ausente (aparece com "—")
     }
 }

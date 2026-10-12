@@ -1,0 +1,30 @@
+﻿source;country;competition;season;match_date;time_raw;timezone;home_name;away_name;home_goals;away_goals;result;quality;source_url
+football_data_co_uk;Brazil;Serie A;2026;2026-01-28;22:00;unknown;Vitoria;Remo;2;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-02-04;23:00;unknown;Remo;Mirassol;2;2;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-02-11;23:00;unknown;Atletico-MG;Remo;3;3;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-02-25;22:00;unknown;Remo;Internacional;1;1;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-03-12;22:00;unknown;Remo;Fluminense;0;2;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-03-15;21:30;unknown;Coritiba;Remo;1;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-03-19;23:00;unknown;Flamengo RJ;Remo;3;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-03-22;19:00;unknown;Remo;Bahia;4;1;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-04-02;23:00;unknown;Santos;Remo;2;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-04-06;00:30;unknown;Gremio;Remo;0;0;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-04-11;20:30;unknown;Remo;Vasco;1;1;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-04-19;22:30;unknown;Bragantino;Remo;4;2;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-04-25;22:30;unknown;Remo;Cruzeiro;0;1;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-05-02;20:00;unknown;Botafogo RJ;Remo;1;2;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-05-10;20:00;unknown;Remo;Palmeiras;1;1;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-05-17;22:30;unknown;Chapecoense-SC;Remo;2;3;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-05-24;20:00;unknown;Remo;Athletico-PR;1;2;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-06-01;00:30;unknown;Remo;Sao Paulo;1;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-07-23;23:30;unknown;Corinthians;Remo;3;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-07-26;23:30;unknown;Remo;Vitoria;2;0;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-07-29;23:30;unknown;Mirassol;Remo;2;1;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-08-08;22:30;unknown;Remo;Atletico-MG;2;2;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-08-18;00:00;unknown;Internacional;Remo;1;1;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-08-22;20:00;unknown;Fluminense;Remo;2;1;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-09-01;00:00;unknown;Remo;Coritiba;2;3;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-09-06;20:00;unknown;Remo;Flamengo RJ;0;1;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-09-15;00:00;unknown;Bahia;Remo;2;1;H;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-09-19;22:30;unknown;Remo;Santos;1;2;A;resultado_consistente;https://football-data.co.uk/new/BRA.csv
+football_data_co_uk;Brazil;Serie A;2026;2026-10-07;23:30;unknown;Remo;Gremio;1;1;D;resultado_consistente;https://football-data.co.uk/new/BRA.csv

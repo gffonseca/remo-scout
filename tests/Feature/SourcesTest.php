@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Club;
+use App\Models\ClubExternalId;
 use App\Models\DataSource;
 use App\Models\EnrichmentReview;
 use App\Models\Fixture;
+use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerSeasonStat;
 use App\Models\SyncRun;
@@ -16,9 +18,12 @@ use App\Sources\SourceException;
 use App\Sources\SumulaImporter;
 use App\Sources\SumulaParser;
 use App\Support\ClubResolver;
+use App\Support\Media;
 use App\Support\NameMatcher;
+use Database\Seeders\ClubsSeeder;
 use Database\Seeders\DataSourcesSeeder;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class SourcesTest extends ScoutTestCase
 {
@@ -146,7 +151,9 @@ class SourcesTest extends ScoutTestCase
             '*/players/217111/profile' => Http::response(['id' => '217111', 'url' => 'https://www.transfermarkt.com/x', 'dateOfBirth' => '1993-03-19', 'height' => 180,
                 'citizenship' => ['Morocco', 'Netherlands'], 'position' => ['main' => 'Right Winger', 'other' => ['Attacking Midfield']], 'foot' => 'left',
                 'club' => ['id' => '537', 'name' => 'Botafogo de Futebol e Regatas', 'contractExpires' => '2028-12-31'], 'marketValue' => 2200000, 'agent' => null]),
-            '*/players/217111/stats' => Http::response(['stats' => [['competitionId' => 'BRA1', 'competitionName' => 'Série A', 'seasonId' => '2026', 'clubId' => '537', 'appearances' => 2, 'goals' => 0, 'minutesPlayed' => 125]]]),
+            '*/players/217111/stats' => Http::response(['stats' => [['competitionId' => 'BRA1', 'competitionName' => 'Série A', 'seasonId' => '2026', 'clubId' => '537', 'appearances' => 2, 'goals' => 0, 'minutesPlayed' => 125],
+                ['competitionId' => 'NL1', 'competitionName' => 'Eredivisie', 'seasonId' => '2019', 'clubId' => '610', 'appearances' => 30, 'goals' => 16]]]),
+            '*/clubs/610/profile' => Http::response(['id' => '610', 'name' => 'Ajax Amsterdam']),
         ]);
         $link = PlayerEnrichment::linkTransfermarkt($p->load('currentClub'));
         $this->assertSame('vinculado', $link['status']);
@@ -162,7 +169,16 @@ class SourcesTest extends ScoutTestCase
         $this->assertSame(175, $p->height_cm); // não sobrescreve
         $this->assertTrue(EnrichmentReview::where('player_id', $p->id)->where('field', 'height_cm')->where('proposed_value', '180')->exists());
         $this->assertSame('transfermarkt', $p->field_sources['preferred_foot']['source']);
-        $this->assertSame(1, $p->seasonStats()->where('provider', 'transfermarkt')->count());
+        // a fonte manda só o ID do clube: ID fica em club_external_id, rótulo da fonte à parte, nunca o código como nome.
+        // "Botafogo de Futebol e Regatas" casou com "Botafogo" só pelo núcleo do nome → não vira clube canônico sem confirmação.
+        $rows = $p->seasonStats()->where('provider', 'transfermarkt')->get()->keyBy('club_external_id');
+        $this->assertSame(['537', '610'], $rows->keys()->map(fn ($k) => (string) $k)->sort()->values()->all());
+        $this->assertSame('Ajax Amsterdam', $rows['610']->club_source_name);
+        $this->assertSame('Botafogo de Futebol e Regatas', $rows['537']->club_source_name);
+        $this->assertNull($rows['610']->club_id);
+        $this->assertNull($rows['537']->club_id);
+        $this->assertSame('nucleo', ClubExternalId::where('provider', 'transfermarkt')->where('external_id', '537')->value('method'));
+        $this->assertTrue($rows->every(fn ($r) => $r->club_name === null || ! ctype_digit($r->club_name)));
         $this->assertTrue($p->marketObservations()->where('currency', 'EUR')->exists());
     }
 
@@ -176,7 +192,7 @@ class SourcesTest extends ScoutTestCase
         $r = PlayerEnrichment::linkTransfermarkt($p);
         $this->assertSame('revisar', $r['status']);
         $this->assertSame(0, $p->externalIds()->count());
-        $this->assertSame(2, \App\Models\IdentityCandidate::where('player_id', $p->id)->count());
+        $this->assertSame(2, IdentityCandidate::where('player_id', $p->id)->count());
     }
 
     public function test_sources_page_renders_for_coordinator_and_is_hidden_for_reader(): void
@@ -195,7 +211,7 @@ class SourcesTest extends ScoutTestCase
 
     public function test_uploaded_photo_and_crest_take_priority_over_external(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('media');
+        Storage::fake('media');
         $club = Club::create(['name' => 'Clube Foto', 'country' => 'Brasil', 'crest_url' => 'https://example.test/c.png']);
         $p = Player::create(['name' => 'Atleta Foto', 'photo_url' => 'https://example.test/p.jpg']);
         $this->assertSame('https://example.test/p.jpg', $p->photoUrl());
@@ -204,16 +220,16 @@ class SourcesTest extends ScoutTestCase
         $club->update(['crest_path' => 'crests/x.png']);
         $this->assertStringContainsString('players/x.jpg', $p->fresh()->photoUrl());
         $this->assertStringContainsString('crests/x.png', $club->fresh()->crestUrl());
-        $this->assertSame('', \App\Support\Media::crestTag(null));
+        $this->assertSame('', Media::crestTag(null));
     }
 
     public function test_provider_club_aliases_resolve_without_duplicates(): void
     {
-        $this->seed(\Database\Seeders\ClubsSeeder::class);
-        \App\Support\ClubResolver::flush();
+        $this->seed(ClubsSeeder::class);
+        ClubResolver::flush();
         $before = Club::count();
-        $this->assertSame('Red Bull Bragantino', \App\Support\ClubResolver::resolve('api_futebol', '999001', 'Bragantino', true)?->name);
-        $this->assertSame('ABECAT', \App\Support\ClubResolver::resolve('api_futebol', '999002', 'Abecat Ouvidorense', true)?->name);
+        $this->assertSame('Red Bull Bragantino', ClubResolver::resolve('api_futebol', '999001', 'Bragantino', true)?->name);
+        $this->assertSame('ABECAT', ClubResolver::resolve('api_futebol', '999002', 'Abecat Ouvidorense', true)?->name);
         $this->assertSame($before, Club::count());
     }
 }

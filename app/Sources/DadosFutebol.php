@@ -55,7 +55,7 @@ class DadosFutebol
             return null;
         }
         ClubExternalId::firstOrCreate(['provider' => self::PROVIDER, 'external_id' => (string) $hits[0]['id']],
-            ['club_id' => $club->id, 'external_name' => $hits[0]['nome']]);
+            ['club_id' => $club->id, 'external_name' => $hits[0]['nome'], 'method' => ClubResolver::match($hits[0]['nome'], $club->state)[1] ?? 'nome_exato']);
 
         return (string) $hits[0]['id'];
     }
