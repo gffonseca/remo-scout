@@ -9,6 +9,29 @@ use Illuminate\Database\Seeder;
 class DataSourcesSeeder extends Seeder
 {
     /** Cota mensal do contrato e horas máximas esperadas entre ingestões (diagnóstico "atrasada"). */
+    /** Autorização de uso já decidida (F20). Só aplicada enquanto a fonte estiver "pendente". */
+    private const AUTH = [
+        'api_futebol' => ['autorizado', 'Plano contratado pelo clube.', '2026-10-12'],
+        'dados_futebol' => ['autorizado', 'Plano Pro contratado (chave entregue pelo Gustavo em 12/10/2026).', '2026-10-12'],
+        'api_football' => ['autorizado', 'Plano Pro assinado pelo Gustavo em 12/10/2026.', '2026-10-12'],
+        'sumula_fpf' => ['autorizado', 'Documento público; uso interno, sem redistribuição.', '2026-10-12'],
+        'sumula_cbf' => ['autorizado', 'Documento público; uso interno, sem redistribuição.', '2026-10-12'],
+        'cbf_intermediarios' => ['autorizado', 'Registro público; uso interno.', '2026-10-12'],
+        'football_data' => ['autorizado', 'CSV público; uso interno.', '2026-10-12'],
+        'bid_cbf' => ['autorizado', 'Registro público consultado manualmente (CAPTCHA no navegador).', '2026-10-12'],
+        'cbf_atletas' => ['restrito', 'Fonte não oficial autorizada pelo Gustavo em 11/10/2026 via coletor local; CPF descartado na entrada.', '2026-10-11'],
+        'transfermarkt' => ['restrito', 'Não oficial; autorizado pelo Gustavo em 11/10/2026 para consulta sob demanda, com intervalo e cache.', '2026-10-11'],
+        'sofascore' => ['restrito', 'Não oficial; termos restringem coleta. Gustavo decidiu (Bloco 2) manter só sob demanda pelo coletor do Mac, ciente do risco de bloqueio.', '2026-10-12'],
+        'sportmonks' => ['nao_autorizado', 'Plano Free sem ligas brasileiras; assinatura não aprovada.', '2026-10-12'],
+    ];
+
+    /** Cobertura medida (amostra conferida) em 12/10/2026. Só aplicada se ainda não houver conferência registrada. */
+    private const COVERAGE = [
+        'api_football' => ['2026-10-12 13:40:00', '6 jogos por competição (2026): estatística individual Série A 6/6, B 6/6, Copa do Brasil 3/6; escalação Série C 5/6, Nordeste 6/6; Série D, Paraense e Copa Norte sem escalação. Rodada real: 5 jogos da Série B, gols dos eventos = placar em 5/5, minutos do provedor em 9 de 10 lados.'],
+        'dados_futebol' => ['2026-10-12 13:20:00', 'Elenco do Remo: 28 atletas conferidos; sem nascimento, posição pouco confiável; estatística só por time e incompleta. Uso restrito a retrato de elenco.'],
+        'football_data' => ['2026-10-12 13:47:00', 'Série A 2022–2026: 1.809 jogos (4×380 + 289); em 2026, 578 jogos-clube (2 por partida). Sem atletas.'],
+    ];
+
     private const LIMITS = [
         'api_futebol' => ['expected_refresh_hours' => 30],
         'api_football' => ['expected_refresh_hours' => 30],
@@ -48,6 +71,13 @@ class DataSourcesSeeder extends Seeder
                 'transport' => in_array($key, ['cbf_atletas', 'cbf_intermediarios', 'sofascore'], true) ? 'coletor_local' : ($key === 'bid_cbf' ? 'consulta_manual' : 'direto')]);
             if ($isNew) {
                 $s->fill(['enabled' => $enabled, 'base_url' => $url, 'min_interval_ms' => $interval, 'daily_quota' => $quota]);
+            }
+            if (isset(self::AUTH[$key]) && in_array($s->usage_authorization ?? 'pendente', ['pendente', null], true)) {
+                [$st, $note, $at] = self::AUTH[$key];
+                $s->fill(['usage_authorization' => $st, 'usage_note' => $note, 'usage_authorized_at' => $at]);
+            }
+            if (isset(self::COVERAGE[$key]) && ! $s->coverage_checked_at) {
+                $s->fill(['coverage_checked_at' => self::COVERAGE[$key][0], 'coverage_note' => self::COVERAGE[$key][1]]);
             }
             // Limites e expectativa de atualização: só preenche o que ainda está vazio (admin pode ajustar na tela).
             foreach (self::LIMITS[$key] ?? [] as $field => $value) {

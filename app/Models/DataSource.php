@@ -17,7 +17,7 @@ class DataSource extends Model
     {
         return [
             'enabled' => 'boolean', 'requires_credential' => 'boolean', 'quota_date' => 'date',
-            'last_success_at' => 'datetime', 'last_error_at' => 'datetime', 'circuit_open_until' => 'datetime',
+            'last_success_at' => 'datetime', 'last_error_at' => 'datetime', 'circuit_open_until' => 'datetime', 'usage_authorized_at' => 'datetime', 'coverage_checked_at' => 'datetime',
         ];
     }
 
@@ -133,5 +133,45 @@ class DataSource extends Model
     public function freshnessLabel(): string
     {
         return ['em_dia' => 'Em dia', 'atrasado' => 'Atrasada', 'nunca' => 'Nunca atualizada', 'sem_expectativa' => 'Sob demanda'][$this->freshness()];
+    }
+
+    /** Houve ingestão ponta a ponta (execução concluída/parcial que recebeu dados). */
+    public function hasIngested(): bool
+    {
+        return $this->runs()->reorder()->whereIn('status', ['concluido', 'parcial'])->where('received', '>', 0)->exists();
+    }
+
+    /**
+     * Estágio na matriz de integrações (F20). "operacional" exige ingestão + cobertura conferida + uso autorizado/restrito.
+     * nao_autorizada | desligada | manual | cadastrada | testada | ingerindo | operacional
+     */
+    public function integrationStage(): string
+    {
+        return match (true) {
+            $this->usage_authorization === 'nao_autorizado' => 'nao_autorizada',
+            ! $this->enabled => 'desligada',
+            $this->transport === 'consulta_manual' => 'manual',
+            $this->hasIngested() && $this->coverage_checked_at && in_array($this->usage_authorization, ['autorizado', 'restrito'], true) => 'operacional',
+            $this->hasIngested() => 'ingerindo',
+            $this->last_success_at !== null => 'testada',
+            default => 'cadastrada',
+        };
+    }
+
+    public function integrationLabel(): string
+    {
+        return ['nao_autorizada' => 'Não autorizada', 'desligada' => 'Desligada', 'manual' => 'Consulta manual', 'cadastrada' => 'Só cadastrada', 'testada' => 'Acesso testado',
+            'ingerindo' => 'Ingerindo (cobertura não conferida)', 'operacional' => 'Operacional'][$this->integrationStage()];
+    }
+
+    /** O que falta para virar operacional. @return list<string> */
+    public function integrationGaps(): array
+    {
+        return array_values(array_filter([
+            $this->enabled ? null : 'fonte desligada',
+            $this->hasIngested() ? null : 'sem ingestão ponta a ponta',
+            $this->coverage_checked_at ? null : 'cobertura não conferida',
+            in_array($this->usage_authorization, ['autorizado', 'restrito'], true) ? null : 'uso não autorizado',
+        ]));
     }
 }

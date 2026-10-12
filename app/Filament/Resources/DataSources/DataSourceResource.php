@@ -77,6 +77,14 @@ class DataSourceResource extends Resource
                     ->description(fn (DataSource $s) => $s->circuitOpen()
                         ? 'Pausada até '.$s->circuit_open_until->timezone(config('scout.display_timezone'))->format('d/m H:i').' ('.$s->consecutive_failures.' falhas seguidas)'
                         : null),
+                TextColumn::make('integration')->label('Integração')->badge()->state(fn (DataSource $s) => $s->integrationLabel())
+                    ->color(fn (DataSource $s) => ['operacional' => 'success', 'ingerindo' => 'warning', 'testada' => 'info', 'manual' => 'info', 'nao_autorizada' => 'danger'][$s->integrationStage()] ?? 'gray')
+                    ->description(fn (DataSource $s) => ['autorizado' => 'Uso autorizado', 'restrito' => 'Uso restrito', 'nao_autorizado' => 'Uso não autorizado', 'pendente' => 'Autorização pendente'][$s->usage_authorization] ?? null)
+                    ->tooltip(fn (DataSource $s) => collect([
+                        $s->integrationGaps() ? 'Falta: '.implode('; ', $s->integrationGaps()).'.' : null,
+                        $s->coverage_note ? 'Cobertura ('.$s->coverage_checked_at?->timezone(config('scout.display_timezone'))->format('d/m/Y').'): '.$s->coverage_note : null,
+                        $s->usage_note ? 'Uso: '.$s->usage_note : null,
+                    ])->filter()->implode(' ')),
                 TextColumn::make('quota')->label('Cota')->state(fn (DataSource $s) => collect([
                     $s->daily_quota ? $s->usedToday().' / '.$s->daily_quota.' hoje' : null,
                     $s->monthly_quota ? $s->usedThisMonth().' / '.$s->monthly_quota.' no mês' : null,
@@ -131,6 +139,27 @@ class DataSourceResource extends Resource
                         ->action(function (DataSource $r) {
                             RunArtisanSync::dispatch('scout:enrich', ['provider' => $r->key, '--scope' => 'priority', '--limit' => 40, '--user' => auth()->id()]);
                             Notification::make()->success()->title('Enriquecimento enviado ao worker')->send();
+                        }),
+                    Action::make('coverage')->label('Registrar conferência de cobertura')->icon(Heroicon::OutlinedClipboardDocumentCheck)
+                        ->visible(fn () => auth()->user()->isCoordinator())
+                        ->modalDescription('Descreva a amostra conferida (competições, jogos, campos) e o resultado. Sem isso a fonte não vira "Operacional".')
+                        ->fillForm(fn (DataSource $r) => ['coverage_note' => $r->coverage_note])
+                        ->schema([Textarea::make('coverage_note')->label('Amostra conferida e resultado')->rows(4)->required()->minLength(20)])
+                        ->action(function (DataSource $r, array $data) {
+                            $r->update(['coverage_note' => $data['coverage_note'], 'coverage_checked_at' => now(), 'coverage_checked_by' => auth()->id()]);
+                            Notification::make()->success()->title('Conferência registrada')->send();
+                        }),
+                    Action::make('usage')->label('Autorização de uso')->icon(Heroicon::OutlinedShieldCheck)
+                        ->visible(fn () => auth()->user()->isAdmin())
+                        ->fillForm(fn (DataSource $r) => ['usage_authorization' => $r->usage_authorization, 'usage_note' => $r->usage_note])
+                        ->schema([
+                            \Filament\Forms\Components\Select::make('usage_authorization')->label('Situação')->required()
+                                ->options(['autorizado' => 'Autorizado', 'restrito' => 'Restrito (condições na nota)', 'nao_autorizado' => 'Não autorizado', 'pendente' => 'Pendente']),
+                            Textarea::make('usage_note')->label('Base da decisão (contrato, termos, quem autorizou)')->rows(3)->required(),
+                        ])
+                        ->action(function (DataSource $r, array $data) {
+                            $r->update($data + ['usage_authorized_by' => auth()->id(), 'usage_authorized_at' => now()]);
+                            Notification::make()->success()->title('Autorização registrada')->send();
                         }),
                     EditAction::make()->label('Configurar')->visible(fn () => auth()->user()->isAdmin()),
                 ]),
