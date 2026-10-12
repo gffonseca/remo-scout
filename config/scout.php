@@ -18,6 +18,14 @@ return [
         'campeonato-brasileiro/serie-c' => 'Série C',
         'campeonato-brasileiro/serie-d' => 'Série D',
         'copa-do-brasil/masculino' => 'Copa do Brasil',
+        'copa-do-nordeste/masculino' => 'Copa do Nordeste',
+        'copa-verde/masculino' => 'Copa Verde',
+        'copa-sul-sudeste/masculino' => 'Copa Sul-Sudeste',
+        // Base (Sub-20 inclui atletas de 17 anos): só nome/clube no registro; detalhe apenas de quem vocês cadastrarem no scout.
+        'campeonato-brasileiro/sub-20' => 'Brasileiro Sub-20',
+        'campeonato-brasileiro/sub-20-b' => 'Brasileiro Sub-20 B',
+        'copa-do-brasil/sub-20' => 'Copa do Brasil Sub-20',
+        // Fora de propósito: Sub-17/Sub-15/Sub-13 (todos menores de idade) e feminino.
     ],
 
     'credentials' => [
