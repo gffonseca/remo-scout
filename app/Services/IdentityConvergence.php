@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\DB;
  * Ligação por convergência (decisão do Gustavo em 12/10/2026, "opção B").
  *
  * Cadastro sem nascimento não pode ser ligado por nome + nascimento. Aqui o nascimento vem de DUAS fontes independentes:
- * o registro CBF provável do atleta (mesmo clube de inscrição e nome compatível) e um candidato do Transfermarkt
- * cujo perfil traz a MESMA data de nascimento e o mesmo clube do cadastro. Só com um único candidato nessas condições.
+ * o único candidato do Transfermarkt cujo clube atual é o do cadastro (nascimento lido do perfil) e um único registro CBF
+ * do mesmo clube, com o MESMO nascimento e nome compatível. Qualquer ambiguidade mantém o atleta na fila humana.
  * Tudo entra num lote reversível (data_fix_changes): nascimento, ID CBF, vínculo Transfermarkt e decisões da fila.
  */
 class IdentityConvergence
@@ -26,33 +26,21 @@ class IdentityConvergence
 
     public const PROFILE_CACHE = 30 * 86400;
 
+    /** Nome compatível entre o cadastro e o registro CBF (apelido ou nome civil), com nascimento e clube já iguais. */
+    public const CBF_NAME_MIN = 80;
+
     /** @return array<int, array{player_id:string, player:string, club:?string, cbf_id:?string, birth:?string, tm_id:?string, tm_label:?string, decision:string, reason:string}> */
     public static function evaluate(bool $search = false, int $limit = 60, ?Transfermarkt $tm = null): array
     {
         $tm ??= new Transfermarkt;
         $rows = [];
-        $players = Player::query()->with('currentClub')->whereNull('birth_date')->whereNot(fn ($w) => $w->provisional())
-            ->whereHas('cbfAthletes', fn ($a) => $a->where('link_status', 'provavel')->whereNotNull('birth_date'))
+        $players = Player::query()->with('currentClub')->whereNull('birth_date')->whereNotNull('current_club_id')->whereNot(fn ($w) => $w->provisional())
             ->whereDoesntHave('externalIds', fn ($x) => $x->where('provider', Transfermarkt::PROVIDER))
+            ->when(! $search, fn ($q) => $q->whereHas('identityCandidates', fn ($c) => $c->where('provider', Transfermarkt::PROVIDER)->where('status', 'pendente')))
             ->orderByDesc('is_priority')->orderBy('name')->limit($limit)->get();
 
         foreach ($players as $p) {
             $row = ['player_id' => $p->id, 'player' => $p->name, 'club' => $p->currentClub?->name, 'cbf_id' => null, 'birth' => null, 'tm_id' => null, 'tm_label' => null];
-            $cbf = CbfAthlete::where('player_id', $p->id)->where('link_status', 'provavel')->whereNotNull('birth_date')->get();
-            if ($cbf->count() !== 1 || ! $cbf->first()->club_id || $cbf->first()->club_id !== $p->current_club_id) {
-                $rows[] = $row + ['decision' => 'fila', 'reason' => 'Registro CBF ambíguo ou de outro clube.'];
-
-                continue;
-            }
-            $a = $cbf->first();
-            $birth = Carbon::parse($a->birth_date)->toDateString();
-            $row['cbf_id'] = $a->cbf_id;
-            $row['birth'] = $birth;
-            if (Player::where('cbf_id', $a->cbf_id)->where('id', '!=', $p->id)->exists()) {
-                $rows[] = $row + ['decision' => 'fila', 'reason' => 'ID CBF já pertence a outro atleta.'];
-
-                continue;
-            }
             try {
                 $cands = IdentityCandidate::where('player_id', $p->id)->where('provider', Transfermarkt::PROVIDER)->where('status', 'pendente')->get();
                 if ($cands->isEmpty() && $search) {
@@ -60,22 +48,22 @@ class IdentityConvergence
                     $cands = IdentityCandidate::where('player_id', $p->id)->where('provider', Transfermarkt::PROVIDER)->where('status', 'pendente')->get();
                 }
                 if ($cands->isEmpty()) {
-                    $rows[] = $row + ['decision' => 'fila', 'reason' => $search ? 'Transfermarkt sem candidato.' : 'Sem candidatos do Transfermarkt ainda.'];
+                    $rows[] = $row + ['decision' => 'fila', 'reason' => 'Transfermarkt sem candidato.'];
 
                     continue;
                 }
-                $expected = Carbon::parse($birth)->age;
-                $matches = [];
+                // 1) Transfermarkt: candidatos no clube do cadastro, com o nascimento do perfil
+                $tmHits = [];
                 foreach ($cands as $c) {
-                    $age = $c->details['age'] ?? null;
-                    if ($age !== null && abs((int) $age - $expected) > 1) {
-                        continue; // idade da busca incompatível: nem consulta o perfil
+                    $prof = null;
+                    if (! static::clubMatches($p, $c->details['club']['id'] ?? null, $c->details['club']['name'] ?? null, $tm)) {
+                        continue; // clube atual no Transfermarkt ≠ cadastro: nem consulta o perfil
                     }
                     $prof = $tm->profile((string) $c->external_id, self::PROFILE_CACHE);
-                    if (substr((string) ($prof['dateOfBirth'] ?? ''), 0, 10) !== $birth) {
-                        continue;
+                    $birth = substr((string) ($prof['dateOfBirth'] ?? ''), 0, 10);
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth)) {
+                        $tmHits[] = ['c' => $c, 'birth' => $birth];
                     }
-                    $matches[] = [$c, $prof];
                 }
             } catch (SourceException $e) {
                 $rows[] = $row + ['decision' => 'erro', 'reason' => 'Transfermarkt: '.$e->getMessage()];
@@ -85,40 +73,51 @@ class IdentityConvergence
 
                 continue;
             }
-            if (count($matches) !== 1) {
-                $rows[] = $row + ['decision' => 'fila', 'reason' => count($matches) ? 'Mais de um candidato com o mesmo nascimento.' : 'Nenhum candidato do Transfermarkt com o nascimento da CBF.'];
+            if (count($tmHits) !== 1) {
+                $rows[] = $row + ['decision' => 'fila', 'reason' => $tmHits ? 'Mais de um candidato do Transfermarkt no mesmo clube.' : 'Nenhum candidato do Transfermarkt no clube do cadastro (ou sem nascimento no perfil).'];
 
                 continue;
             }
-            [$c, $prof] = $matches[0];
-            $row['tm_id'] = (string) $c->external_id;
-            $row['tm_label'] = $c->label;
-            if (! static::sameClub($p, $prof, $tm)) {
-                $rows[] = $row + ['decision' => 'fila', 'reason' => 'Nascimento confere, mas o clube no Transfermarkt ('.($prof['club']['name'] ?? '?').') difere do cadastro.'];
+            $hit = $tmHits[0];
+            $row['tm_id'] = (string) $hit['c']->external_id;
+            $row['tm_label'] = $hit['c']->label;
+            $row['birth'] = $hit['birth'];
+            // 2) CBF, fonte independente: registro do mesmo clube, mesmo nascimento e nome compatível
+            $cbf = CbfAthlete::where('club_id', $p->current_club_id)->whereDate('birth_date', $hit['birth'])
+                ->where(fn ($q) => $q->whereNull('player_id')->orWhere('player_id', $p->id))->get()
+                ->filter(fn (CbfAthlete $a) => max(NameMatcher::score($p->name, $a->nickname), NameMatcher::score($p->name, $a->name), NameMatcher::score($p->full_name, $a->name)) >= self::CBF_NAME_MIN)
+                ->values();
+            if ($cbf->count() !== 1) {
+                $rows[] = $row + ['decision' => 'fila', 'reason' => $cbf->isEmpty()
+                    ? 'Transfermarkt indica nascimento '.Carbon::parse($hit['birth'])->format('d/m/Y').', sem registro CBF do clube que confirme.'
+                    : 'Mais de um registro CBF do clube com esse nascimento.'];
 
                 continue;
             }
-            if (PlayerExternalId::where('provider', Transfermarkt::PROVIDER)->where('external_id', $row['tm_id'])->where('player_id', '!=', $p->id)->exists()) {
-                $rows[] = $row + ['decision' => 'fila', 'reason' => 'ID Transfermarkt já pertence a outro atleta.'];
+            $a = $cbf->first();
+            $row['cbf_id'] = $a->cbf_id;
+            if (Player::where('cbf_id', $a->cbf_id)->where('id', '!=', $p->id)->exists()
+                || PlayerExternalId::where('provider', Transfermarkt::PROVIDER)->where('external_id', $row['tm_id'])->where('player_id', '!=', $p->id)->exists()) {
+                $rows[] = $row + ['decision' => 'fila', 'reason' => 'ID CBF ou Transfermarkt já pertence a outro atleta.'];
 
                 continue;
             }
-            $rows[] = $row + ['decision' => 'ligar', 'reason' => 'CBF e Transfermarkt: nascimento '.Carbon::parse($birth)->format('d/m/Y').' e clube conferem.'];
+            $rows[] = $row + ['decision' => 'ligar', 'reason' => 'Transfermarkt e CBF: nascimento '.Carbon::parse($hit['birth'])->format('d/m/Y').' e clube conferem (CBF: '.trim(($a->nickname ? $a->nickname.' — ' : '').$a->name).').'];
         }
 
         return $rows;
     }
 
-    private static function sameClub(Player $p, array $prof, Transfermarkt $tm): bool
+    private static function clubMatches(Player $p, mixed $clubId, ?string $clubName, Transfermarkt $tm): bool
     {
-        if (! $p->currentClub || empty($prof['club']['name'])) {
+        if (! $p->currentClub || ! $clubName) {
             return false;
         }
-        if (! empty($prof['club']['id']) && ($tm->clubIdentity((string) $prof['club']['id'], [(string) $prof['club']['id'] => $prof['club']['name']], false)['club_id'] ?? null) === $p->current_club_id) {
+        if ($clubId && ($tm->clubIdentity((string) $clubId, [(string) $clubId => $clubName], false)['club_id'] ?? null) === $p->current_club_id) {
             return true;
         }
 
-        return NameMatcher::clubScore($p->currentClub->name, $prof['club']['name']) >= 50;
+        return NameMatcher::clubScore($p->currentClub->name, $clubName) >= 50;
     }
 
     /** Grava as linhas "ligar" num lote reversível. @return array{batch:?string, linked:int} */
@@ -144,7 +143,7 @@ class IdentityConvergence
                 DataFix::apply($batch, 'identity', 'players', $p->id, ['birth_date' => $r['birth'], 'cbf_id' => $r['cbf_id'],
                     'field_sources' => json_encode($src), 'enriched_at' => null], $actor);
                 $a = CbfAthlete::where('cbf_id', $r['cbf_id'])->first();
-                DataFix::apply($batch, 'identity', 'cbf_athletes', $a->id, ['link_status' => 'confirmado', 'detail_fetched_at' => null], $actor);
+                DataFix::apply($batch, 'identity', 'cbf_athletes', $a->id, ['player_id' => $p->id, 'link_status' => 'confirmado', 'detail_fetched_at' => null], $actor);
                 $x = PlayerExternalId::create(['player_id' => $p->id, 'provider' => Transfermarkt::PROVIDER, 'external_id' => $r['tm_id'], 'verified' => true,
                     'link_method' => self::METHOD, 'evidence' => $r['reason']]);
                 DataFix::recordCreated($batch, 'identity', 'player_external_ids', $x->id, $actor);
