@@ -131,8 +131,10 @@ class CbfIngest
             $p->save();
             if ($stats) {
                 PlayerSeasonStat::updateOrCreate(
-                    ['player_id' => $p->id, 'provider' => self::PROVIDER, 'competition_key' => 'cbf-total', 'season' => $season, 'club_name' => $a->club_name],
-                    ['competition_name' => 'Competições CBF (total publicado)', 'appearances' => static::int($stats['qtd_partidas'] ?? null), 'goals' => static::int($stats['qtd_gols'] ?? null),
+                    ['player_id' => $p->id, 'provider' => self::PROVIDER, 'competition_key' => 'cbf-total', 'season' => $season,
+                        'club_key' => PlayerSeasonStat::clubKey($a->club_cbf_id, $a->club_id, $a->club_name)],
+                    ['club_id' => $a->club_id, 'club_external_id' => $a->club_cbf_id ?: null, 'club_source_name' => $a->club_name,
+                        'club_name' => $a->club_id ? Club::whereKey($a->club_id)->value('name') : null, 'competition_name' => 'Competições CBF (total publicado)', 'appearances' => static::int($stats['qtd_partidas'] ?? null), 'goals' => static::int($stats['qtd_gols'] ?? null),
                         'yellow_cards' => static::int($stats['qtd_cartoes_amarelos'] ?? null), 'red_cards' => static::int($stats['qtd_cartoes_vermelhos'] ?? null),
                         'source_url' => 'https://www.cbf.com.br/futebol-brasileiro/atletas', 'fetched_at' => now()],
                 );

@@ -150,7 +150,17 @@ class PlayerEnrichment
             // estatística é opcional
         }
 
-        return DB::transaction(function () use ($p, $prof, $stats, $id) {
+        // a fonte manda só o ID do clube nas estatísticas: nomes resolvidos antes da transação (pode chamar a fonte)
+        $labels = ! empty($prof['club']['id']) && ! empty($prof['club']['name']) ? [(string) $prof['club']['id'] => $prof['club']['name']] : [];
+        $known = [];
+        foreach ($stats as $s) {
+            $cid = isset($s['clubId']) ? (string) $s['clubId'] : '';
+            if ($cid !== '' && ! array_key_exists($cid, $known)) {
+                $known[$cid] = $tm->clubIdentity($cid, $labels);
+            }
+        }
+
+        return DB::transaction(function () use ($p, $prof, $stats, $id, $known) {
             $changes = 0;
             $reviews = 0;
             $cit = $prof['citizenship'] ?? [];
@@ -221,9 +231,13 @@ class PlayerEnrichment
                 );
             }
             foreach ($stats as $s) {
+                $clubId = isset($s['clubId']) ? (string) $s['clubId'] : '';
                 PlayerSeasonStat::updateOrCreate(
-                    ['player_id' => $p->id, 'provider' => Transfermarkt::PROVIDER, 'competition_key' => $s['competitionId'] ?? $s['competitionName'], 'season' => (string) ($s['seasonId'] ?? '?'), 'club_name' => $s['clubId'] ?? null],
-                    ['competition_name' => $s['competitionName'] ?? '?', 'appearances' => $s['appearances'] ?? null, 'minutes' => $s['minutesPlayed'] ?? null,
+                    ['player_id' => $p->id, 'provider' => Transfermarkt::PROVIDER, 'competition_key' => $s['competitionId'] ?? $s['competitionName'], 'season' => (string) ($s['seasonId'] ?? '?'),
+                        'club_key' => PlayerSeasonStat::clubKey($clubId ?: null, null, $known[$clubId]['label'] ?? null)],
+                    // ID do clube na fonte ≠ nome; clube canônico só por vínculo confirmado (club_external_ids)
+                    ['club_external_id' => $clubId ?: null, 'club_source_name' => $known[$clubId]['label'] ?? null,
+                        'club_id' => $known[$clubId]['club_id'] ?? null, 'club_name' => $known[$clubId]['club_name'] ?? null, 'competition_name' => $s['competitionName'] ?? '?', 'appearances' => $s['appearances'] ?? null, 'minutes' => $s['minutesPlayed'] ?? null,
                         'goals' => $s['goals'] ?? null, 'assists' => $s['assists'] ?? null, 'yellow_cards' => $s['yellowCards'] ?? null,
                         'red_cards' => isset($s['redCards']) ? (int) $s['redCards'] + (int) ($s['secondYellowCards'] ?? 0) : null,
                         'clean_sheets' => $s['cleanSheets'] ?? null, 'goals_conceded' => $s['goalsConceded'] ?? null,
@@ -260,7 +274,7 @@ class PlayerEnrichment
                 }
                 $extra = array_filter($st, fn ($v) => is_numeric($v));
                 PlayerSeasonStat::updateOrCreate(
-                    ['player_id' => $p->id, 'provider' => Sofascore::PROVIDER, 'competition_key' => (string) $ut['uniqueTournament']['id'], 'season' => (string) $season['year'], 'club_name' => null],
+                    ['player_id' => $p->id, 'provider' => Sofascore::PROVIDER, 'competition_key' => (string) $ut['uniqueTournament']['id'], 'season' => (string) $season['year'], 'club_key' => ''],
                     ['competition_name' => $ut['uniqueTournament']['name'], 'appearances' => $st['appearances'] ?? null, 'starts' => $st['matchesStarted'] ?? null,
                         'minutes' => $st['minutesPlayed'] ?? null, 'goals' => $st['goals'] ?? null, 'assists' => $st['assists'] ?? null,
                         'yellow_cards' => $st['yellowCards'] ?? null, 'red_cards' => $st['redCards'] ?? null,

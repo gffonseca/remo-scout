@@ -47,11 +47,12 @@ class PlayerStatsView
         return $y !== null && $y[1] >= $currentYear - 1;
     }
 
+    /** Temporada em formato não reconhecido não some: vai para "anteriores", com o rótulo original. */
     /** @return array{recent: Collection<string, Collection>, older: Collection<string, Collection>} agrupados por fonte */
     public static function for(Player $p): array
     {
-        $rows = $p->seasonStats()->get()
-            ->filter(fn (PlayerSeasonStat $s) => $s->appearances !== null || $s->minutes !== null || $s->goals !== null)
+        // nenhuma linha some por campo ausente: o que a fonte não informou aparece como "—" (ausente ≠ zero)
+        $rows = $p->seasonStats()->with('club')->get()
             ->sortBy([fn ($a, $b) => (static::years($b->season)[1] ?? 0) <=> (static::years($a->season)[1] ?? 0), ['minutes', 'desc'], ['appearances', 'desc']]);
         [$recent, $older] = $rows->partition(fn ($s) => static::isRecent($s->season));
 

@@ -2,6 +2,8 @@
 
 namespace App\Sources;
 
+use App\Models\ClubExternalId;
+
 /**
  * Transfermarkt via API não oficial (felipeall/transfermarkt-api; instância configurável em base_url).
  * FONTE NÃO OFICIAL — termos do Transfermarkt restringem coleta automatizada; uso autorizado por Gustavo em 11/10/2026.
@@ -40,6 +42,31 @@ class Transfermarkt
     public function stats(string $id): array
     {
         return $this->client->getJson("/players/{$id}/stats")['stats'] ?? [];
+    }
+
+    /**
+     * Clube de uma linha de estatística pelo ID do Transfermarkt (a fonte manda só o ID).
+     * Clube canônico: só pelo vínculo confirmado em club_external_ids — nunca por semelhança de nome.
+     * Rótulo da fonte: do perfil do atleta (mesmo ID) ou do perfil do clube na fonte (cache de 30 dias); serve de detalhe/pendência.
+     *
+     * @return array{club_id:?string, club_name:?string, label:?string}
+     */
+    public function clubIdentity(string $id, array $labels = [], bool $fetchLabel = true): array
+    {
+        $map = ClubExternalId::with('club')->where('provider', self::PROVIDER)->where('external_id', $id)->first();
+        $label = $labels[$id] ?? $map?->external_name;
+        if ($label === null && $fetchLabel && ctype_digit($id)) {
+            try {
+                $name = $this->client->getJson("/clubs/{$id}/profile", [], [], 30 * 86400)['name'] ?? null;
+                $label = is_string($name) && $name !== '' && ! ctype_digit($name) ? $name : null;
+            } catch (SourceException) {
+                $label = null;
+            }
+        }
+
+        $trusted = $map?->isTrusted() ?? false; // núcleo/parte do nome sem confirmação não corrige dado
+
+        return ['club_id' => $trusted ? $map->club_id : null, 'club_name' => $trusted ? $map->club?->name : null, 'label' => $label];
     }
 
     public static function position(?string $tm): ?string

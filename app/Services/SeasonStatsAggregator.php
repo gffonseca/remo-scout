@@ -20,8 +20,8 @@ class SeasonStatsAggregator
             ->leftJoin('clubs as c', 'c.id', '=', 'a.club_id')
             ->where('a.provider', $provider)
             ->when($playerIds, fn ($q) => $q->whereIn('a.player_id', $playerIds))
-            ->groupBy('a.player_id', 'f.competition_name', 'f.season', 'c.name')
-            ->selectRaw("a.player_id, coalesce(f.competition_name, 'Competição') as comp, coalesce(f.season, '?') as season, c.name as club_name,
+            ->groupBy('a.player_id', 'f.competition_name', 'f.season', 'c.name', 'c.id')
+            ->selectRaw("a.player_id, coalesce(f.competition_name, 'Competição') as comp, coalesce(f.season, '?') as season, c.name as club_name, c.id as club_id,
                 sum(case when a.used is true then 1 else 0 end) as apps, sum(case when a.started then 1 else 0 end) as starts,
                 case when sum(case when a.used is not false and a.minutes is null then 1 else 0 end) = 0
                     then sum(case when a.used is true then coalesce(a.minutes, 0) else 0 end) else null end as minutes,
@@ -39,8 +39,10 @@ class SeasonStatsAggregator
         foreach ($rows as $r) {
             $det = $detail[$r->player_id.'|'.$r->comp.'|'.$r->season.'|'.$r->club_name] ?? null;
             PlayerSeasonStat::updateOrCreate(
-                ['player_id' => $r->player_id, 'provider' => $provider, 'competition_key' => $r->comp, 'season' => $r->season, 'club_name' => $r->club_name],
+                ['player_id' => $r->player_id, 'provider' => $provider, 'competition_key' => $r->comp, 'season' => $r->season,
+                    'club_key' => PlayerSeasonStat::clubKey(null, $r->club_id)],
                 [
+                    'club_id' => $r->club_id, 'club_name' => $r->club_name, // clube canônico da partida (histórico, não o clube atual)
                     'competition_name' => $r->comp, 'appearances' => $r->apps, 'starts' => $r->starts, 'minutes' => $r->minutes,
                     'goals' => $r->goals, 'yellow_cards' => $r->yellows, 'red_cards' => $r->reds,
                     'assists' => isset($det['estatistica']['assistencias']) ? (int) $det['estatistica']['assistencias'] : null,

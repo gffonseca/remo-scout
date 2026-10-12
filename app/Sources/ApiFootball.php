@@ -11,6 +11,7 @@ use App\Models\Player;
 use App\Models\PlayerExternalId;
 use App\Models\ProviderAthlete;
 use App\Models\SyncRun;
+use App\Services\PhotoBackfill;
 use App\Services\SeasonStatsAggregator;
 use App\Support\ClubResolver;
 use App\Support\NameMatcher;
@@ -127,6 +128,9 @@ class ApiFootball
         }
         if ($touched) {
             SeasonStatsAggregator::rebuildProvider(self::PROVIDER, array_values(array_unique($touched)));
+        }
+        if ($photos = PhotoBackfill::run()) {
+            $run->note("{$photos} foto(s) de atleta vinda(s) da API-Football (vínculo confiável, cadastro sem foto).");
         }
     }
 

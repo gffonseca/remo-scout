@@ -9,7 +9,7 @@
         @php $g90 = SV::goalsPer90($r); @endphp
         <tr>
             <td title="{{ $r->competition_name }}">{{ \Illuminate\Support\Str::limit($r->competition_name, 32) }}</td>
-            <td>{{ $r->club_name ? \Illuminate\Support\Str::limit($r->club_name, 18) : '—' }}</td>
+            <td>@if ($r->clubLabel()){{ \Illuminate\Support\Str::limit($r->clubLabel(), 18) }}@elseif ($r->hasClubReference())<span class="sc-muted" title="{{ $r->clubSupportDetail() }}" style="cursor:help">Clube não identificado</span>@else — @endif</td>
             <td>{{ $r->season }}</td>
             <td @if (SV::appearances($r) !== (string) $r->appearances && $r->appearances !== null) title="Em {{ $r->extra['participacao_indeterminada'] }} jogo(s) a fonte não registrou substituições: participação do reserva desconhecida." style="cursor:help" @endif>{{ SV::appearances($r) }}</td><td>{{ $r->starts ?? '—' }}</td>
             <td @if (SV::minutesTitle($r)) title="{{ SV::minutesTitle($r) }}" style="cursor:help" @endif>{{ SV::minutes($r) }}</td>
