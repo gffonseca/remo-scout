@@ -406,10 +406,10 @@ class PlayerImporter
             return null;
         }
         $mult = 1;
-        if (preg_match('/\b(mi|milh)/', $s)) {
-            $mult = 1_000_000;
-        } elseif (preg_match('/\b(mil|k)\b/', $s)) {
+        if (preg_match('/\b(mil|k)\b/', $s)) {
             $mult = 1_000;
+        } elseif (preg_match('/\b(mi|mi\.|milhao|milhoes|mm)\b/', $s)) {
+            $mult = 1_000_000;
         }
         $num = preg_replace('/[^0-9,\.]/', '', $s);
         if ($num === '') {

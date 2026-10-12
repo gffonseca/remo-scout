@@ -23,6 +23,18 @@ class Player extends Model
 
     protected $guarded = ['id'];
 
+    /** Defaults espelhando o banco (necessários antes do primeiro refresh). */
+    protected $attributes = [
+        'preferred_foot' => 'nao_informado',
+        'data_origin' => 'manual',
+        'market_status' => 'desconhecido',
+        'salary_currency' => 'BRL',
+        'salary_periodicity' => 'mensal',
+        'salary_confirmation' => 'nao_verificado',
+        'asking_price_currency' => 'BRL',
+        'is_priority' => false,
+    ];
+
     protected function casts(): array
     {
         return [
