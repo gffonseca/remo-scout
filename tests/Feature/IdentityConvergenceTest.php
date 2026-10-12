@@ -9,6 +9,7 @@ use App\Models\Club;
 use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerExternalId;
+use App\Services\Collector\CbfIngest;
 use App\Sources\SourceClient;
 use Database\Seeders\DataSourcesSeeder;
 use Illuminate\Support\Facades\DB;
@@ -123,5 +124,19 @@ class IdentityConvergenceTest extends ScoutTestCase
 
         $this->actingAs($this->user('coordenador'));
         Livewire::test(CoberturaDados::class)->assertActionHidden('fix', ['correcao' => 'convergir']);
+    }
+
+    public function test_free_cbf_records_of_the_same_club_enter_the_detail_queue(): void
+    {
+        $p = Player::create(['name' => 'Japa', 'current_club_id' => $this->club->id, 'is_priority' => true]);
+        $other = Club::create(['name' => 'Outro']);
+        CbfAthlete::create(['cbf_id' => '7001', 'name' => 'Japa da Silva', 'nickname' => 'Japa', 'club_id' => $this->club->id]);
+        CbfAthlete::create(['cbf_id' => '7002', 'name' => 'Fulano de Tal', 'nickname' => 'Fulano', 'club_id' => $this->club->id]); // nome incompatível
+        CbfAthlete::create(['cbf_id' => '7003', 'name' => 'Japa Souza', 'nickname' => 'Japa', 'club_id' => $other->id]); // outro clube
+        CbfAthlete::create(['cbf_id' => '7004', 'name' => 'Japa Lima', 'nickname' => 'Japa', 'club_id' => $this->club->id, 'detail_fetched_at' => now()]); // já tem detalhe
+
+        $this->assertSame(['7001'], CbfIngest::pendingDetails(50));
+        $p->update(['birth_date' => '2000-01-01']);
+        $this->assertSame([], CbfIngest::pendingDetails(50)); // com nascimento, não precisa
     }
 }
