@@ -102,7 +102,7 @@
                 <h4 style="margin-top:.8rem">Últimas partidas registradas</h4>
                 @foreach ($lastGames as $a)
                     <div class="sc-row"><span class="k">{{ $a->fixture?->played_on?->format('d/m') }} · {{ \Illuminate\Support\Str::limit($a->fixture?->label(), 42) }}</span>
-                        <span class="v">{{ $a->used ? ($a->minutes !== null ? $a->minutes."'" : 'jogou') : 'banco' }}{{ $a->goals ? ' · '.$a->goals.'G' : '' }}{{ $a->yellow_cards ? ' · 🟨' : '' }}{{ $a->red_cards ? ' · 🟥' : '' }}</span></div>
+                        <span class="v">{{ $a->used === null ? 'participação indet.' : ($a->used ? ($a->minutes !== null ? $a->minutes."'" : 'jogou') : 'banco') }}{{ $a->goals ? ' · '.$a->goals.'G' : '' }}{{ $a->yellow_cards ? ' · 🟨' : '' }}{{ $a->red_cards ? ' · 🟥' : '' }}</span></div>
                 @endforeach
             @endif
             <h4>Características e especialidades</h4>

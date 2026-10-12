@@ -133,9 +133,15 @@ class IdentityTest extends ScoutTestCase
         $c = IdentityCandidate::where('player_id', $scout->id)->where('kind', 'mesclar')->firstOrFail();
         $shadowId = $c->shadow_player_id;
 
-        IdentityReview::confirm($c, $this->user('analista'));
+        $analista = $this->user('analista');
+        IdentityReview::confirm($c, $analista);
         $this->assertSame(1, $scout->appearances()->count());
         $this->assertNull(Player::withTrashed()->find($shadowId));
+        $c = IdentityCandidate::find($c->id); // a trilha da decisão sobrevive à exclusão do provisório
+        $this->assertNotNull($c);
+        $this->assertSame('vinculado', $c->status);
+        $this->assertSame($analista->id, $c->decided_by);
+        $this->assertNull($c->shadow_player_id);
         $x = PlayerExternalId::where('provider', 'api_futebol')->where('external_id', '10')->first();
         $this->assertSame($scout->id, $x->player_id);
         $this->assertTrue($x->verified);
@@ -159,6 +165,48 @@ class IdentityTest extends ScoutTestCase
         $m->up();
         $this->assertSame('nome_clube_legado', PlayerExternalId::first()->link_method);
         $this->assertSame('confirmar', IdentityCandidate::where('player_id', $p->id)->value('kind'));
+    }
+
+    public function test_discarding_lineup_link_moves_its_appearances_away_and_rebuilds_totals(): void
+    {
+        $club = Club::create(['name' => 'Time A']);
+        $p = Player::create(['name' => 'Fulano', 'current_club_id' => $club->id]);
+        ClubFixtureHelper::bind($club, '1');
+        PlayerExternalId::create(['player_id' => $p->id, 'provider' => 'api_futebol', 'external_id' => '10', 'verified' => false, 'link_method' => 'nome_clube_legado']);
+        $run = SyncRun::create(['data_source_id' => DataSource::byKey('api_futebol')->id, 'job' => 't']);
+        (new ApiFutebol(SourceClient::for('api_futebol')))->ingestMatch([
+            'partida_id' => 8, 'status' => 'finalizado', 'data_realizacao_iso' => '2026-05-01T16:00:00-0300',
+            'time_mandante' => ['time_id' => 1, 'nome_popular' => 'Time A'], 'time_visitante' => ['time_id' => 2, 'nome_popular' => 'Time B'],
+            'placar_mandante' => 0, 'placar_visitante' => 0,
+            'escalacoes' => ['mandante' => ['titulares' => [['atleta' => ['atleta_id' => 10, 'nome_popular' => 'Fulano']]], 'reservas' => []], 'visitante' => null],
+            'gols' => ['mandante' => [], 'visitante' => []], 'cartoes' => [], 'substituicoes' => ['mandante' => [], 'visitante' => []],
+        ], null, 'Teste', '2026', $run);
+        \App\Services\SeasonStatsAggregator::rebuildProvider('api_futebol');
+        $this->assertSame(1, $p->appearances()->count());
+        $c = IdentityCandidate::create(['player_id' => $p->id, 'provider' => 'api_futebol', 'external_id' => '10', 'kind' => 'confirmar', 'label' => 'x', 'status' => 'pendente']);
+
+        $msg = IdentityReview::discard($c, $this->user('analista'));
+        $this->assertStringContainsString('1 atuação(ões) movida(s)', $msg);
+        $this->assertSame(0, $p->appearances()->count());
+        $this->assertFalse(PlayerSeasonStat::where('player_id', $p->id)->exists());
+        $x = PlayerExternalId::where('provider', 'api_futebol')->where('external_id', '10')->sole();
+        $this->assertNotSame($p->id, $x->player_id);
+        $this->assertSame(1, Player::find($x->player_id)->appearances()->count());
+        $this->assertTrue(PlayerSeasonStat::where('player_id', $x->player_id)->exists());
+    }
+
+    public function test_merge_rebuilds_totals_for_every_provider_including_api_football(): void
+    {
+        $into = Player::create(['name' => 'Destino']);
+        $from = Player::create(['name' => 'Provisório', 'data_origin' => 'provedor']);
+        foreach ([[$into, 1], [$from, 2]] as [$pl, $n]) {
+            $f = \App\Models\Fixture::create(['provider' => 'api_football', 'external_id' => (string) $n, 'competition_name' => 'Série A', 'season' => '2026', 'data_quality' => 'completo',
+                'field_quality' => ['gols' => 'conferem']]);
+            \App\Models\Appearance::create(['fixture_id' => $f->id, 'player_id' => $pl->id, 'provider' => 'api_football', 'started' => true, 'used' => true, 'minutes' => 90]);
+        }
+        \App\Services\SeasonStatsAggregator::rebuildProvider('api_football');
+        \App\Services\PlayerMerge::merge($from, $into, null);
+        $this->assertSame(180, PlayerSeasonStat::where('player_id', $into->id)->where('provider', 'api_football')->sole()->minutes);
     }
 }
 

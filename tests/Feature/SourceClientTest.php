@@ -48,7 +48,12 @@ class SourceClientTest extends ScoutTestCase
         return null;
     }
 
-    public function test_quota_is_reserved_atomically_and_never_exceeded(): void
+    /**
+     * Dois clientes com modelos carregados antes das chamadas (sequencial). A atomicidade sob concorrência real foi
+     * verificada com 3 processos PHP simultâneos em 12/10/2026: 150 tentativas, cota 60, exatamente 60 aceitas
+     * (o teste roda dentro de uma transação, invisível a outros processos).
+     */
+    public function test_quota_is_never_exceeded_by_separate_clients(): void
     {
         Http::fake(['*' => Http::response(['ok' => true])]);
         DataSource::byKey('transfermarkt')->update(['daily_quota' => 2]);

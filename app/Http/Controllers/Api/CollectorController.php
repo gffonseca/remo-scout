@@ -44,24 +44,35 @@ class CollectorController extends Controller
     {
         $ds = $this->source($source);
         // F17 — retomada: execução do mesmo dia que não concluiu e já recebeu lotes continua de onde parou.
-        if ($request->boolean('resume')) {
-            $prev = SyncRun::where('data_source_id', $ds->id)->where('job', 'coletor_local')
-                ->whereIn('status', ['em_execucao', 'parcial', 'falhou'])->where('started_at', '>=', now()->subHours(20))
-                ->whereExists(fn ($q) => $q->select(DB::raw(1))->from('collector_batches')->whereColumn('collector_batches.sync_run_id', 'sync_runs.id'))
-                ->latest('started_at')->first();
-            if ($prev) {
-                $prev->forceFill(['status' => 'em_execucao', 'finished_at' => null]);
-                $prev->note('Retomada pelo coletor '.mb_substr((string) $request->input('version'), 0, 20).'.');
-                $prev->save();
+        if ($request->boolean('resume') && ($prev = $this->interrupted($ds))) {
+            $prev->forceFill(['status' => 'em_execucao', 'finished_at' => null]);
+            $prev->note('Retomada pelo coletor '.mb_substr((string) $request->input('version'), 0, 20).'.');
+            $prev->save();
 
-                return response()->json(['run_id' => $prev->id, 'resumed' => true, 'received' => $this->receivedPages($prev)]);
-            }
+            return response()->json(['run_id' => $prev->id, 'resumed' => true, 'received' => $this->receivedPages($prev)]);
         }
         SyncRun::closeStale($ds->id, 240); // coleta local leva ~90 min; 4 h sem fim = coletor caiu
         $run = SyncRun::create(['data_source_id' => $ds->id, 'job' => 'coletor_local', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['host' => mb_substr((string) $request->input('host'), 0, 60), 'versao' => mb_substr((string) $request->input('version'), 0, 20)]]);
 
         return response()->json(['run_id' => $run->id, 'resumed' => false, 'received' => (object) []]);
+    }
+
+    /**
+     * Execução interrompida que pode ser retomada (F17): do mesmo dia (fuso de Brasília), nunca encerrada pelo /fim do coletor,
+     * com lotes recebidos e parada há mais de 10 min (não entra numa execução que ainda está rodando).
+     */
+    private function interrupted(DataSource $ds): ?SyncRun
+    {
+        $tz = config('scout.display_timezone');
+        $run = SyncRun::where('data_source_id', $ds->id)->where('job', 'coletor_local')->whereIn('status', ['em_execucao', 'falhou'])
+            ->where('started_at', '>=', now($tz)->startOfDay()->utc())->latest('started_at')->first();
+        if (! $run || ($run->scope['encerrada_pelo_coletor'] ?? false)) {
+            return null;
+        }
+        $last = CollectorBatch::where('sync_run_id', $run->id)->max('created_at');
+
+        return $last && \Illuminate\Support\Carbon::parse($last)->lt(now()->subMinutes(10)) ? $run : null;
     }
 
     /** Páginas de lista já recebidas nesta execução, por competição. @return array<string, list<int>> */
@@ -103,8 +114,11 @@ class CollectorController extends Controller
 
                 return $result;
             });
-        } catch (UniqueConstraintViolationException) {
-            return response()->json(($seen()?->result ?? []) + ['duplicado' => true]); // dois envios simultâneos do mesmo lote
+        } catch (UniqueConstraintViolationException $e) {
+            if ($b = $seen()) { // dois envios simultâneos do mesmo lote
+                return response()->json(($b->result ?? []) + ['duplicado' => true]);
+            }
+            throw $e; // violação vinda do processamento: erro real, não duplicidade
         }
 
         return response()->json($result);
@@ -163,6 +177,7 @@ class CollectorController extends Controller
         }
         $batches = CollectorBatch::where('sync_run_id', $run->id);
         $scope = $run->scope ?? [];
+        $scope['encerrada_pelo_coletor'] = true;
         $scope['ingestao'] = ['lotes' => (clone $batches)->count(), 'itens' => (int) (clone $batches)->sum('items')];
         $missing = 0;
         if (isset($in['manifest'])) {
@@ -173,9 +188,10 @@ class CollectorController extends Controller
                 $m = $in['manifest'][$slug] ?? null;
                 $label = $m['label'] ?? (config('scout.collector_competitions')[$slug] ?? $slug);
                 if (! $m || ! ($m['found'] ?? true)) {
+                    // não encontrada na CBF (ex.: sem edição nesta temporada) é aviso; não coletada é falta
                     $manifest[$slug] = ['competicao' => $label, 'situacao' => $m ? 'nao_encontrada' : 'nao_coletada'];
-                    $missing++;
-                    $run->note("{$label}: ".($m ? 'competição não encontrada na CBF' : 'não coletada nesta execução').'.');
+                    $missing += $m ? 0 : 1;
+                    $run->note("{$label}: ".($m ? 'competição não encontrada na CBF (aviso)' : 'não coletada nesta execução').'.');
 
                     continue;
                 }
@@ -190,6 +206,10 @@ class CollectorController extends Controller
                 }
             }
             $scope['manifesto'] = $manifest;
+            if ($manifest && collect($manifest)->every(fn ($m) => ($m['situacao'] ?? null) === 'nao_encontrada')) {
+                $missing++; // nenhuma competição encontrada: a página da CBF provavelmente mudou
+                $run->note('Nenhuma competição encontrada na CBF: verificar se a página mudou.');
+            }
         }
         $run->scope = $scope;
         $run->note("Coleta: {$run->requests_made} chamadas à CBF · ingestão: {$scope['ingestao']['lotes']} lotes únicos, {$scope['ingestao']['itens']} itens.");

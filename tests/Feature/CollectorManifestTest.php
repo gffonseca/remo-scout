@@ -72,7 +72,11 @@ class CollectorManifestTest extends ScoutTestCase
     {
         $run = $this->api('POST', 'cbf_atletas/inicio', ['resume' => true])->json('run_id');
         $this->page($run, 1);
-        // coletor cai aqui (sem /fim). Nova chamada no mesmo dia retoma a mesma execução:
+        // outro coletor logo em seguida não entra numa execução que ainda está rodando
+        $this->assertNotSame($run, $this->api('POST', 'cbf_atletas/inicio', ['resume' => true])->json('run_id'));
+        \App\Models\SyncRun::where('id', '!=', $run)->delete();
+        // coletor cai aqui (sem /fim). Parada há mais de 10 min, no mesmo dia: retoma a mesma execução
+        $this->travel(11)->minutes();
         $again = $this->api('POST', 'cbf_atletas/inicio', ['resume' => true, 'version' => '1.1.0'])->assertJsonPath('resumed', true);
         $this->assertSame($run, $again->json('run_id'));
         $this->assertSame([1], $again->json()['received'][self::SLUG]);
@@ -82,6 +86,15 @@ class CollectorManifestTest extends ScoutTestCase
         $this->api('POST', 'cbf_atletas/fim', ['run_id' => $run, 'requests_made' => 3, 'manifest' => $this->manifest()])->assertJsonPath('status', 'concluido');
         $this->assertSame(6, CbfAthlete::count());
         $this->assertSame(1, SyncRun::where('job', 'coletor_local')->count());
+    }
+
+    public function test_run_finished_as_partial_is_never_resumed(): void
+    {
+        $run = $this->api('POST', 'cbf_atletas/inicio', ['resume' => true])->json('run_id');
+        $this->page($run, 1);
+        $this->api('POST', 'cbf_atletas/fim', ['run_id' => $run, 'manifest' => $this->manifest()])->assertJsonPath('status', 'parcial');
+        $this->travel(2)->hours();
+        $this->assertNotSame($run, $this->api('POST', 'cbf_atletas/inicio', ['resume' => true])->json('run_id')); // relê a CBF inteira
     }
 
     public function test_finished_run_is_not_resumed_and_old_run_is_not_resumed(): void
@@ -107,10 +120,22 @@ class CollectorManifestTest extends ScoutTestCase
             $this->page($run, $p);
         }
         $this->api('POST', 'cbf_atletas/fim', ['run_id' => $run, 'manifest' => $this->manifest() + ['copa-verde/masculino' => ['label' => 'Copa Verde', 'found' => false]]])
-            ->assertJsonPath('status', 'parcial');
+            ->assertJsonPath('status', 'parcial'); // parcial pela Copa do Brasil não coletada
         $m = SyncRun::find($run)->scope['manifesto'];
         $this->assertSame('nao_encontrada', $m['copa-verde/masculino']['situacao']);
         $this->assertSame('nao_coletada', $m['copa-do-brasil/masculino']['situacao']);
+    }
+
+    public function test_competition_without_edition_is_a_warning_not_a_partial_run(): void
+    {
+        config(['scout.collector_competitions' => [self::SLUG => 'Série D', 'copa-verde/masculino' => 'Copa Verde']]);
+        $run = $this->api('POST', 'cbf_atletas/inicio', ['resume' => true])->json('run_id');
+        foreach ([1, 2, 3] as $p) {
+            $this->page($run, $p);
+        }
+        $this->api('POST', 'cbf_atletas/fim', ['run_id' => $run, 'manifest' => $this->manifest() + ['copa-verde/masculino' => ['label' => 'Copa Verde', 'found' => false]]])
+            ->assertJsonPath('status', 'concluido');
+        $this->assertStringContainsString('não encontrada na CBF (aviso)', implode(' ', SyncRun::find($run)->messages));
     }
 
     public function test_empty_page_counts_as_received(): void

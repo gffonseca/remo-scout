@@ -21,13 +21,16 @@ class SeasonStatsAggregator
             ->when($playerIds, fn ($q) => $q->whereIn('a.player_id', $playerIds))
             ->groupBy('a.player_id', 'f.competition_name', 'f.season', 'c.name')
             ->selectRaw("a.player_id, coalesce(f.competition_name, 'Competição') as comp, coalesce(f.season, '?') as season, c.name as club_name,
-                sum(case when a.used then 1 else 0 end) as apps, sum(case when a.started then 1 else 0 end) as starts,
-                case when bool_and(a.minutes is not null or not a.used) then sum(coalesce(a.minutes, 0)) else null end as minutes,
+                sum(case when a.used is true then 1 else 0 end) as apps, sum(case when a.started then 1 else 0 end) as starts,
+                case when sum(case when a.used is not false and a.minutes is null then 1 else 0 end) = 0
+                    then sum(case when a.used is true then coalesce(a.minutes, 0) else 0 end) else null end as minutes,
                 sum(a.goals) as goals, sum(a.yellow_cards) as yellows, sum(a.red_cards) as reds,
-                sum(case when not a.used then 1 else 0 end) as unused_bench,
-                sum(case when a.used and a.minutes is not null then a.minutes else 0 end) as minutes_known,
-                sum(case when a.used and a.minutes is null then 1 else 0 end) as minutes_unknown,
-                sum(case when a.used and coalesce(f.field_quality->>'gols', 'conferem') <> 'conferem' then 1 else 0 end) as goals_unverified")
+                sum(case when a.used is false then 1 else 0 end) as unused_bench,
+                sum(case when a.used is null then 1 else 0 end) as participation_unknown,
+                sum(case when a.used is true and a.minutes is not null then a.minutes else 0 end) as minutes_known,
+                sum(case when a.used is true and a.minutes is null then 1 else 0 end) as minutes_unknown,
+                sum(case when a.used is true and (case when f.field_quality is null then f.data_quality <> 'completo'
+                    else coalesce(f.field_quality->>'gols', '') <> 'conferem' end) then 1 else 0 end) as goals_unverified")
             ->get();
 
         $detail = static::providerStats($provider, $playerIds);
@@ -41,7 +44,8 @@ class SeasonStatsAggregator
                     'goals' => $r->goals, 'yellow_cards' => $r->yellows, 'red_cards' => $r->reds,
                     'assists' => isset($det['estatistica']['assistencias']) ? (int) $det['estatistica']['assistencias'] : null,
                     'rating' => $det['nota_media'] ?? null,
-                    'extra' => ['banco_sem_entrar' => (int) $r->unused_bench, 'minutos_conhecidos' => (int) $r->minutes_known,
+                    'extra' => ['banco_sem_entrar' => (int) $r->unused_bench, 'participacao_indeterminada' => (int) $r->participation_unknown,
+                        'minutos_conhecidos' => (int) $r->minutes_known,
                         'jogos_minutos_indeterminados' => (int) $r->minutes_unknown, 'jogos_gols_nao_conferidos' => (int) $r->goals_unverified]
                         + ($det ? ['estatistica' => $det['estatistica'], 'jogos_com_estatistica' => $det['jogos'],
                             'minutos_com_estatistica' => $det['minutos']] : []),

@@ -295,8 +295,14 @@ class ApiFutebol
                     $player = $this->resolvePlayer($aid, $r['name'], $club, $run);
                     $seen[] = $player->id;
                     $sideOk = $fq[$side]['minutos'] === 'determinados';
-                    $minutes = ! $r['used'] ? 0 // banco sem entrar: zero confirmado pela escalação
-                        : ($sideOk && $r['in'] !== null ? max(0, min($duration, (int) ($r['out'] ?? $duration)) - $r['in']) : null);
+                    // reserva sem entrada registrada: só é "não entrou" (zero confirmado) se as substituições do lado vieram;
+                    // sem substituições, a participação é desconhecida (null), nunca zero
+                    $benchKnown = $fq[$side]['substituicoes'] === 'registradas';
+                    if (! $r['used'] && ! $benchKnown) {
+                        $r['used'] = null;
+                    }
+                    $minutes = $r['used'] === false ? 0
+                        : ($r['used'] && $sideOk && $r['in'] !== null ? max(0, min($duration, (int) ($r['out'] ?? $duration)) - $r['in']) : null);
                     Appearance::updateOrCreate(['fixture_id' => $fixture->id, 'player_id' => $player->id], [
                         'club_id' => $club?->id, 'provider' => self::PROVIDER, 'started' => $r['started'], 'used' => $r['used'],
                         'minute_in' => $r['used'] ? $r['in'] : null, 'minute_out' => $r['used'] ? $r['out'] : null, 'minutes' => $minutes,

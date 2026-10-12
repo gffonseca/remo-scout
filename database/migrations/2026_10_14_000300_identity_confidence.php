@@ -23,23 +23,29 @@ return new class extends Migration
         });
         Schema::table('identity_candidates', function (Blueprint $table) {
             $table->string('kind', 12)->default('escolher'); // escolher (entre resultados), confirmar (vínculo provável), mesclar (cadastro provisório)
-            $table->foreignUuid('shadow_player_id')->nullable()->constrained('players')->cascadeOnDelete();
+            $table->foreignUuid('shadow_player_id')->nullable()->constrained('players')->nullOnDelete(); // mescla não apaga a trilha da decisão
             $table->text('evidence')->nullable();
             $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('decided_at')->nullable();
         });
 
         $now = now();
+        // cria item de revisão; se já houver um para o mesmo vínculo, só o atualiza enquanto estiver pendente (decisão tomada não é reaberta)
+        $upsert = function (array $key, array $values) use ($now) {
+            $existing = DB::table('identity_candidates')->where($key)->first();
+            if (! $existing) {
+                DB::table('identity_candidates')->insert($key + $values + ['id' => (string) \Illuminate\Support\Str::uuid7(), 'status' => 'pendente', 'created_at' => $now, 'updated_at' => $now]);
+            } elseif ($existing->status === 'pendente') {
+                DB::table('identity_candidates')->where('id', $existing->id)->update($values + ['updated_at' => $now]);
+            }
+        };
         DB::table('player_external_ids')->where('verified', true)->update(['link_method' => 'manual']);
         foreach (DB::table('player_external_ids')->where('verified', false)->get() as $x) {
             DB::table('player_external_ids')->where('id', $x->id)->update(['link_method' => 'nome_clube_legado']);
-            DB::table('identity_candidates')->updateOrInsert(
-                ['player_id' => $x->player_id, 'provider' => $x->provider, 'external_id' => $x->external_id],
-                ['id' => (string) \Illuminate\Support\Str::uuid7(), 'kind' => 'confirmar', 'status' => 'pendente', 'score' => 0,
+            $upsert(['player_id' => $x->player_id, 'provider' => $x->provider, 'external_id' => $x->external_id],
+                ['kind' => 'confirmar', 'score' => 0,
                     'label' => "Vínculo automático antigo (só nome + clube) com {$x->provider} #{$x->external_id}",
-                    'evidence' => 'Criado antes da regra de 12/10/2026 (nome + nascimento). Confirme ou descarte; descartar desfaz os dados dessa fonte.',
-                    'created_at' => $now, 'updated_at' => $now],
-            );
+                    'evidence' => 'Criado antes da regra de 12/10/2026 (nome + nascimento). Confirme ou descarte; descartar desfaz os dados dessa fonte.']);
         }
 
         // CBF: vínculo por ID oficial = confirmado; por nome + clube (field_sources.cbf_id.source = cbf) = provável
@@ -49,13 +55,10 @@ return new class extends Migration
             $byName = ($src['cbf_id']['source'] ?? null) === 'cbf';
             DB::table('cbf_athletes')->where('id', $a->id)->update(['link_status' => $byName ? 'provavel' : 'confirmado']);
             if ($byName) {
-                DB::table('identity_candidates')->updateOrInsert(
-                    ['player_id' => $a->player_id, 'provider' => 'cbf', 'external_id' => $a->cbf_id],
-                    ['id' => (string) \Illuminate\Support\Str::uuid7(), 'kind' => 'confirmar', 'status' => 'pendente', 'score' => 0,
+                $upsert(['player_id' => $a->player_id, 'provider' => 'cbf', 'external_id' => $a->cbf_id],
+                    ['kind' => 'confirmar', 'score' => 0,
                         'label' => trim(($a->nickname ? $a->nickname.' — ' : '').$a->name.' · '.($a->club_name ?? 'sem clube').' · CBF #'.$a->cbf_id),
-                        'evidence' => 'Ligado em 12/10/2026 só por nome + clube de inscrição. Nascimento CBF: '.($a->birth_date ?? 'não coletado').'.',
-                        'created_at' => $now, 'updated_at' => $now],
-                );
+                        'evidence' => 'Ligado em 12/10/2026 só por nome + clube de inscrição. Nascimento CBF: '.($a->birth_date ?? 'não coletado').'.']);
             }
         }
     }

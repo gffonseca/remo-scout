@@ -71,6 +71,12 @@ class CollectorTest(unittest.TestCase):
         self.assertEqual(sorted(l["page"] for l in self.lotes(scout)), [1, 2, 3])
         self.assertNotIn("páginas sem resposta", json.dumps(scout.posts[-1][2]["messages"], ensure_ascii=False))
 
+    def test_page_one_failure_still_collects_all_pages_on_second_pass(self):
+        http, scout = FakeHttp(fail_once=[1]), FakeScout()
+        c.run_athletes(http, scout, PLAN, "2026", 1000)
+        self.assertEqual(sorted(l["page"] for l in self.lotes(scout)), [1, 2, 3])
+        self.assertEqual(scout.posts[-1][2]["manifest"][SLUG]["total_pages"], 3)
+
     def test_competition_not_found_goes_to_manifest(self):
         http, scout = FakeHttp(), FakeScout()
         http.get = lambda url, **k: None

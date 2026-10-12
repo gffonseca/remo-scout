@@ -83,6 +83,10 @@ class DadosFutebolTest extends ScoutTestCase
         $this->assertSame(2, $s1['new']);
         $this->assertNull(ClubSquadEntry::where('external_player_id', '2')->value('shirt_number')); // ausente ≠ 0
         $this->assertSame('atacante', ClubSquadEntry::where('external_player_id', '1')->value('position_raw'));
+        $keys = array_keys(json_decode(ClubSquadEntry::where('external_player_id', '1')->toBase()->value('raw'), true));
+        sort($keys);
+        $this->assertSame(['id', 'nome', 'nome_popular', 'numero_camisa', 'posicao'], $keys);
+        $this->assertSame([], array_diff_key(\App\Sources\DadosFutebol::whitelist(['id' => 1, 'lesionado' => true, 'cpf' => 'x']), ['id' => 1]));
 
         \Illuminate\Support\Facades\Cache::flush(); // ignora o cache de 6 h para simular a semana seguinte
         $this->travel(7)->days();

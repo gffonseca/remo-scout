@@ -13,7 +13,6 @@ use App\Models\SyncRun;
 use App\Services\SeasonStatsAggregator;
 use App\Support\ClubResolver;
 use App\Support\NameMatcher;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -59,19 +58,21 @@ class ApiFootball
     private function get(string $path, array $query, ?SyncRun $run = null, ?int $cache = null): array
     {
         $run && $run->requests_made++;
-        $json = $this->client->getJson($path, $query, $this->client->source->authHeaders(), $cache);
-        $errors = $json['errors'] ?? [];
-        if (! empty($errors)) {
-            if ($cache) {
-                Cache::forget(SourceClient::cacheKey($this->client->source, rtrim((string) $this->client->source->base_url, '/').'/'.ltrim($path, '/'), $query));
-            }
-            $msg = is_array($errors) ? implode('; ', array_map(fn ($k, $v) => "{$k}: {$v}", array_keys($errors), $errors)) : (string) $errors;
-            $kind = preg_match('/request|limit|rate/i', $msg) ? 'limite' : (preg_match('/token|key|plan|subscription|access/i', $msg) ? 'bloqueado' : 'http');
-            $this->client->reportFailure('API-Football: '.mb_substr($msg, 0, 300), $kind === 'bloqueado' ? 'bloqueado' : 'degradado');
-            throw new SourceException('API-Football: '.$msg, $kind);
-        }
 
-        return $json;
+        return $this->client->getJson($path, $query, $this->client->source->authHeaders(), $cache, static fn (string $body) => static::bodyError($body));
+    }
+
+    /** API-Football devolve erros dentro de HTTP 200 ("errors"): viram falha da fonte (circuito), nunca sucesso. */
+    public static function bodyError(string $body): ?array
+    {
+        $errors = json_decode($body, true)['errors'] ?? [];
+        if (empty($errors)) {
+            return null;
+        }
+        $msg = 'API-Football: '.mb_substr(is_array($errors) ? implode('; ', array_map(fn ($k, $v) => "{$k}: {$v}", array_keys($errors), $errors)) : (string) $errors, 0, 300);
+        $kind = preg_match('/request|limit|rate/i', $msg) ? 'limite' : (preg_match('/token|key|plan|subscription|access/i', $msg) ? 'bloqueado' : 'http');
+
+        return [$kind, $msg, $kind === 'bloqueado' ? 'bloqueado' : 'degradado'];
     }
 
     public static function season(): int
@@ -114,8 +115,9 @@ class ApiFootball
                 } catch (SourceException $e) {
                     $run->errors++;
                     $run->note("Partida {$id}: {$e->getMessage()}");
-                    if (in_array($e->kind, ['cota', 'circuito', 'limite', 'bloqueado', 'credencial', 'desativada'], true)) {
-                        break 2;
+                    if (in_array($e->kind, ['cota', 'circuito', 'limite', 'bloqueado', 'credencial', 'desativada'], true)
+                        || $this->client->source->fresh()->circuitOpen()) {
+                        break 2; // problema da fonte, não da partida: para e não gasta cota
                     }
                 }
                 $run->save();
@@ -329,19 +331,26 @@ class ApiFootball
                     $player = $this->resolvePlayer($pid, $r['name'], $club, $run);
                     $seen[] = $player->id;
                     $st = $statsByPlayer[$pid] ?? null;
-                    $minutes = ! $r['used'] ? 0
-                        : match ($minutesState) {
+                    if (! $r['used']) {
+                        if ($minutesState === 'provedor' && (int) ($st['games']['minutes'] ?? 0) > 0) {
+                            $r['used'] = true; // provedor informa minutos mesmo sem o evento de troca
+                        } elseif ($minutesState !== 'provedor' && $fq[$label]['substituicoes'] !== 'registradas') {
+                            $r['used'] = null; // sem trocas confiáveis: participação do reserva é desconhecida
+                        }
+                    }
+                    $minutes = $r['used'] === false ? 0
+                        : ($r['used'] === null ? null : match ($minutesState) {
                             'provedor' => min($duration, (int) $st['games']['minutes']),
                             'determinados' => $r['in'] !== null ? max(0, min($duration, (int) ($r['out'] ?? $duration)) - $r['in']) : null,
                             default => null,
-                        };
+                        });
                     Appearance::updateOrCreate(['fixture_id' => $fixture->id, 'player_id' => $player->id], [
                         'club_id' => $club?->id, 'provider' => self::PROVIDER, 'started' => $r['started'], 'used' => $r['used'],
                         'minute_in' => $r['used'] ? $r['in'] : null, 'minute_out' => $r['used'] ? $r['out'] : null, 'minutes' => $minutes,
                         'position_label' => $r['pos'], 'shirt' => $r['shirt'] !== null ? (string) $r['shirt'] : null,
                         'goals' => $r['goals'], 'penalty_goals' => $r['pen'], 'own_goals' => $r['og'],
                         'yellow_cards' => $r['y'], 'red_cards' => $r['r'],
-                        'stats' => $st ? static::pickStats($st, $r['ast']) : ($r['ast'] ? ['assistencias' => $r['ast']] : null),
+                        'stats' => $st ? static::pickStats($st, $r['ast']) : null,
                     ]);
                 }
                 if ($seen !== []) {

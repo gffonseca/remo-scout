@@ -128,9 +128,9 @@ class Player extends Model
                 if ($p->eu_passport === true && blank($p->eu_passport_evidence)) {
                     throw \Illuminate\Validation\ValidationException::withMessages(['eu_passport' => 'Passaporte comunitário só pode ser "Sim" com o documento conferido descrito na evidência.']);
                 }
-                if ($p->eu_passport === true) {
-                    $p->eu_passport_confirmed_by ??= auth()->id();
-                    $p->eu_passport_confirmed_at ??= now();
+                if ($p->eu_passport === true) { // nova evidência = nova conferência: registra quem e quando
+                    $p->eu_passport_confirmed_by = auth()->id();
+                    $p->eu_passport_confirmed_at = now();
                 } else {
                     $p->eu_passport_confirmed_by = null;
                     $p->eu_passport_confirmed_at = null;

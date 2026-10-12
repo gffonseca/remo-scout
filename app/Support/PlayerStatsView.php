@@ -68,6 +68,23 @@ class PlayerStatsView
         return static::PROVIDERS[$provider][1] ?? null;
     }
 
+    public static function appearances(PlayerSeasonStat $s): string
+    {
+        if ($s->appearances === null) {
+            return '—';
+        }
+
+        return (int) ($s->extra['participacao_indeterminada'] ?? 0) > 0 ? '≥'.$s->appearances : (string) $s->appearances;
+    }
+
+    /** Estatística individual cobre só parte dos jogos? "x de y" para não ler parcial como total. */
+    public static function detailCoverage(PlayerSeasonStat $s): ?string
+    {
+        $with = (int) ($s->extra['jogos_com_estatistica'] ?? 0);
+
+        return $with && $s->appearances && $with < $s->appearances ? "{$with} de {$s->appearances} jogos" : null;
+    }
+
     public static function minutes(PlayerSeasonStat $s): string
     {
         if ($s->minutes !== null) {

@@ -42,9 +42,13 @@ class SourceClient
     }
 
     /** @return array<mixed> */
-    public function getJson(string $path, array $query = [], array $headers = [], ?int $cacheSeconds = null): array
+    /**
+     * @param  (\Closure(string): ?array{0:string,1:string,2:string})|null  $check  valida o corpo de um HTTP 200 antes de contar como
+     *         sucesso; devolve [tipo, mensagem, saúde] quando o provedor sinaliza erro dentro da resposta (ex.: API-Football "errors").
+     */
+    public function getJson(string $path, array $query = [], array $headers = [], ?int $cacheSeconds = null, ?\Closure $check = null): array
     {
-        $json = json_decode($this->request($path, $query, $headers, $cacheSeconds), true);
+        $json = json_decode($this->request($path, $query, $headers, $cacheSeconds, $check), true);
         if (! is_array($json)) {
             throw new SourceException('Resposta não é JSON válido', 'formato');
         }
@@ -64,7 +68,7 @@ class SourceClient
         return 'source-resp:'.$s->key.':'.sha1($url.'|'.json_encode($query));
     }
 
-    private function request(string $path, array $query, array $headers, ?int $cacheSeconds): string
+    private function request(string $path, array $query, array $headers, ?int $cacheSeconds, ?\Closure $check = null): string
     {
         $s = $this->source->fresh();
         if (! $s->enabled) {
@@ -148,8 +152,13 @@ class SourceClient
             $this->fail($s, "HTTP {$res->status()}", 'degradado');
             throw new SourceException("{$s->name} respondeu HTTP {$res->status()}", 'http', $res->status());
         }
-        $this->reachable($s, true);
         $body = (string) $res->body();
+        if ($check && ($err = $check($body))) {
+            [$kind, $msg, $health] = $err;
+            $this->fail($s, $msg, $health); // erro lógico conta para o circuito e não vai para o cache
+            throw new SourceException($msg, $kind);
+        }
+        $this->reachable($s, true);
         if ($cacheKey) {
             Cache::put($cacheKey, $body, $cacheSeconds);
         }
@@ -222,12 +231,6 @@ class SourceClient
         $ts = strtotime($h);
 
         return $ts === false ? null : max(0, $ts - time());
-    }
-
-    /** Para provedores que sinalizam erro dentro de uma resposta HTTP 200 (ex.: API-Football "errors"). */
-    public function reportFailure(string $msg, string $health = 'degradado'): void
-    {
-        $this->fail($this->source->fresh(), $msg, $health);
     }
 
     private function fail(DataSource $s, string $msg, string $health, ?CarbonInterface $openUntil = null): void

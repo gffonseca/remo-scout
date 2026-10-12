@@ -96,7 +96,7 @@ class DadosFutebol
                     'shirt_number' => is_numeric($shirt) && $shirt > 0 && $shirt < 1000 ? (int) $shirt : null, // ausente fica nulo, nunca 0
                     'position_raw' => isset($r['posicao']) ? mb_substr((string) $r['posicao'], 0, 40) : null,
                     'player_id' => $links[$ext] ?? null,
-                    'last_seen_at' => $now, 'left_at' => null, 'raw' => $r,
+                    'last_seen_at' => $now, 'left_at' => null, 'raw' => static::whitelist($r),
                 ])->save();
                 if ($e->player_id) {
                     $stats['linked']++;
@@ -112,6 +112,12 @@ class DadosFutebol
 
             return $stats;
         });
+    }
+
+    /** Só os campos usados; nada além disso da linha do provedor é guardado. */
+    public static function whitelist(array $r): array
+    {
+        return array_intersect_key($r, array_flip(['id', 'nome', 'nome_popular', 'numero_camisa', 'posicao', 'gols']));
     }
 
     /** Nome + mesmo clube nunca liga sozinho (fonte sem nascimento): só cria item de revisão, e só se houver um único atleta compatível. */

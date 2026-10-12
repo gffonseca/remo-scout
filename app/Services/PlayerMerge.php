@@ -40,10 +40,11 @@ class PlayerMerge
                     }
                 }
             }
-            foreach (DB::table('player_season_stats')->where('player_id', $into->id)->distinct()->pluck('provider') as $prov) {
-                if (in_array($prov, ['api_futebol', 'sumula_fpf', 'sumula_cbf'], true)) {
-                    SeasonStatsAggregator::rebuildProvider($prov, [$into->id]);
-                }
+            // agregados derivados de partidas: reconstruídos para todo provedor com atuações no destino
+            // (derivados 100% das partidas: apagados e recalculados — o unique com clube NULL não impede linhas repetidas)
+            foreach (DB::table('appearances')->where('player_id', $into->id)->distinct()->pluck('provider') as $prov) {
+                DB::table('player_season_stats')->where('player_id', $into->id)->where('provider', $prov)->delete();
+                SeasonStatsAggregator::rebuildProvider($prov, [$into->id]);
             }
             AuditEvent::record('player_merge', $into, ['from' => $from->id, 'from_name' => $from->name, 'moved' => $moved, 'dropped' => count($dropped), 'by' => $userId]);
             $from->forceDelete();

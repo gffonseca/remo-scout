@@ -133,4 +133,31 @@ class FixtureQualityTest extends ScoutTestCase
         $this->assertSame(1, $s->extra['jogos_minutos_indeterminados']);
         $this->assertNull(PlayerSeasonStat::per90($s->goals, $s->minutes));
     }
+
+    public function test_bench_without_registered_substitutions_is_unknown_not_zero(): void
+    {
+        $d = $this->match(8);
+        $d['substituicoes']['mandante'] = [];
+        $d['escalacoes']['mandante']['reservas'][] = ['atleta' => ['atleta_id' => 12, 'nome_popular' => 'Banco']];
+        $this->api->ingestMatch($d, null, 'Teste', '2026', $this->run);
+        $banco = $this->app('Banco', 8);
+        $this->assertNull($banco->used);
+        $this->assertNull($banco->minutes);
+        SeasonStatsAggregator::rebuildProvider(ApiFutebol::PROVIDER);
+        $s = PlayerSeasonStat::where('player_id', Player::where('name', 'Banco')->value('id'))->sole();
+        $this->assertSame(0, $s->appearances);
+        $this->assertNull($s->minutes); // não é "0 minutos"
+        $this->assertSame(1, $s->extra['participacao_indeterminada']);
+        $this->assertSame('≥0', \App\Support\PlayerStatsView::appearances($s));
+    }
+
+    public function test_old_partial_fixture_without_field_quality_counts_goals_as_unverified(): void
+    {
+        $f = $this->api->ingestMatch($this->match(9), null, 'Teste', '2026', $this->run);
+        $f->update(['field_quality' => null, 'data_quality' => 'parcial']); // gravada antes do F13
+        SeasonStatsAggregator::rebuildProvider(ApiFutebol::PROVIDER);
+        $s = PlayerSeasonStat::where('player_id', Player::where('name', 'Fulano')->value('id'))->sole();
+        $this->assertSame(1, $s->extra['jogos_gols_nao_conferidos']);
+        $this->assertNull(\App\Support\PlayerStatsView::goalsPer90($s));
+    }
 }

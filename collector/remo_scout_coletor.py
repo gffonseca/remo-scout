@@ -174,14 +174,19 @@ def run_athletes(http, scout, plan, season, max_pages):
                     sent += len(rows)
                 return True
 
-            page = 1
-            while page <= total and page <= max_pages:
-                if page == 1 or page not in done:  # a página 1 é sempre lida para saber o total
-                    if not fetch(page):
-                        failed.append(page)
-                page += 1
-            if failed:  # segunda chance para páginas que falharam
-                failed = [p for p in failed if not fetch(p)]
+            tried = set()
+            for _ in range(2):  # 2ª passada: páginas que falharam e as que só se conhece o total depois (ex.: falha na página 1)
+                page = 1
+                while page <= total and page <= max_pages:
+                    if (page == 1 or page not in done) and page not in tried:  # a página 1 é sempre lida para saber o total
+                        if fetch(page):
+                            tried.add(page)
+                        elif page not in failed:
+                            failed.append(page)
+                    page += 1
+                failed = [p for p in failed if p not in tried]
+                if not failed:
+                    break
             manifest[slug] = {"label": comp["label"], "found": True, "total_pages": total, "limit": max_pages}
             if failed:
                 notes.append("%s: páginas sem resposta da CBF: %s" % (comp["label"], ", ".join(map(str, failed))))

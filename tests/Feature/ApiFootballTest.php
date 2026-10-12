@@ -156,17 +156,24 @@ class ApiFootballTest extends ScoutTestCase
         $this->assertStringNotContainsString('injur', json_encode(ProviderAthlete::first()->toArray()));
     }
 
-    public function test_errors_inside_http_200_are_failures_not_success(): void
+    public function test_errors_inside_http_200_are_failures_and_open_the_circuit(): void
     {
         Http::fake(['*' => Http::response(['errors' => ['requests' => 'You have reached the request limit for the day'], 'response' => []])]);
-        try {
-            $this->api->sync($this->run, [71], 10, 2026);
-        } catch (SourceException $e) {
+        $kinds = [];
+        foreach (range(1, 4) as $i) {
+            try {
+                (new ApiFootball)->sync($this->run, [71], 10, 2026);
+            } catch (SourceException $e) {
+                $kinds[] = $e->kind;
+            }
         }
+        $this->assertSame(['limite', 'limite', 'limite', 'circuito'], $kinds);
         $s = DataSource::byKey('api_football');
+        $this->assertSame(3, $s->consecutive_failures);
+        $this->assertTrue($s->circuitOpen());
         $this->assertSame('degradado', $s->health);
-        $this->assertSame(1, $s->consecutive_failures);
-        $this->assertStringContainsString('request limit', $s->last_error);
+        $this->assertNull($s->last_success_at); // nunca contou como sucesso
+        Http::assertSentCount(3); // a 4ª nem sai: circuito aberto
         Http::assertSent(fn ($r) => $r->hasHeader('x-apisports-key', 'k-test'));
     }
 
@@ -221,5 +228,24 @@ class ApiFootballTest extends ScoutTestCase
         $this->assertStringContainsString('Cadastrado da CBF', $html);
         $shadow = Player::provisional()->first();
         $this->assertStringNotContainsString(e($shadow->name), $html);
+    }
+
+    public function test_reserve_with_provider_minutes_counts_even_without_substitution_event(): void
+    {
+        $d = $this->sample('fixture_serie_a');
+        $sub = collect($d['events'])->firstWhere('type', 'subst');
+        $d['events'] = array_values(array_filter($d['events'], fn ($e) => $e !== $sub)); // evento de troca sumiu
+        $f = $this->api->ingestFixture($d, 'Série A', '2026', $this->run);
+        $in = $this->appearanceOf((string) $sub['assist']['id']);
+        $this->assertTrue($in->used);
+        $this->assertSame(38, $in->minutes);
+        $this->assertSame('provedor', $f->field_quality['mandante']['minutos'] === 'provedor' ? 'provedor' : $f->field_quality['visitante']['minutos']);
+    }
+
+    public function test_partial_detail_coverage_is_shown_as_partial(): void
+    {
+        $s = PlayerSeasonStat::create(['player_id' => Player::create(['name' => 'X'])->id, 'provider' => 'api_football', 'competition_key' => 'c', 'competition_name' => 'Copa',
+            'season' => '2026', 'appearances' => 10, 'minutes' => 900, 'extra' => ['jogos_com_estatistica' => 3, 'estatistica' => ['finalizacoes' => 4]]]);
+        $this->assertSame('3 de 10 jogos', \App\Support\PlayerStatsView::detailCoverage($s));
     }
 }

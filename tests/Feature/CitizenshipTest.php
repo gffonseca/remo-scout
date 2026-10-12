@@ -55,4 +55,18 @@ class CitizenshipTest extends ScoutTestCase
         $this->assertStringContainsString('confirmar com documento', $p->notes);
         $this->assertEquals([['country' => 'Brasil', 'source' => 'cadastro', 'at' => null], ['country' => 'Itália', 'source' => 'transfermarkt', 'at' => '2026-10-11']], $p->citizenships);
     }
+
+    public function test_changing_passport_evidence_records_new_confirmer(): void
+    {
+        $a = $this->user('analista');
+        $b = $this->user('coordenador');
+        $this->actingAs($a);
+        $p = \App\Models\Player::create(['name' => 'X', 'eu_passport' => true, 'eu_passport_evidence' => 'Passaporte PT conferido']);
+        $this->assertSame($a->id, $p->eu_passport_confirmed_by);
+        $this->actingAs($b);
+        $this->travel(1)->day();
+        $p->update(['eu_passport_evidence' => 'Passaporte IT conferido (renovado)']);
+        $this->assertSame($b->id, $p->fresh()->eu_passport_confirmed_by);
+        $this->assertTrue($p->fresh()->eu_passport_confirmed_at->isToday());
+    }
 }
