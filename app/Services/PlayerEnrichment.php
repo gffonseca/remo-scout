@@ -182,7 +182,7 @@ class PlayerEnrichment
                 $club->update(['crest_url' => 'https://tmssl.akamaized.net/images/wappen/head/'.$prof['club']['id'].'.png', 'crest_source' => Transfermarkt::PROVIDER]);
             }
             if ($club && $p->current_club_id && $club->id !== $p->current_club_id) {
-                $reviews += static::review($p, 'current_club_id', $p->currentClub?->name, $club->name.' (#'.$club->id.')', Transfermarkt::PROVIDER);
+                $reviews += static::review($p, 'current_club_id', $p->current_club_id, $club->id, Transfermarkt::PROVIDER);
             } elseif ($club && ! $p->current_club_id) {
                 $p->update(['current_club_id' => $club->id]);
                 $changes++;
@@ -277,40 +277,89 @@ class PlayerEnrichment
 
             return [1, 0];
         }
-        $cmp = $field === 'birth_date' ? substr((string) $current, 0, 10) : (string) $current;
-        if (mb_strtolower($cmp) !== mb_strtolower((string) $value)) {
-            return [0, static::review($p, $field, $cmp, (string) $value, $provider)];
+        if (! \App\Support\RawValue::same($current, $value)
+            && ! (is_string($current) && is_string($value) && mb_strtolower(trim($current)) === mb_strtolower(trim($value)))) {
+            return [0, static::review($p, $field, $current, $value, $provider)];
         }
 
         return [0, 0];
     }
 
-    private static function review(Player $p, string $field, ?string $current, string $proposed, string $provider): int
+    /** Rótulo legível de um valor bruto (UUID de clube vira nome; data vira dd/mm/aaaa). */
+    public static function label(string $field, mixed $raw): ?string
     {
-        $r = EnrichmentReview::firstOrCreate(
-            ['player_id' => $p->id, 'provider' => $provider, 'field' => $field, 'proposed_value' => $proposed, 'status' => 'pendente'],
-            ['current_value' => $current],
-        );
+        if ($raw === null || $raw === '') {
+            return null;
+        }
 
-        return $r->wasRecentlyCreated ? 1 : 0;
+        return match (true) {
+            in_array($field, ['current_club_id', 'rights_holder_club_id'], true) => (\App\Models\Club::find($raw)?->name ?? 'clube inexistente').' (#'.$raw.')',
+            $field === 'agent_id' => \App\Models\Agent::find($raw)?->name ?? 'empresário inexistente',
+            (bool) preg_match('/^\d{4}-\d{2}-\d{2}/', (string) $raw) => \Illuminate\Support\Carbon::parse($raw)->format('d/m/Y'),
+            default => is_array($raw) ? implode(', ', $raw) : (string) $raw,
+        };
     }
 
-    /** Aplica revisão aceita. */
-    public static function accept(EnrichmentReview $r, ?int $userId): void
+    private static function review(Player $p, string $field, mixed $currentRaw, mixed $proposedRaw, string $provider): int
     {
-        $p = $r->player;
-        $value = $r->proposed_value;
-        if ($r->field === 'current_club_id') {
-            preg_match('/#([0-9a-f\-]{36})\)$/', $value, $m);
-            $value = $m[1] ?? null;
+        $currentRaw = $currentRaw instanceof \DateTimeInterface ? $currentRaw->format('Y-m-d') : $currentRaw;
+        $proposedRaw = $proposedRaw instanceof \DateTimeInterface ? $proposedRaw->format('Y-m-d') : $proposedRaw;
+        $pending = EnrichmentReview::where('player_id', $p->id)->where('provider', $provider)->where('field', $field)->where('status', 'pendente')->get()
+            ->first(fn ($r) => \App\Support\RawValue::same($r->proposed_raw, $proposedRaw));
+        if ($pending) {
+            return 0;
         }
-        if ($value !== null) {
-            $p->{$r->field} = $value;
+        EnrichmentReview::create([
+            'player_id' => $p->id, 'provider' => $provider, 'field' => $field, 'status' => 'pendente',
+            'current_raw' => $currentRaw, 'proposed_raw' => $proposedRaw,
+            'current_value' => static::label($field, $currentRaw), 'proposed_value' => static::label($field, $proposedRaw),
+        ]);
+
+        return 1;
+    }
+
+    /**
+     * Aplica revisão (F16). Só marca "aceito" depois de confirmar que o valor gravado é o proposto.
+     * Se o cadastro mudou desde que a revisão foi aberta, ou o valor proposto é inválido, vira "conflito".
+     *
+     * @return array{status:string, message:string}
+     */
+    public static function accept(EnrichmentReview $r, ?int $userId): array
+    {
+        return DB::transaction(function () use ($r, $userId) {
+            $r = EnrichmentReview::whereKey($r->id)->lockForUpdate()->firstOrFail();
+            if ($r->status !== 'pendente') {
+                return ['status' => $r->status, 'message' => 'Revisão já decidida ('.$r->status.').'];
+            }
+            $p = Player::whereKey($r->player_id)->lockForUpdate()->firstOrFail();
+            $field = $r->field;
+            $proposed = $r->proposed_raw;
+            $conflict = function (string $why) use ($r, $userId) {
+                $r->update(['status' => 'conflito', 'decision_note' => $why, 'reviewed_by' => $userId, 'reviewed_at' => now()]);
+
+                return ['status' => 'conflito', 'message' => $why];
+            };
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('players', $field)) {
+                return $conflict("Campo {$field} não existe no cadastro.");
+            }
+            if (! \App\Support\RawValue::same($p->getRawOriginal($field), $r->current_raw)) {
+                return $conflict('O cadastro mudou depois que a revisão foi aberta (agora: '.(static::label($field, $p->getRawOriginal($field)) ?? 'vazio').'). Reavalie.');
+            }
+            if (in_array($field, ['current_club_id', 'rights_holder_club_id'], true) && ! \App\Models\Club::whereKey($proposed)->exists()) {
+                return $conflict('Clube proposto não existe mais.');
+            }
+            $p->{$field} = $proposed;
             $src = $p->field_sources ?? [];
-            $src[$r->field] = ['source' => $r->provider, 'at' => now()->toDateString(), 'reviewed_by' => $userId];
+            $src[$field] = ['source' => $r->provider, 'at' => now()->toDateString(), 'reviewed_by' => $userId];
             $p->field_sources = $src;
             $p->save();
-        }
-        $r->update(['status' => 'aceito', 'reviewed_by' => $userId, 'reviewed_at' => now()]);
+            $applied = DB::table('players')->where('id', $p->id)->value($field);
+            if (! \App\Support\RawValue::same($applied, $proposed)) {
+                throw new \RuntimeException("Aplicação de {$field} não confirmada; nada foi alterado.");
+            }
+            $r->update(['status' => 'aceito', 'reviewed_by' => $userId, 'reviewed_at' => now(), 'decision_note' => null]);
+
+            return ['status' => 'aceito', 'message' => 'Aplicado: '.static::label($field, $proposed)];
+        });
     }
 }

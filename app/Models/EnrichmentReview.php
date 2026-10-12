@@ -14,7 +14,7 @@ class EnrichmentReview extends Model
 
     protected function casts(): array
     {
-        return ['reviewed_at' => 'datetime'];
+        return ['reviewed_at' => 'datetime', 'current_raw' => 'json', 'proposed_raw' => 'json'];
     }
 
     public function player(): BelongsTo

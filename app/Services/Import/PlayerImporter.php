@@ -481,30 +481,9 @@ class PlayerImporter
         return array_values(array_unique($hits));
     }
 
-    /** Compara valor bruto do banco com o registrado (decimais "25000.00" = 25000, JSON, booleanos, datas). */
     private static function same(mixed $current, mixed $recorded): bool
     {
-        $norm = function (mixed $v) {
-            if (is_string($v) && $v !== '' && in_array($v[0], ['[', '{'], true) && json_validate($v)) {
-                $v = json_decode($v, true);
-            }
-            if (is_array($v)) {
-                return json_encode($v);
-            }
-            if (is_bool($v)) {
-                return $v ? '1' : '0';
-            }
-            if (is_int($v) || is_float($v) || (is_string($v) && is_numeric($v))) {
-                return rtrim(rtrim(number_format((float) $v, 4, '.', ''), '0'), '.');
-            }
-            if (is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}/', $v)) {
-                return substr($v, 0, 10);
-            }
-
-            return $v === null ? null : trim((string) $v);
-        };
-
-        return $norm($current) === $norm($recorded);
+        return \App\Support\RawValue::same($current, $recorded);
     }
 
     public static function parseDate(mixed $v): ?Carbon
