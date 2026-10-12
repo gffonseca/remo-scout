@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Console\Commands\IdentitiesConverge;
 use App\Jobs\RunArtisanSync;
 use App\Models\Club;
 use App\Models\Player;
@@ -69,7 +70,7 @@ class CoberturaDados extends Page
             ->visible(fn () => auth()->user()->isAdmin())
             ->requiresConfirmation()
             ->modalHeading(fn (array $arguments) => self::FIXES[$arguments['correcao'] ?? '']['label'] ?? '')
-            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(($arguments['correcao'] ?? '') === 'enriquecer' ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
+            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(in_array($arguments['correcao'] ?? '', ['enriquecer', 'convergir_previa'], true) ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
             ->action(function (array $arguments) {
                 abort_unless(auth()->user()->isAdmin(), 403);
                 $fix = self::FIXES[$arguments['correcao'] ?? ''] ?? abort(404);
@@ -86,6 +87,10 @@ class CoberturaDados extends Page
             'help' => 'Copia a foto da API-Football para atletas com vínculo confiável e sem foto. Não substitui upload nem foto da CBF.'],
         'checar' => ['label' => 'Verificar URLs de foto (200)', 'command' => 'scout:photos', 'params' => ['--check' => true, '--apply' => true, '--limit' => 200],
             'help' => 'Confere até 200 URLs externas (host permitido, resposta, tipo, tamanho) e grava o estado. Não apaga URL.'],
+        'convergir_previa' => ['label' => 'Prévia: ligar por CBF × Transfermarkt (60)', 'command' => 'scout:identities-converge', 'params' => ['--search' => true, '--limit' => 60],
+            'help' => 'Para atletas sem nascimento no cadastro que têm registro CBF provável: confere se exatamente um candidato do Transfermarkt tem o MESMO nascimento da CBF e o mesmo clube do cadastro. Só mostra o resultado (nada é ligado); busca no Transfermarkt quem ainda não tem candidatos.'],
+        'convergir' => ['label' => 'Aplicar ligação CBF × Transfermarkt', 'command' => 'scout:identities-converge', 'params' => ['--apply' => true, '--limit' => 60],
+            'help' => 'Liga os atletas marcados "ligar" na prévia: grava o nascimento (fonte CBF), confirma o ID CBF e o vínculo do Transfermarkt e fecha os itens na fila de identidades. Tudo num lote que pode ser desfeito.'],
         'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],
             'help' => 'Para até 40 atletas do scout (watchlist → necessidades abertas → lista prioritária → demais; quem nunca foi tentado primeiro): vincula só por nome + nascimento (o resto vai para "Identidades a revisar") e traz perfil, carreira por temporada, valor de mercado e contrato observados. Fonte não oficial; dado divergente vira revisão, não sobrescrita. Leva até 20 min; o resultado fica em "Histórico de importações".'],
     ];
@@ -122,6 +127,7 @@ class CoberturaDados extends Page
             'toEnrich' => Player::whereIn('id', $rows->pluck('id'))->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))->count(),
             'photoToCheck' => Player::whereNotNull('photo_url')->whereNull('photo_path')->whereNull('photo_checked_at')->count(),
             'batches' => DataCoverage::batches(),
+            'convergence' => Cache::get(IdentitiesConverge::CACHE),
             'runs' => DataCoverage::sourceRuns(),
             'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_STATES,
         ];

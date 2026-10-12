@@ -34,9 +34,9 @@ class Transfermarkt
         return $this->client->getJson('/players/search/'.rawurlencode($name))['results'] ?? [];
     }
 
-    public function profile(string $id): array
+    public function profile(string $id, ?int $cacheSeconds = null): array
     {
-        return $this->client->getJson("/players/{$id}/profile");
+        return $this->client->getJson("/players/{$id}/profile", [], [], $cacheSeconds);
     }
 
     public function stats(string $id): array
