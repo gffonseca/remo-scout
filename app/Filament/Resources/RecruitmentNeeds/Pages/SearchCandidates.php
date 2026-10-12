@@ -70,7 +70,7 @@ class SearchCandidates extends Page
             $n->preferred_foot ? 'Pé '.$n->preferred_foot->getLabel().' (ambidestro atende)' : null,
             ...RequirementCheck::roleRequirements($n)->where('is_mandatory', true)
                 ->map(fn ($r) => 'Nível observado '.$r['role_name'].' · '.GamePhase::label($r['phase']).' ≥ '.$r['min_level']->value)->all(),
-            ...$n->specialties()->wherePivot('is_mandatory', true)->pluck('name')->map(fn ($s) => 'Especialidade: '.$s)->all(),
+            ...$n->specialties()->wherePivot('is_mandatory', true)->get()->map(fn ($s) => 'Especialidade: '.$s->name.($s->pivot->min_level ? ' ≥ '.$s->pivot->min_level : ' (sem nível mínimo: fica pendente)').($s->pivot->min_attempts ? ', amostra ≥ '.$s->pivot->min_attempts : ''))->all(),
             ...collect($n->mandatory_requirements ?? [])->filter()->map(fn ($t) => 'Obrigatório: '.$t)->all(),
             $financial && $n->budget_salary_max !== null ? 'Teto salarial (faixa inteira dentro = atende; intersecta = negociar)' : null,
             $financial && $n->budget_transfer_max !== null ? 'Teto de transferência' : null,

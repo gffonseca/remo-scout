@@ -86,9 +86,8 @@ class RequirementCheck
             $a = $player->relationLoaded('specialtyAssessments')
                 ? $player->specialtyAssessments->where('specialty_id', $sp->id)->sortByDesc(fn ($x) => [$x->updated_at?->timestamp ?? 0, (string) $x->id])->first()
                 : $player->specialtyAssessments()->where('specialty_id', $sp->id)->latest('updated_at')->first();
-            ! $a || $a->level === Level::NaoObservado
-                ? $add($sp->name, RequirementStatus::Pendente, 'especialidade não avaliada')
-                : $add($sp->name, RequirementStatus::Atende, $a->level->getLabel());
+            [$st, $detail] = static::specialtyStatus($a, $sp->pivot?->min_level ? Level::tryFrom($sp->pivot->min_level) : null, $sp->pivot?->min_attempts);
+            $add($sp->name, $st, $detail);
         }
 
         // orçamento (4 estados): dentro = atende; intersecta/desconhecido = pendente (negociar/levantar); acima = não atende
@@ -119,6 +118,31 @@ class RequirementCheck
         }
 
         return $out;
+    }
+
+    /**
+     * Especialidade obrigatória: nível mínimo definido na necessidade e, opcionalmente, amostra mínima.
+     * Sem avaliação, sem limiar definido ou amostra insuficiente → Pendente (desconhecido não atende). Abaixo do nível → Não atende.
+     *
+     * @return array{0:RequirementStatus,1:string}
+     */
+    public static function specialtyStatus($a, ?Level $min, ?int $minAttempts): array
+    {
+        if (! $a || ! $a->level?->rank()) {
+            return [RequirementStatus::Pendente, 'especialidade não avaliada'];
+        }
+        $sample = ($a->sample_attempts ?? 0) > 0 ? " · amostra {$a->sample_successes}/{$a->sample_attempts}" : '';
+        if (! $min) {
+            return [RequirementStatus::Pendente, "avaliada {$a->level->value}{$sample}, mas a necessidade não define o nível mínimo"];
+        }
+        if ($a->level->rank() < $min->rank()) {
+            return [RequirementStatus::NaoAtende, "avaliada {$a->level->value}{$sample} (mínimo {$min->value})"];
+        }
+        if ($minAttempts && ($a->sample_attempts ?? 0) < $minAttempts) {
+            return [RequirementStatus::Pendente, "avaliada {$a->level->value}, amostra insuficiente: ".($a->sample_attempts ?? 0)." de {$minAttempts} tentativas"];
+        }
+
+        return [RequirementStatus::Atende, "avaliada {$a->level->value}{$sample} (mínimo {$min->value})"];
     }
 
     /**

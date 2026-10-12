@@ -10,6 +10,7 @@ use App\Enums\NeedStatus;
 use App\Enums\Position;
 use App\Enums\Priority;
 use App\Models\RecruitmentNeed;
+use App\Models\Specialty;
 use App\Models\TacticalRole;
 use App\Models\User;
 use App\Services\RequirementCheck;
@@ -31,6 +32,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use UnitEnum;
 
 class RecruitmentNeedResource extends Resource
@@ -67,7 +69,6 @@ class RecruitmentNeedResource extends Resource
                     ->helperText('Usado na busca de candidatos. Níveis exigidos ficam em "Requisitos por papel e fase".')
                     ->options(fn () => TacticalRole::query()->where('status', '!=', 'arquivado')->orderBy('position_group')->orderBy('name')->get()
                         ->groupBy('position_group')->map(fn ($g) => $g->pluck('name', 'id'))->toArray()),
-                Select::make('specialties')->label('Especialidades desejadas')->relationship('specialties', 'name')->multiple()->preload(),
                 Select::make('preferred_foot')->label('Pé')->options(Foot::class)->placeholder('Indiferente'),
                 TextInput::make('age_min')->label('Idade mínima')->numeric()->minValue(15)->maxValue(45),
                 TextInput::make('age_max')->label('Idade máxima')->numeric()->minValue(15)->maxValue(45)->gte('age_min'),
@@ -77,6 +78,29 @@ class RecruitmentNeedResource extends Resource
                 TextInput::make('window_label')->label('Janela/temporada')->placeholder('ex.: Janela jan/2027'),
                 Select::make('owner_id')->label('Responsável')->options(fn () => User::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->default(fn () => auth()->id()),
             ]),
+            Section::make('Especialidades')->description('Obrigatória exige nível mínimo (e, se quiser, amostra mínima de tentativas). Só existir avaliação não atende.')
+                ->collapsible()->schema([
+                    Repeater::make('specialty_rows')->hiddenLabel()->defaultItems(0)->columns(4)->addActionLabel('Adicionar especialidade')
+                        ->schema([
+                            Select::make('specialty_id')->label('Especialidade')->required()->searchable()->columnSpan(2)
+                                ->options(fn () => Specialty::where('status', '!=', 'arquivado')->orderBy('name')->pluck('name', 'id'))
+                                ->distinct()->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                            Toggle::make('is_mandatory')->label('Obrigatória')->live()->inline(false),
+                            Select::make('min_level')->label('Nível mínimo')->options(collect(Level::cases())->filter(fn ($l) => $l->rank())->mapWithKeys(fn ($l) => [$l->value => $l->getLabel()]))
+                                ->required(fn ($get) => (bool) $get('is_mandatory')),
+                            TextInput::make('min_attempts')->label('Amostra mínima (tentativas)')->numeric()->minValue(1)->maxValue(500)
+                                ->helperText('Ex.: pênaltis enfrentados. Vazio = sem exigência de amostra.')->columnSpan(2),
+                        ])
+                        ->afterStateHydrated(function (Repeater $component, ?RecruitmentNeed $record) {
+                            $component->state($record ? $record->specialties->mapWithKeys(fn ($s) => [(string) Str::uuid() => [
+                                'specialty_id' => $s->id, 'is_mandatory' => (bool) $s->pivot->is_mandatory, 'min_level' => $s->pivot->min_level, 'min_attempts' => $s->pivot->min_attempts]])->all() : []);
+                        })
+                        ->dehydrated(false)
+                        ->saveRelationshipsUsing(function (RecruitmentNeed $record, ?array $state) {
+                            $record->specialties()->sync(collect($state ?? [])->filter(fn ($r) => filled($r['specialty_id'] ?? null))->mapWithKeys(fn ($r) => [$r['specialty_id'] => [
+                                'is_mandatory' => (bool) ($r['is_mandatory'] ?? false), 'min_level' => $r['min_level'] ?: null, 'min_attempts' => filled($r['min_attempts'] ?? null) ? (int) $r['min_attempts'] : null]])->all());
+                        }),
+                ]),
             Section::make('Requisitos por papel e fase')
                 ->description('Nível OBSERVADO mínimo por papel e fase. Potencial não conta; avaliação de outra fase não substitui; avaliação vencida fica pendente.')
                 ->schema([

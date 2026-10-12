@@ -44,7 +44,7 @@ class RecruitmentNeed extends Model
 
     public function specialties(): BelongsToMany
     {
-        return $this->belongsToMany(Specialty::class)->withPivot('is_mandatory');
+        return $this->belongsToMany(Specialty::class)->withPivot(['is_mandatory', 'min_level', 'min_attempts']);
     }
 
     /** Requisitos de nível observado por papel e fase. */
