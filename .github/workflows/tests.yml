@@ -45,6 +45,9 @@ jobs:
           extensions: pdo_pgsql, pgsql, intl, zip, gd, bcmath, pcntl, mbstring, dom, curl
           coverage: none
 
+      - name: Ferramentas do sistema (iguais à imagem de produção)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+
       - name: Dependências
         run: composer install --prefer-dist --no-interaction --no-progress
 
