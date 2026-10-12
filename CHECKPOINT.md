@@ -43,3 +43,9 @@ Atualize a cada sessão. Última atualização: 11/10/2026 (sessão de construç
 - 12/10/2026: radar ampliado (aprovado): + Copa do Nordeste (1260624), Copa Verde (`copa-verde/masculino`, 1260621), Copa Sul-Sudeste (1260625), Brasileiro Sub-20 (1260620), Sub-20 B (1260626), Copa do Brasil Sub-20 (1260649). Fora: Sub-17/15/13 (menores) e feminino. Aspirantes e Nordeste eliminatórias/pré-copa sem edição 2026 na CBF.
 - 12/10/2026: sistema renomeado para **CIFUT Remo** (repo segue remo-scout). Escudo do Remo (SVG da API Futebol, hospedado em public/images/remo-escudo.svg) na barra superior, login, favicon; PDFs com o novo nome. APP_NAME não alterado (mudaria o cookie de sessão).
 - Coletor 1.0.2: ritmo mínimo 2,5 s entre requisições (CBF passou a responder 429 a 1,5 s); 429 respeita Retry-After (ou 60 s) e desacelera a execução. Rodada diária estimada ~90 min.
+
+## 12/10/2026 — auditoria validada e Bloco 1 do refinamento (branch `refino`, não publicado)
+- Auditoria (docs/auditoria/) validada: F01–F22 procedem; novos F23 (workflows do esqueleto) e F24 (worker morria a cada 1 h — hotfix 00d6fe9 publicado com autorização).
+- Decisões do Q&A em docs/auditoria/DECISOES-REFINAMENTO.md (deploy só no fim; fases com posse/sem posse/bola parada no Bloco 1; IA de notícias = Claude API; Sofascore só via coletor local; restauração no Mac Mini).
+- Bloco 1 (F01–F08, F10, F23) concluído na branch `refino` com revisão independente; entrega e plano de deploy/rollback em docs/auditoria/BLOCO-1-ENTREGA.md. CI próprio verde (PHP 8.3 + PostgreSQL 16).
+- Próximo: Bloco 2 (F09, F12–F17, F20).
