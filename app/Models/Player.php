@@ -99,6 +99,9 @@ class Player extends Model
         return $this->salary_currency.' '.$range.' ('.$this->salary_periodicity.', '.mb_strtolower($this->salary_confirmation->getLabel()).')';
     }
 
+    /** Lote de importação em andamento: observações derivadas (salário/pedida) ficam ligadas a ele e saem na reversão. */
+    public static ?string $importBatchContext = null;
+
     protected static function booted(): void
     {
         // Mantém histórico: cada mudança na faixa salarial ou na pedida gera observação de mercado datada.
@@ -109,6 +112,7 @@ class Player extends Model
                     'currency' => $p->salary_currency, 'periodicity' => $p->salary_periodicity,
                     'confirmation' => $p->salary_confirmation?->value ?? 'nao_verificado', 'source_label' => 'Faixa salarial no cadastro do atleta',
                     'observed_on' => $p->salary_observed_on ?? now()->toDateString(), 'author_id' => auth()->id(),
+                    'import_batch_id' => static::$importBatchContext,
                 ]);
             }
             if ($p->asking_price !== null && ($p->wasChanged('asking_price') || $p->wasRecentlyCreated)) {
@@ -116,6 +120,7 @@ class Player extends Model
                     'player_id' => $p->id, 'kind' => 'pedida_transferencia', 'amount' => $p->asking_price, 'currency' => $p->asking_price_currency,
                     'periodicity' => 'unico', 'confirmation' => 'nao_verificado', 'source_label' => 'Pedida no cadastro do atleta',
                     'observed_on' => now()->toDateString(), 'author_id' => auth()->id(),
+                    'import_batch_id' => static::$importBatchContext,
                 ]);
             }
         });

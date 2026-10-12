@@ -15,12 +15,17 @@ class ImportBatch extends Model
 
     protected function casts(): array
     {
-        return ['mapping' => 'array', 'errors' => 'array', 'completed_at' => 'datetime', 'reverted_at' => 'datetime'];
+        return ['mapping' => 'array', 'errors' => 'array', 'completed_at' => 'datetime', 'reverted_at' => 'datetime', 'revert_report' => 'array', 'has_change_log' => 'boolean'];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function changes(): HasMany
+    {
+        return $this->hasMany(ImportChange::class);
     }
 
     public function players(): HasMany
