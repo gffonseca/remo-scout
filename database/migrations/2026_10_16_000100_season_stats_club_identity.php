@@ -25,6 +25,8 @@ return new class extends Migration
             $t->string('club_key', 200)->default('')->after('club_source_name'); // identidade da linha (clube distinto na mesma temporada)
         });
 
+        // a chave antiga (club_name, nulos iguais) colidiria enquanto os códigos saem de club_name: sai antes, a nova entra no fim
+        DB::statement('alter table player_season_stats drop constraint if exists player_season_stats_identity_unique');
         DB::statement(<<<'SQL'
             update player_season_stats set club_external_id = club_name, club_name = null
             where provider = 'transfermarkt' and club_name ~ '^[0-9]+$'
