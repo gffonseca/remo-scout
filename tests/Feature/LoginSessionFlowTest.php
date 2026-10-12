@@ -51,6 +51,7 @@ class LoginSessionFlowTest extends ScoutTestCase
         $this->assertGuest();
         $off = $this->user('analista', ['is_active' => false]);
         $this->login($off->email);
+        $this->assertGuest(); // inativo não ganha sessão
         $this->get(route('dossie.player', Player::create(['name' => 'X'])))->assertRedirect();
     }
 }

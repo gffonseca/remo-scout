@@ -39,7 +39,7 @@ class PlayerSeasonStat extends Model
         return match (true) {
             filled($externalId) => 'ext:'.$externalId,
             filled($clubId) => 'club:'.$clubId,
-            filled($sourceName) => 'name:'.mb_strtolower(trim($sourceName)),
+            filled($sourceName) => 'name:'.$sourceName, // igual à chave antiga (club_name exato) para não colidir
             default => '',
         };
     }

@@ -64,10 +64,24 @@ class PlayerPhotos extends Command
         if (str_contains($url, 'default')) {
             return 'generica'; // Transfermarkt usa "default.jpg" para quem não tem foto
         }
-        try {
-            $res = Http::timeout(15)->withOptions(['allow_redirects' => ['max' => 2]])->withHeaders(['Range' => 'bytes=0-'.self::MAX_BYTES])->get($url);
-        } catch (\Throwable) {
-            return 'quebrada';
+        // redirecionamento só para host permitido e https (sem SSRF); corpo lido até o limite
+        for ($hop = 0; $hop <= 2; $hop++) {
+            try {
+                $res = Http::timeout(15)->withOptions(['allow_redirects' => false, 'stream' => true, 'protocols' => ['https']])->get($url);
+            } catch (\Throwable) {
+                return 'quebrada';
+            }
+            if (! $res->redirect()) {
+                break;
+            }
+            $next = $res->header('Location');
+            $url = $next ? (str_starts_with($next, '/') ? 'https://'.$host.$next : $next) : '';
+            if (parse_url($url, PHP_URL_SCHEME) !== 'https' || ! in_array($host = parse_url($url, PHP_URL_HOST), self::ALLOWED_HOSTS, true)) {
+                return 'host_nao_permitido';
+            }
+            if ($hop === 2) {
+                return 'quebrada';
+            }
         }
         if (in_array($res->status(), [401, 403, 429], true)) {
             return 'bloqueada'; // a fonte recusa o servidor; o navegador pode conseguir (fallback nas iniciais)
@@ -76,7 +90,17 @@ class PlayerPhotos extends Command
             return 'quebrada';
         }
         $type = strtolower((string) $res->header('Content-Type'));
-        $body = $res->body();
+        $stream = $res->toPsrResponse()->getBody();
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+        $body = '';
+        while (! $stream->eof() && strlen($body) <= self::MAX_BYTES) {
+            $body .= $stream->read(65536);
+        }
+        if (strlen($body) > self::MAX_BYTES) {
+            return 'nao_imagem'; // grande demais para foto de perfil
+        }
         if (! str_starts_with($type, 'image/') || @getimagesizefromstring($body) === false) {
             return 'nao_imagem';
         }

@@ -84,14 +84,17 @@ class DataCoverageTest extends ScoutTestCase
             'media.api-sports.io/404.png' => Http::response('', 404),
             'media.api-sports.io/403.png' => Http::response('', 403),
             'media.api-sports.io/html.png' => Http::response('<html>', 200, ['Content-Type' => 'text/html']),
+            'media.api-sports.io/redir.png' => Http::response('', 302, ['Location' => 'https://169.254.169.254/latest/meta-data']),
+            'media.api-sports.io/redir-ok.png' => Http::response('', 302, ['Location' => '/ok.png']),
         ]);
         $probe = fn ($u) => PlayerPhotos::probe($u);
-        $this->assertSame('ok', $probe('https://media.api-sports.io/ok.png'));
         $this->assertSame('ok', $probe('https://media.api-sports.io/ok.png'));
         $this->assertSame('quebrada', $probe('https://media.api-sports.io/404.png'));
         $this->assertSame('bloqueada', $probe('https://media.api-sports.io/403.png'));
         $this->assertSame('nao_imagem', $probe('https://media.api-sports.io/html.png'));
         $this->assertSame('host_nao_permitido', $probe('https://exemplo.com/a.png'));
+        $this->assertSame('host_nao_permitido', $probe('https://media.api-sports.io/redir.png')); // redirecionamento para fora da lista
+        $this->assertSame('ok', $probe('https://media.api-sports.io/redir-ok.png'));
         $this->assertSame('host_nao_permitido', $probe('http://media.api-sports.io/ok.png'));
         $this->assertSame('generica', $probe('https://img.a.transfermarkt.technology/portrait/header/default.jpg'));
 
@@ -156,5 +159,16 @@ class DataCoverageTest extends ScoutTestCase
 
         $this->actingAs($this->user('leitor'));
         $this->get(CoberturaDados::getUrl(['motivo' => 'fora_cobertura']))->assertOk()->assertSee('Clube sem partidas')->assertSee('Denominador: 10 atletas');
+    }
+
+    public function test_photo_check_batch_can_be_reverted_despite_timestamp_format(): void
+    {
+        Http::fake(['media.api-sports.io/*' => Http::response('', 404)]);
+        $p = Player::create(['name' => 'Checada', 'photo_url' => 'https://media.api-sports.io/x.png']);
+        $this->artisan('scout:photos --check --apply')->assertSuccessful();
+        $this->assertSame('quebrada', $p->fresh()->photo_status);
+        $batch = DB::table('data_fix_changes')->where('kind', 'photo_check')->value('batch');
+        $this->artisan("scout:photos --revert={$batch}")->expectsOutputToContain('Revertidas: 1')->assertSuccessful();
+        $this->assertNull($p->fresh()->photo_status);
     }
 }

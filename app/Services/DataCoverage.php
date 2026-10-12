@@ -10,6 +10,7 @@ use App\Models\PlayerSeasonStat;
 use App\Models\SyncRun;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -84,29 +85,39 @@ class DataCoverage
                         else substring(season from '(\d{2,4})\D*$')::int end) >= ? as recent from player_season_stats) s
                 group by s.player_id
             ),
-            covered as (
-                select f.home_club_id as club_id, f.provider, f.data_quality from fixtures f where f.season like ? || '%' and f.home_club_id is not null
-                union all select f.away_club_id, f.provider, f.data_quality from fixtures f where f.season like ? || '%' and f.away_club_id is not null
-            )
+            covered as materialized (
+                select club_id, provider, bool_or(data_quality = 'completo') as complete
+                from (select f.home_club_id as club_id, f.provider, f.data_quality from fixtures f where f.season like ? || '%' and f.home_club_id is not null
+                      union all select f.away_club_id, f.provider, f.data_quality from fixtures f where f.season like ? || '%' and f.away_club_id is not null) x
+                group by club_id, provider
+            ),
+            cov as materialized (
+                select club_id, array_agg(provider) as providers, array_agg(provider) filter (where complete) as complete_providers
+                from covered group by club_id
+            ),
+            pend as materialized (select distinct player_id from identity_candidates where status = 'pendente'),
+            ext as materialized (select player_id, array_agg(provider) filter (where verified) as verified_providers,
+                                        bool_or(verified or provider in ('transfermarkt','sofascore')) as photo_link
+                                 from player_external_ids group by player_id)
             select p.id, p.name, c.name as club, p.is_priority as priority, st.last_fetch,
               case
                 when st.has_recent and st.recent_partial then 'parcial'
                 when st.has_recent and st.recent_fresh then 'disponivel'
                 when st.n > 0 then 'desatualizado'
-                when exists (select 1 from identity_candidates ic where ic.player_id = p.id and ic.status = 'pendente') then 'identidade_pendente'
+                when pend.player_id is not null then 'identidade_pendente'
                 when p.current_club_id is null then 'nao_coletado'
-                when not exists (select 1 from covered v where v.club_id = p.current_club_id) then 'fora_cobertura'
-                when not exists (select 1 from covered v where v.club_id = p.current_club_id and v.provider <> all(?::text[])) then 'falha_bloqueio'
-                when exists (select 1 from player_external_ids e join covered v on v.provider = e.provider and v.club_id = p.current_club_id and v.data_quality = 'completo'
-                             where e.player_id = p.id and e.verified) then 'sem_participacao'
+                when cov.club_id is null then 'fora_cobertura'
+                when not (cov.providers && array(select unnest(cov.providers) except select unnest(?::text[]))) then 'falha_bloqueio'
+                when ext.verified_providers && cov.complete_providers then 'sem_participacao'
                 else 'aguardando_vinculo'
               end as stats_state,
               case
                 when p.photo_url is not null or p.photo_path is not null then null
-                when exists (select 1 from player_external_ids e where e.player_id = p.id and (e.verified or e.provider in ('transfermarkt','sofascore'))) or p.cbf_id is not null then 'fonte_sem_foto'
+                when coalesce(ext.photo_link, false) or p.cbf_id is not null then 'fonte_sem_foto'
                 else 'sem_vinculo'
               end as photo_reason
             from p left join clubs c on c.id = p.current_club_id left join st on st.player_id = p.id
+              left join cov on cov.club_id = p.current_club_id left join pend on pend.player_id = p.id left join ext on ext.player_id = p.id
             order by p.is_priority desc, p.name
             SQL, ['{'.$ids->implode(',').'}', $year - 1, (string) $year, (string) $year, '{'.implode(',', $blocked).'}']));
     }
@@ -141,15 +152,25 @@ class DataCoverage
 
         return DB::transaction(function () use ($provider, $mapProvider, $externalId, $club, $by) {
             $label = PlayerSeasonStat::where('provider', $provider)->where('club_external_id', $externalId)->whereNotNull('club_source_name')->value('club_source_name');
-            ClubExternalId::updateOrCreate(['provider' => $mapProvider, 'external_id' => $externalId],
-                ['club_id' => $club->id, 'method' => 'manual', 'confirmed_by' => $by->id, 'confirmed_at' => now(), 'external_name' => $label]);
             $batch = DataFix::newBatch('stats_club');
-            $n = 0;
-            foreach (PlayerSeasonStat::where('provider', $provider)->where('club_external_id', $externalId)->pluck('id') as $id) {
-                $n += DataFix::apply($batch, 'stats_club', 'player_season_stats', $id, ['club_id' => $club->id, 'club_name' => $club->name], 'user:'.$by->id) ? 1 : 0;
+            $actor = 'user:'.$by->id;
+            // o vínculo também entra na trilha: reverter o lote desfaz o vínculo e não deixa a fonte religar sozinha
+            $map = ClubExternalId::where('provider', $mapProvider)->where('external_id', $externalId)->first();
+            $mapData = ['club_id' => $club->id, 'method' => 'manual', 'confirmed_by' => $by->id, 'confirmed_at' => now()->toDateTimeString(), 'external_name' => $label ?? $map?->external_name];
+            if ($map) {
+                DataFix::apply($batch, 'club_map', 'club_external_ids', $map->id, $mapData, $actor);
+            } else {
+                $map = ClubExternalId::create(['provider' => $mapProvider, 'external_id' => $externalId] + $mapData);
+                DataFix::recordCreated($batch, 'club_map', 'club_external_ids', $map->id, $actor);
             }
+            $n = 0;
+            $skipped = PlayerSeasonStat::where('provider', $provider)->where('club_external_id', $externalId)->whereNotNull('club_id')->where('club_id', '!=', $club->id)->count();
+            foreach (PlayerSeasonStat::where('provider', $provider)->where('club_external_id', $externalId)->whereNull('club_id')->pluck('id') as $id) {
+                $n += DataFix::apply($batch, 'stats_club', 'player_season_stats', $id, ['club_id' => $club->id, 'club_name' => $club->name], $actor) ? 1 : 0;
+            }
+            Cache::forget('coverage.rows');
 
-            return ['rows' => $n, 'batch' => $batch, 'club' => $club->name];
+            return ['rows' => $n, 'batch' => $batch, 'club' => $club->name, 'skipped' => $skipped];
         });
     }
 

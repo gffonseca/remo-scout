@@ -11,6 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
@@ -52,15 +53,15 @@ class CoberturaDados extends Page
             ->action(function (array $data, array $arguments) {
                 abort_unless(auth()->user()->isCoordinator(), 403);
                 $r = DataCoverage::linkClub((string) $arguments['provider'], (string) $arguments['external_id'], $data['club_id'], auth()->user());
-                Notification::make()->success()->title("{$r['rows']} linha(s) de estatística agora em {$r['club']}")->body('Lote '.$r['batch'].' (reversível).')->send();
+                Notification::make()->success()->title("{$r['rows']} linha(s) de estatística agora em {$r['club']}")->body('Lote '.$r['batch'].' (reversível).'.($r['skipped'] ? " {$r['skipped']} linha(s) já ligadas a outro clube ficaram como estavam." : ''))->send();
             });
     }
 
     public function data(): array
     {
-        $rows = DataCoverage::rows();
+        $rows = Cache::remember('coverage.rows', 60, fn () => DataCoverage::rows()); // cada clique de filtro não refaz a consulta
         $field = $this->tipo === 'foto' ? 'photo_reason' : 'stats_state';
-        $list = $rows->when($this->tipo === 'foto', fn ($c) => $c->whereNotNull('photo_reason'), fn ($c) => $c->whereIn('stats_state', DataCoverage::MISSING + ['parcial', 'desatualizado']))
+        $list = $rows->when($this->tipo === 'foto', fn ($c) => $c->whereNotNull('photo_reason'), fn ($c) => $c->whereIn('stats_state', array_merge(DataCoverage::MISSING, ['parcial', 'desatualizado'])))
             ->when($this->motivo, fn ($c) => $c->where($field, $this->motivo))
             ->when($this->prioritarios, fn ($c) => $c->where('priority', true));
 

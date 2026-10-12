@@ -8,7 +8,7 @@ Roda no Mac Mini com a conta do clube. A senha fica no Chaves (Keychain) do macO
     PROSOCCER_EMAIL=<email-da-conta>
 
 Escopo aprovado pelo Gustavo (12/10/2026): cadastro do elenco, jogos oficiais, minutagem, notas de jogo, súmula/suspensão,
-dados físicos e técnicos dos relatórios. NUNCA: documentos (CPF/RG), Saúde e Performance (lesão, CK, gordura, massa magra,
+dados físicos e técnicos dos relatórios. NUNCA (nem na descoberta): cadastro/resumo do atleta (CPF, contatos), documentos (CPF/RG), Saúde e Performance (lesão, CK, gordura, massa magra,
 suplementos), financeiro, segurança, usuários, cláusulas e valores de contrato.
 
 Etapa atual: --descobrir. Faz login, lê só as páginas da lista branca e grava uma amostra da estrutura (HTML sem scripts,
@@ -34,19 +34,42 @@ KEYCHAIN_SERVICE = "cifut-prosoccer"
 # Lista branca de páginas (somente leitura). Qualquer outro caminho é recusado antes da requisição.
 ALLOW = [
     "/BancoDeAtletas/Index",
-    "/Atletas/Index",
     "/Minutagem/Index",
     "/JogosOficiais/Index",
     "/Notas/Index",
     "/NotasPeriodoPosicao/Index",
     "/Sumula/Index",
     "/Suspensao/Index",
-    "/ResumoAtleta/Index",
     "/Temporada/Index",
 ]
 # Nunca acessar, mesmo que um link apareça na página.
-DENY = re.compile(r"Documento|Lesao|/CK/|Gordura|MassaMagra|Suplemento|Financeiro|Seguranca|Usuarios|Clausula|Hotel|Logout|Save|Excluir|Delete|Salvar|Enviar",
+DENY = re.compile(r"Documento|ResumoAtleta|/Atletas/|Lesao|/CK/|Gordura|MassaMagra|Suplemento|Financeiro|Seguranca|Usuarios|Clausula|Hotel|Logout|Save|Excluir|Delete|Salvar|Enviar",
                   re.I)
+
+
+# Redação de conteúdo na amostra: CPF/RG/telefones/e-mails nunca saem da página (mesmo em páginas permitidas).
+REDACT = [
+    (re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b"), "[cpf]"),
+    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "[email]"),
+    (re.compile(r"\(?\d{2}\)?\s?9?\d{4}-?\d{4}"), "[telefone]"),
+    (re.compile(r"\d{6,}"), "[n]"),
+]
+
+
+def redact(text):
+    for rx, rep in REDACT:
+        text = rx.sub(rep, text)
+    return text
+
+
+class SafeRedirect(urllib.request.HTTPRedirectHandler):
+    """Só segue redirecionamento https no mesmo host e para caminho não proibido."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        u = urllib.parse.urlparse(newurl)
+        if u.scheme != "https" or u.netloc != urllib.parse.urlparse(BASE).netloc or DENY.search(u.path):
+            raise RuntimeError("Redirecionamento recusado para " + u.scheme + "://" + u.netloc + u.path)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def log(msg):
@@ -101,7 +124,7 @@ class FormFinder(html.parser.HTMLParser):
 class Session:
     def __init__(self, interval=2.0):
         self.jar = http.cookiejar.CookieJar()
-        self.op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar))
+        self.op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar), SafeRedirect())
         self.interval, self.last, self.requests = interval, 0.0, 0
 
     def _open(self, url, data=None):
@@ -133,11 +156,16 @@ class Session:
             elif i["type"] in ("hidden", "checkbox") or i["value"]:
                 fields[i["name"]] = i["value"]
         action = urllib.parse.urljoin(url, form["action"] or url)
-        if urllib.parse.urlparse(action).netloc != urllib.parse.urlparse(BASE).netloc:
-            raise RuntimeError("Login apontaria para outro domínio; abortado")
+        a = urllib.parse.urlparse(action)
+        if a.scheme != "https" or a.netloc != urllib.parse.urlparse(BASE).netloc:
+            raise RuntimeError("Login apontaria para outro domínio ou sem https; abortado")
         final, body = self._open(action, urllib.parse.urlencode(fields).encode())
         if any(i["type"] == "password" for f in self._forms(body) for i in f["inputs"]):
-            raise RuntimeError("Login recusado (conta, senha ou novo fator de autenticação). Nada foi coletado.")
+            raise RuntimeError("Login recusado (conta ou senha). Nada foi coletado.")
+        # confirma a sessão numa página permitida (um 2º fator ou tela intermediária não conta como login)
+        final, probe = self._open(BASE + ALLOW[0])
+        if urllib.parse.urlparse(final).path != ALLOW[0] or any(i["type"] == "password" for f in self._forms(probe) for i in f["inputs"]):
+            raise RuntimeError("Sessão não confirmada (2º fator ou tela intermediária?). Nada foi coletado.")
         log("login ok (%d cookies de sessão)" % len(self.jar))
 
     @staticmethod
@@ -169,7 +197,7 @@ class Skeleton(html.parser.HTMLParser):
         kept = []
         for k, v in attrs:
             if k in self.KEEP:
-                kept.append('%s="%s"' % (k, (v or "")[:80]))
+                kept.append('%s="%s"' % (k, redact(v or "")[:80]))
             elif k in ("onclick", "onchange", "href", "src", "action"):
                 # só o "formato" (nome da função / caminho), sem parâmetros
                 shape = re.sub(r"[?#].*$", "", v or "")
@@ -187,7 +215,7 @@ class Skeleton(html.parser.HTMLParser):
 
     def handle_data(self, data):
         if not self.skip and data.strip():
-            self.out.append(re.sub(r"\s+", " ", data.strip())[:120])
+            self.out.append(redact(re.sub(r"\s+", " ", data.strip()))[:120])
 
 
 def discover(sess, outdir):

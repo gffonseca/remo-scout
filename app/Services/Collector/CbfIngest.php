@@ -130,14 +130,13 @@ class CbfIngest
             $p->enriched_at = now();
             $p->save();
             if ($stats) {
-                PlayerSeasonStat::updateOrCreate(
-                    ['player_id' => $p->id, 'provider' => self::PROVIDER, 'competition_key' => 'cbf-total', 'season' => $season,
-                        'club_key' => PlayerSeasonStat::clubKey($a->club_cbf_id, $a->club_id, $a->club_name)],
-                    ['club_id' => $a->club_id, 'club_external_id' => $a->club_cbf_id ?: null, 'club_source_name' => $a->club_name,
-                        'club_name' => $a->club_id ? Club::whereKey($a->club_id)->value('name') : null, 'competition_name' => 'Competições CBF (total publicado)', 'appearances' => static::int($stats['qtd_partidas'] ?? null), 'goals' => static::int($stats['qtd_gols'] ?? null),
-                        'yellow_cards' => static::int($stats['qtd_cartoes_amarelos'] ?? null), 'red_cards' => static::int($stats['qtd_cartoes_vermelhos'] ?? null),
-                        'source_url' => 'https://www.cbf.com.br/futebol-brasileiro/atletas', 'fetched_at' => now()],
-                );
+                // total publicado = uma linha por temporada (clube de inscrição atual); acha a existente mesmo com chave antiga
+                $row = PlayerSeasonStat::firstOrNew(['player_id' => $p->id, 'provider' => self::PROVIDER, 'competition_key' => 'cbf-total', 'season' => $season]);
+                $row->fill(['club_key' => PlayerSeasonStat::clubKey($a->club_cbf_id, $a->club_id, $a->club_name),
+                    'club_id' => $a->club_id, 'club_external_id' => $a->club_cbf_id ?: null, 'club_source_name' => $a->club_name,
+                    'club_name' => $a->club_id ? Club::whereKey($a->club_id)->value('name') : null, 'competition_name' => 'Competições CBF (total publicado)', 'appearances' => static::int($stats['qtd_partidas'] ?? null), 'goals' => static::int($stats['qtd_gols'] ?? null),
+                    'yellow_cards' => static::int($stats['qtd_cartoes_amarelos'] ?? null), 'red_cards' => static::int($stats['qtd_cartoes_vermelhos'] ?? null),
+                    'source_url' => 'https://www.cbf.com.br/futebol-brasileiro/atletas', 'fetched_at' => now()])->save();
             }
         }
         $run->received++;
