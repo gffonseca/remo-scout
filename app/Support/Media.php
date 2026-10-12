@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Club;
 use Illuminate\Support\Facades\Storage;
 
 /** Mídia enviada pelo departamento: URL temporária (bucket privado) ou pública (local). */
@@ -21,7 +22,7 @@ class Media
     }
 
     /** <img> inline do escudo (lista/kanban). Vazio quando não há escudo. */
-    public static function crestTag(?\App\Models\Club $club, int $size = 18): string
+    public static function crestTag(?Club $club, int $size = 18): string
     {
         $url = $club?->crestUrl();
         if (! $url) {

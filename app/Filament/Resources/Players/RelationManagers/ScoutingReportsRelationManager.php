@@ -2,17 +2,29 @@
 
 namespace App\Filament\Resources\Players\RelationManagers;
 
+use App\Filament\Concerns\RelationCountBadge;
 use App\Filament\Resources\ScoutingReports\ScoutingReportResource;
 use App\Models\ScoutingReport;
 use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /** Relatórios do atleta respeitando a avaliação independente (escopo visibleTo). */
 class ScoutingReportsRelationManager extends RelationManager
 {
+    use RelationCountBadge;
+
+    protected static string|\BackedEnum|null $icon = Heroicon::OutlinedDocumentText;
+
     protected static string $relationship = 'scoutingReports';
+
+    protected static function scopeBadgeQuery(Builder $query): Builder
+    {
+        return $query->visibleTo(auth()->user());
+    }
 
     protected static ?string $title = 'Relatórios de scout';
 

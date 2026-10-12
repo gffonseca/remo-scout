@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ScoutingReports\Pages;
 
 use App\Enums\ReportStatus;
+use App\Filament\Resources\ScoutingReports\ScoutingReportResource;
 use App\Models\ScoutingReport;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -22,7 +23,7 @@ class SubmitReportAction
             ->action(function (ScoutingReport $record, $livewire) {
                 $record->submit();
                 Notification::make()->success()->title('Relatório submetido')->send();
-                $livewire->redirect(\App\Filament\Resources\ScoutingReports\ScoutingReportResource::getUrl('view', ['record' => $record]));
+                $livewire->redirect(ScoutingReportResource::getUrl('view', ['record' => $record]));
             });
     }
 }

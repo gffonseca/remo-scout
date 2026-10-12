@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\RecruitmentNeeds\RelationManagers;
 
+use App\Enums\RequirementStatus;
 use App\Filament\Resources\Players\PlayerResource;
 use App\Models\Player;
 use App\Models\ProspectCase;
 use App\Models\ProspectStage;
-use App\Enums\RequirementStatus;
 use App\Services\RequirementCheck;
 use App\Services\RequirementConfirmation;
-use Filament\Forms\Components\FileUpload;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,7 +21,9 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 class CasesRelationManager extends RelationManager
 {
@@ -105,9 +107,9 @@ class CasesRelationManager extends RelationManager
                             RequirementConfirmation::record(auth()->user(), $need, $c->player, $data['requirement'], RequirementStatus::from($data['status']),
                                 $data['evidence'], $data['evidence_url'] ?? null, $data['evidence_path'] ?? null);
                             Notification::make()->success()->title('Requisito atualizado')->send();
-                        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                        } catch (AuthorizationException $e) {
                             Notification::make()->danger()->title($e->getMessage())->send();
-                        } catch (\Illuminate\Validation\ValidationException $e) {
+                        } catch (ValidationException $e) {
                             Notification::make()->danger()->title(collect($e->errors())->flatten()->first())->send();
                         }
                     }),

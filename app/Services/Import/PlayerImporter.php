@@ -5,15 +5,20 @@ namespace App\Services\Import;
 use App\Enums\ContractStatus;
 use App\Enums\Foot;
 use App\Enums\Position;
+use App\Models\Agent;
+use App\Models\AuditEvent;
 use App\Models\Club;
 use App\Models\ContractObservation;
 use App\Models\ImportBatch;
 use App\Models\ImportChange;
 use App\Models\MarketObservation;
 use App\Models\Player;
+use App\Support\ClubResolver;
+use App\Support\ForeignKeys;
+use App\Support\MoneyParser;
+use App\Support\RawValue;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Support\MoneyParser;
 use Illuminate\Support\Str;
 
 /**
@@ -80,6 +85,7 @@ class PlayerImporter
 
     /**
      * Normaliza e valida as linhas. Retorna cada linha com ação prevista: criar | atualizar | ignorar | erro.
+     *
      * @return list<array{row:int, action:string, message:string, data:array, match_id:?string}>
      */
     public static function plan(array $rows, array $mapping, bool $allowFinancial): array
@@ -281,10 +287,10 @@ class PlayerImporter
                     $club = null;
                     if (isset($d['__club'])) {
                         // Usa apelidos/variações já cadastrados antes de criar clube novo
-                        $club = \App\Support\ClubResolver::byName($d['__club']);
+                        $club = ClubResolver::byName($d['__club']);
                         if (! $club) {
                             $club = Club::create(['name' => Str::limit(trim($d['__club']), 120, ''), 'country' => 'Brasil']);
-                            \App\Support\ClubResolver::flush();
+                            ClubResolver::flush();
                             $log('club', $club->id, 'created', null, null, ['name' => $club->name]);
                         }
                     }
@@ -293,9 +299,9 @@ class PlayerImporter
                         $attrs['current_club_id'] = $club->id;
                     }
                     if (isset($d['__agent'])) {
-                        $agent = \App\Models\Agent::query()->whereRaw('lower(name) = ?', [mb_strtolower($d['__agent']['name'])])->first();
+                        $agent = Agent::query()->whereRaw('lower(name) = ?', [mb_strtolower($d['__agent']['name'])])->first();
                         if (! $agent) {
-                            $agent = \App\Models\Agent::create(array_filter($d['__agent']) + ['created_by' => $userId, 'import_batch_id' => $batch->id]);
+                            $agent = Agent::create(array_filter($d['__agent']) + ['created_by' => $userId, 'import_batch_id' => $batch->id]);
                             $log('agent', $agent->id, 'created', null, null, ['name' => $agent->name]);
                         }
                         $attrs['agent_id'] = $agent->id;
@@ -431,7 +437,7 @@ class PlayerImporter
 
             // 3) empresários e clubes criados pelo lote, se não usados por ninguém
             foreach ($batch->changes()->where('action', 'created')->whereIn('entity_type', ['agent', 'club'])->get() as $ch) {
-                $model = $ch->entity_type === 'agent' ? \App\Models\Agent::find($ch->entity_id) : Club::find($ch->entity_id);
+                $model = $ch->entity_type === 'agent' ? Agent::find($ch->entity_id) : Club::find($ch->entity_id);
                 if (! $model) {
                     continue;
                 }
@@ -446,7 +452,7 @@ class PlayerImporter
 
             $report = ['removed' => $removed, 'removed_other' => $removedOther, 'kept' => $kept, 'restored' => $restored, 'conflicts' => $conflicts];
             $batch->update(['status' => 'revertido', 'reverted_at' => now(), 'reverted_by' => $userId, 'revert_report' => $report]);
-            \App\Models\AuditEvent::record('import_revert', $batch, ['restored' => $restored, 'removed' => $removed, 'conflicts' => count($conflicts)]);
+            AuditEvent::record('import_revert', $batch, ['restored' => $restored, 'removed' => $removed, 'conflicts' => count($conflicts)]);
 
             return $report;
         });
@@ -460,7 +466,7 @@ class PlayerImporter
      */
     private static function referencedBy(string $table, string $id, array $ignoreBatch = []): array
     {
-        $fks = [$table => \App\Support\ForeignKeys::referencing($table)];
+        $fks = [$table => ForeignKeys::referencing($table)];
         $hits = [];
         foreach ($fks[$table] as $fk) {
             $q = DB::table($fk->tbl)->where($fk->col, $id);
@@ -477,7 +483,7 @@ class PlayerImporter
 
     private static function same(mixed $current, mixed $recorded): bool
     {
-        return \App\Support\RawValue::same($current, $recorded);
+        return RawValue::same($current, $recorded);
     }
 
     public static function parseDate(mixed $v): ?Carbon

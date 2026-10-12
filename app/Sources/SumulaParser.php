@@ -2,6 +2,8 @@
 
 namespace App\Sources;
 
+use Carbon\Carbon;
+
 /**
  * Parser da "Súmula On-line" (formato usado por FPF e CBF): extrai cabeçalho, escalações com ID CBF,
  * substituições, gols, cartões e acréscimos a partir do texto (pdftotext -layout).
@@ -62,7 +64,7 @@ class SumulaParser
             $data['away'] = static::teamName($m[2]);
         }
         if (preg_match('/Data:\s*(\d{2}\/\d{2}\/\d{4})/u', $joined, $m)) {
-            $data['date'] = \Carbon\Carbon::createFromFormat('d/m/Y', $m[1])->toDateString();
+            $data['date'] = Carbon::createFromFormat('d/m/Y', $m[1])->toDateString();
         }
         if (preg_match('/Resultado Final:\s*(\d+)\s*X\s*(\d+)/u', $joined, $m)) {
             [$data['score_home'], $data['score_away']] = [(int) $m[1], (int) $m[2]];
@@ -78,14 +80,44 @@ class SumulaParser
             if ($t === '') {
                 continue;
             }
-            if (preg_match('/^Relação de Jogadores/u', $t)) { $section = 'players'; continue; }
-            if (preg_match('/^Comissão Técnica/u', $t)) { $section = null; continue; }
-            if ($t === 'Gols') { $section = 'goals'; continue; }
-            if (preg_match('/^Cartões Amarelos/u', $t)) { $section = 'yellows'; continue; }
-            if (preg_match('/^Cartões Vermelhos/u', $t)) { $section = 'reds'; continue; }
-            if (preg_match('/^(Ocorrências|Observações Eventuais)/u', $t)) { $section = null; continue; }
-            if ($t === 'Substituições') { $section = 'subs'; continue; }
-            if (preg_match('/^FEDERA|^CONFEDERA|Página \d+$/u', $t)) { continue; }
+            if (preg_match('/^Relação de Jogadores/u', $t)) {
+                $section = 'players';
+
+                continue;
+            }
+            if (preg_match('/^Comissão Técnica/u', $t)) {
+                $section = null;
+
+                continue;
+            }
+            if ($t === 'Gols') {
+                $section = 'goals';
+
+                continue;
+            }
+            if (preg_match('/^Cartões Amarelos/u', $t)) {
+                $section = 'yellows';
+
+                continue;
+            }
+            if (preg_match('/^Cartões Vermelhos/u', $t)) {
+                $section = 'reds';
+
+                continue;
+            }
+            if (preg_match('/^(Ocorrências|Observações Eventuais)/u', $t)) {
+                $section = null;
+
+                continue;
+            }
+            if ($t === 'Substituições') {
+                $section = 'subs';
+
+                continue;
+            }
+            if (preg_match('/^FEDERA|^CONFEDERA|Página \d+$/u', $t)) {
+                continue;
+            }
 
             if ($section === 'players') {
                 // até dois atletas por linha: Nº  Apelido  Nome  T|R(g)?  P|A  CBF

@@ -2,17 +2,23 @@
 
 namespace App\Filament\Resources\Players\RelationManagers;
 
+use App\Filament\Concerns\RelationCountBadge;
 use App\Filament\Support\VideoFields;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class VideoReferencesRelationManager extends RelationManager
 {
+    use RelationCountBadge;
+
+    protected static string|\BackedEnum|null $icon = Heroicon::OutlinedFilm;
+
     protected static string $relationship = 'videoReferences';
 
     protected static ?string $title = 'Vídeos';

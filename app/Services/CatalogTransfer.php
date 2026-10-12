@@ -32,6 +32,7 @@ class CatalogTransfer
 
     /**
      * Upsert por código. Itens existentes geram nova versão (histórico preservado); nada é apagado.
+     *
      * @return array{roles_created:int,roles_updated:int,specialties_created:int,specialties_updated:int}
      */
     public static function import(array $payload): array

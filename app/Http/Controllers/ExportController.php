@@ -6,6 +6,7 @@ use App\Models\AuditEvent;
 use App\Models\Player;
 use App\Models\RecruitmentNeed;
 use App\Models\ScoutingReport;
+use App\Services\NeedSearch;
 use App\Services\RequirementCheck;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -46,6 +47,30 @@ class ExportController extends Controller
         return Pdf::loadView('pdf.shortlist', compact('need', 'cases', 'reportsByPlayer', 'user'))
             ->setPaper('a4', 'landscape')
             ->stream('shortlist-'.Str::slug($need->title).'-'.now()->format('Ymd').'.pdf');
+    }
+
+    /** Pesquisa da necessidade (F11): cada critério com estado e motivo explica por que o atleta entrou. */
+    public function needSearchSheet(Request $request, RecruitmentNeed $need)
+    {
+        Gate::authorize('view', $need);
+        $financial = (bool) $request->user()->canViewFinancial();
+        $rows = NeedSearch::exportRows($need, NeedSearch::filter(NeedSearch::run($need),
+            (string) $request->query('show', 'viaveis'), $request->query('pending') ?: null), $financial);
+        AuditEvent::record('export_need_search', $need, ['linhas' => count($rows)]);
+        $name = 'pesquisa-'.Str::slug($need->title).'-'.now()->format('Ymd').'.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $o = new CsvOptions;
+            $o->FIELD_DELIMITER = ';';
+            $o->SHOULD_ADD_BOM = true;
+            $w = new CsvWriter($o);
+            $w->openToFile('php://output');
+            $w->addRow(Row::fromValues($rows ? array_keys($rows[0]) : ['Sem atletas neste filtro']));
+            foreach ($rows as $r) {
+                $w->addRow(Row::fromValues(array_map([static::class, 'safeCell'], array_values($r))));
+            }
+            $w->close();
+        }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     public function shortlistSheet(Request $request, RecruitmentNeed $need, string $format)

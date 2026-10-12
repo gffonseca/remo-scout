@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum Priority: string implements HasLabel, HasColor
+enum Priority: string implements HasColor, HasLabel
 {
     case Alta = 'alta';
     case Media = 'media';

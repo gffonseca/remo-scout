@@ -2,8 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\CommandPalette;
 use App\Filament\Pages\CentralDeMercado;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RequireMfaForAdmins;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
@@ -37,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->multiFactorAuthentication([
                 AppAuthentication::make()->recoverable(),
             ], isRequired: true)
-            ->multiFactorAuthenticationRequiredMiddlewareName(\App\Http\Middleware\RequireMfaForAdmins::class)
+            ->multiFactorAuthenticationRequiredMiddlewareName(RequireMfaForAdmins::class)
             ->brandName('CIFUT Remo')
             ->brandLogo(fn () => view('scout.brand'))
             ->brandLogoHeight('2.4rem')
@@ -62,8 +64,8 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Dados e importação'),
                 NavigationGroup::make('Administração')->collapsed(),
             ])
-            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
-            ->databaseNotifications(false)
+            ->globalSearch(CommandPalette::class)->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->databaseNotifications()->databaseNotificationsPolling('60s')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([CentralDeMercado::class])

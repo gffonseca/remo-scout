@@ -16,4 +16,5 @@ Route::middleware([SetUpPanel::class.':scout', 'auth', AuthenticateSession::clas
         Route::get('dossie/atleta/{player}', [ExportController::class, 'playerDossier'])->name('dossie.player');
         Route::get('dossie/shortlist/{need}', [ExportController::class, 'shortlistDossier'])->name('dossie.shortlist');
         Route::get('shortlist/{need}.{format}', [ExportController::class, 'shortlistSheet'])->name('export.shortlist');
+        Route::get('pesquisa/{need}.csv', [ExportController::class, 'needSearchSheet'])->name('export.need-search');
     });

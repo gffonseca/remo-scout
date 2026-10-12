@@ -15,6 +15,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use UnitEnum;
 
@@ -53,7 +54,7 @@ class IdentityCandidateResource extends Resource
     {
         try {
             Notification::make()->success()->title($fn())->send();
-        } catch (\RuntimeException|\Illuminate\Auth\Access\AuthorizationException $e) {
+        } catch (\RuntimeException|AuthorizationException $e) {
             Notification::make()->danger()->title($e->getMessage())->send();
         }
     }

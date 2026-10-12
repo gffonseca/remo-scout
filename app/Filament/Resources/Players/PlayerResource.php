@@ -4,18 +4,21 @@ namespace App\Filament\Resources\Players;
 
 use App\Enums\Confirmation;
 use App\Enums\ContractStatus;
-use App\Enums\MarketStatus;
 use App\Enums\DataOrigin;
 use App\Enums\Foot;
 use App\Enums\Level;
+use App\Enums\MarketStatus;
 use App\Enums\Position;
-use App\Filament\Resources\Players\Pages;
-use App\Filament\Resources\Players\RelationManagers;
+use App\Filament\Actions\AddPlayersToNeedBulkAction;
+use App\Filament\Pages\ImportarPlanilha;
+use App\Filament\Resources\Agents\AgentResource;
 use App\Models\Agent;
-use App\Models\Club;
 use App\Models\Player;
 use App\Models\Specialty;
 use App\Models\TacticalRole;
+use App\Services\Comparator;
+use App\Support\Media;
+use App\Support\PlayerInsight;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -24,22 +27,25 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -134,7 +140,7 @@ class PlayerResource extends Resource
             Section::make('Mercado e representação')->columns(3)->schema([
                 Select::make('agent_id')->label('Empresário / agência')->relationship('agent', 'name')->searchable()->preload(false)
                     ->getOptionLabelFromRecordUsing(fn (Agent $a) => $a->label())
-                    ->createOptionForm(\App\Filament\Resources\Agents\AgentResource::formFields())
+                    ->createOptionForm(AgentResource::formFields())
                     ->helperText('Contato pelo cadastro do empresário.'),
                 TextInput::make('agent_name')->label('Empresário (texto livre, se sem cadastro)'),
                 Select::make('market_status')->label('Situação de mercado')->options(MarketStatus::class)->default('desconhecido')->required(),
@@ -145,7 +151,7 @@ class PlayerResource extends Resource
                     ->visible(fn ($get) => (string) $get('eu_passport') === '1')->required(fn ($get) => (string) $get('eu_passport') === '1')
                     ->placeholder('ex.: cópia do passaporte italiano nº final 123, validade 2031, recebida do empresário em 10/10/2026'),
                 TagsInput::make('languages')->label('Idiomas')->placeholder('ex.: português, espanhol'),
-                \Filament\Forms\Components\Toggle::make('is_priority')->label('Lista prioritária')->inline(false),
+                Toggle::make('is_priority')->label('Lista prioritária')->inline(false),
                 TextInput::make('priority_note')->label('Nota da prioridade'),
             ]),
             Section::make('Contato do atleta')
@@ -181,58 +187,53 @@ class PlayerResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            \Filament\Schemas\Components\Tabs::make('perfil')->columnSpanFull()->persistTabInQueryString()->tabs([
-                \Filament\Schemas\Components\Tabs\Tab::make('Visão geral')->icon(Heroicon::OutlinedUser)->schema([
-                    \Filament\Schemas\Components\View::make('scout.player-profile'),
+            View::make('scout.player-profile')->columnSpanFull(),
+            Section::make('Dados cadastrais')->icon(Heroicon::OutlinedIdentification)->description('Campos completos com origem e datas')
+                ->collapsible()->collapsed()->persistCollapsed()->id('dados-cadastrais')->columnSpanFull()->columns(4)->schema([
+                    TextEntry::make('name')->label('Nome de jogo')->weight('bold')->size('lg'),
+                    TextEntry::make('full_name')->label('Nome completo')->placeholder('não informado'),
+                    TextEntry::make('age')->label('Idade')->placeholder('não informada')
+                        ->formatStateUsing(fn ($state, Player $record) => $state.' anos ('.$record->birth_date->format('d/m/Y').')'),
+                    TextEntry::make('cbf_id')->label('ID CBF')->placeholder('não informado')->copyable(),
+                    TextEntry::make('primary_position')->label('Posição')->placeholder('não informada')
+                        ->formatStateUsing(fn ($state) => $state instanceof Position ? $state->value.' — '.$state->getLabel() : $state),
+                    TextEntry::make('positions')->label('Outras posições')->badge()->placeholder('—'),
+                    TextEntry::make('preferred_foot')->label('Pé')->badge(),
+                    TextEntry::make('height_cm')->label('Altura')->suffix(' cm')->placeholder('não informada'),
+                    TextEntry::make('currentClub.name')->label('Clube atual')->placeholder('não informado')
+                        ->helperText(fn (Player $record) => PlayerInsight::squadNote($record)),
+                    TextEntry::make('latestContract.status')->label('Situação contratual')->badge()->placeholder('sem observação'),
+                    TextEntry::make('latestContract.contract_end')->label('Fim de contrato (observado)')->date('d/m/Y')->placeholder('não informado')
+                        ->helperText(fn (Player $r) => $r->latestContract ? $r->latestContract->confirmation->getLabel().' · '.$r->latestContract->observed_on->format('d/m/Y') : null),
+                    TextEntry::make('data_origin')->label('Origem')->badge(),
+                    TextEntry::make('links')->label('Links externos')->columnSpan(2)->html()
+                        ->state(fn (Player $r) => static::linksHtml($r)),
+                    TextEntry::make('nationality')->label('Nacionalidade')->placeholder('não informada'),
+                    TextEntry::make('agent.name')->label('Empresário')->placeholder(fn (Player $r) => $r->agent_name ?: 'não informado')
+                        ->formatStateUsing(fn ($state, Player $r) => $r->agent?->label())
+                        ->helperText(fn (Player $r) => $r->agent ? collect([$r->agent->phone, $r->agent->email])->filter()->implode(' · ') : null)
+                        ->url(fn (Player $r) => $r->agent ? AgentResource::getUrl('index', ['tableSearch' => $r->agent->name]) : null),
+                    TextEntry::make('market_status')->label('Situação de mercado')->badge(),
+                    TextEntry::make('contact')->label('Contato do atleta')->visible(fn () => auth()->user()->canEdit())
+                        ->state(fn (Player $r) => collect([$r->phone, $r->whatsapp ? 'WhatsApp '.$r->whatsapp : null, $r->email])->filter()->implode(' · ') ?: null)
+                        ->placeholder('não informado')->helperText(fn (Player $r) => $r->contact_note)
+                        ->url(fn (Player $r) => ($d = preg_replace('/\D/', '', (string) $r->whatsapp)) ? 'https://wa.me/'.(strlen($d) <= 11 ? '55'.$d : $d) : null, true),
+                    TextEntry::make('rightsHolderClub.name')->label('Detentor dos direitos')->placeholder('igual ao atual / não informado'),
+                    TextEntry::make('economic_rights_note')->label('Direitos econômicos')->placeholder('não informado'),
+                    TextEntry::make('salary')->label('Faixa salarial')->state(fn (Player $r) => $r->salaryRangeLabel())
+                        ->helperText(fn (Player $r) => $r->salary_observed_on ? 'informação de '.$r->salary_observed_on->format('d/m/Y') : null)
+                        ->visible(fn () => auth()->user()->canViewFinancial()),
+                    TextEntry::make('asking_price')->label('Pedida')->placeholder('não informada')
+                        ->formatStateUsing(fn ($state, Player $r) => $r->asking_price_currency.' '.number_format((float) $state, 0, ',', '.'))
+                        ->visible(fn () => auth()->user()->canViewFinancial()),
+                    TextEntry::make('eu_passport')->label('Passaporte comunitário')->formatStateUsing(fn ($state) => $state ? 'Sim (documento conferido)' : 'Não possui')->placeholder('não informado')
+                        ->helperText(fn ($record) => $record->eu_passport ? $record->eu_passport_evidence.' — '.($record->eu_passport_confirmed_at?->format('d/m/Y') ?? '') : null),
+                    TextEntry::make('citizenships')->label('Cidadanias declaradas (fontes)')->placeholder('—')
+                        ->state(fn ($record) => collect($record->citizenships ?? [])->map(fn ($c) => $c['country'].' · '.$c['source'].($c['at'] ? ' '.$c['at'] : ''))->all())->listWithLineBreaks(),
+                    TextEntry::make('languages')->label('Idiomas')->badge()->placeholder('não informado'),
+                    TextEntry::make('priority_note')->label('Lista prioritária')->visible(fn (Player $r) => $r->is_priority)->placeholder('sim'),
+                    TextEntry::make('notes')->label('Notas')->columnSpanFull()->placeholder('—'),
                 ]),
-                \Filament\Schemas\Components\Tabs\Tab::make('Dados cadastrais')->icon(Heroicon::OutlinedIdentification)->schema([
-            Section::make()->columns(4)->schema([
-                TextEntry::make('name')->label('Nome de jogo')->weight('bold')->size('lg'),
-                TextEntry::make('full_name')->label('Nome completo')->placeholder('não informado'),
-                TextEntry::make('age')->label('Idade')->placeholder('não informada')
-                    ->formatStateUsing(fn ($state, Player $record) => $state.' anos ('.$record->birth_date->format('d/m/Y').')'),
-                TextEntry::make('cbf_id')->label('ID CBF')->placeholder('não informado')->copyable(),
-                TextEntry::make('primary_position')->label('Posição')->placeholder('não informada')
-                    ->formatStateUsing(fn ($state) => $state instanceof Position ? $state->value.' — '.$state->getLabel() : $state),
-                TextEntry::make('positions')->label('Outras posições')->badge()->placeholder('—'),
-                TextEntry::make('preferred_foot')->label('Pé')->badge(),
-                TextEntry::make('height_cm')->label('Altura')->suffix(' cm')->placeholder('não informada'),
-                TextEntry::make('currentClub.name')->label('Clube atual')->placeholder('não informado')
-                    ->helperText(fn (Player $record) => \App\Support\PlayerInsight::squadNote($record)),
-                TextEntry::make('latestContract.status')->label('Situação contratual')->badge()->placeholder('sem observação'),
-                TextEntry::make('latestContract.contract_end')->label('Fim de contrato (observado)')->date('d/m/Y')->placeholder('não informado')
-                    ->helperText(fn (Player $r) => $r->latestContract ? $r->latestContract->confirmation->getLabel().' · '.$r->latestContract->observed_on->format('d/m/Y') : null),
-                TextEntry::make('data_origin')->label('Origem')->badge(),
-                TextEntry::make('links')->label('Links externos')->columnSpan(2)->html()
-                    ->state(fn (Player $r) => static::linksHtml($r)),
-                TextEntry::make('nationality')->label('Nacionalidade')->placeholder('não informada'),
-                TextEntry::make('agent.name')->label('Empresário')->placeholder(fn (Player $r) => $r->agent_name ?: 'não informado')
-                    ->formatStateUsing(fn ($state, Player $r) => $r->agent?->label())
-                    ->helperText(fn (Player $r) => $r->agent ? collect([$r->agent->phone, $r->agent->email])->filter()->implode(' · ') : null)
-                    ->url(fn (Player $r) => $r->agent ? \App\Filament\Resources\Agents\AgentResource::getUrl('index', ['tableSearch' => $r->agent->name]) : null),
-                TextEntry::make('market_status')->label('Situação de mercado')->badge(),
-                TextEntry::make('contact')->label('Contato do atleta')->visible(fn () => auth()->user()->canEdit())
-                    ->state(fn (Player $r) => collect([$r->phone, $r->whatsapp ? 'WhatsApp '.$r->whatsapp : null, $r->email])->filter()->implode(' · ') ?: null)
-                    ->placeholder('não informado')->helperText(fn (Player $r) => $r->contact_note)
-                    ->url(fn (Player $r) => ($d = preg_replace('/\D/', '', (string) $r->whatsapp)) ? 'https://wa.me/'.(strlen($d) <= 11 ? '55'.$d : $d) : null, true),
-                TextEntry::make('rightsHolderClub.name')->label('Detentor dos direitos')->placeholder('igual ao atual / não informado'),
-                TextEntry::make('economic_rights_note')->label('Direitos econômicos')->placeholder('não informado'),
-                TextEntry::make('salary')->label('Faixa salarial')->state(fn (Player $r) => $r->salaryRangeLabel())
-                    ->helperText(fn (Player $r) => $r->salary_observed_on ? 'informação de '.$r->salary_observed_on->format('d/m/Y') : null)
-                    ->visible(fn () => auth()->user()->canViewFinancial()),
-                TextEntry::make('asking_price')->label('Pedida')->placeholder('não informada')
-                    ->formatStateUsing(fn ($state, Player $r) => $r->asking_price_currency.' '.number_format((float) $state, 0, ',', '.'))
-                    ->visible(fn () => auth()->user()->canViewFinancial()),
-                TextEntry::make('eu_passport')->label('Passaporte comunitário')->formatStateUsing(fn ($state) => $state ? 'Sim (documento conferido)' : 'Não possui')->placeholder('não informado')
-                    ->helperText(fn ($record) => $record->eu_passport ? $record->eu_passport_evidence.' — '.($record->eu_passport_confirmed_at?->format('d/m/Y') ?? '') : null),
-                TextEntry::make('citizenships')->label('Cidadanias declaradas (fontes)')->placeholder('—')
-                    ->state(fn ($record) => collect($record->citizenships ?? [])->map(fn ($c) => $c['country'].' · '.$c['source'].($c['at'] ? ' '.$c['at'] : ''))->all())->listWithLineBreaks(),
-                TextEntry::make('languages')->label('Idiomas')->badge()->placeholder('não informado'),
-                TextEntry::make('priority_note')->label('Lista prioritária')->visible(fn (Player $r) => $r->is_priority)->placeholder('sim'),
-                TextEntry::make('notes')->label('Notas')->columnSpanFull()->placeholder('—'),
-            ]),
-                ]),
-            ]),
         ]);
     }
 
@@ -251,7 +252,7 @@ class PlayerResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return $table->persistFiltersInSession()->persistSortInSession()
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['currentClub', 'latestContract', 'agent', 'roleAssessments.tacticalRole', 'submittedReports' => fn ($r) => $r->visibleTo(auth()->user())])->withCount('videoReferences')->withCount(['scoutingReports as reports_count' => fn ($r) => $r->where('status', 'submetido')]))
             ->defaultSort('updated_at', 'desc')
             ->persistFiltersInSession()
@@ -270,34 +271,34 @@ class PlayerResource extends Resource
                 TextColumn::make('nationality')->label('Nação')->placeholder('—')->toggleable(isToggledHiddenByDefault: true)->limit(12),
                 TextColumn::make('primary_position')->label('Posição')->sortable()
                     ->formatStateUsing(fn ($state, Player $r) => collect([$state instanceof Position ? $state->value : $state])->merge($r->positions ?? [])->unique()->implode(', '))
-                    ->description(fn (Player $r) => \App\Support\PlayerInsight::bestObservedAssessment($r)?->tacticalRole?->name)
+                    ->description(fn (Player $r) => PlayerInsight::bestObservedAssessment($r)?->tacticalRole?->name)
                     ->placeholder('n/i'),
                 TextColumn::make('birth_date')->label('Idade')->sortable()->alignEnd()
                     ->formatStateUsing(fn ($state) => $state?->age)->placeholder('—'),
                 TextColumn::make('preferred_foot')->label('Pé')->badge()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('currentClub.name')->label('Clube')->searchable()->sortable()->placeholder('—')
-                    ->html()->formatStateUsing(fn ($state, Player $r) => \App\Support\Media::crestTag($r->currentClub).e($state))
+                    ->html()->formatStateUsing(fn ($state, Player $r) => Media::crestTag($r->currentClub).e($state))
                     ->description(fn (Player $r) => $r->currentClub?->current_division),
                 TextColumn::make('latestContract.status')->label('Contrato')->badge()->placeholder('sem obs.')->toggleable()
                     ->description(fn (Player $r) => $r->latestContract?->contract_end ? 'até '.$r->latestContract->contract_end->format('m/Y') : null),
                 TextColumn::make('level_now')->label('Nível')->alignCenter()->badge()
-                    ->state(fn (Player $r) => \App\Support\PlayerInsight::currentLevel($r)?->value ?? 'n/o')
-                    ->color(fn ($state) => \App\Enums\Level::tryFrom($state)?->getColor() ?? 'gray')
+                    ->state(fn (Player $r) => PlayerInsight::currentLevel($r)?->value ?? 'n/o')
+                    ->color(fn ($state) => Level::tryFrom($state)?->getColor() ?? 'gray')
                     ->tooltip('Melhor nível observado (A–D). n/o = não observado'),
                 TextColumn::make('level_pot')->label('Potencial')->alignCenter()->badge()->toggleable()
-                    ->state(fn (Player $r) => \App\Support\PlayerInsight::potentialLevel($r)?->value ?? 'n/o')
-                    ->color(fn ($state) => \App\Enums\Level::tryFrom($state)?->getColor() ?? 'gray'),
+                    ->state(fn (Player $r) => PlayerInsight::potentialLevel($r)?->value ?? 'n/o')
+                    ->color(fn ($state) => Level::tryFrom($state)?->getColor() ?? 'gray'),
                 TextColumn::make('market_status')->label('Mercado')->badge()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('salary_max')->label('Faixa salarial')->toggleable()
                     ->state(fn (Player $r) => $r->salaryRangeLabel())->color(fn (Player $r) => $r->salary_min === null && $r->salary_max === null ? 'gray' : null)
                     ->visible(fn () => auth()->user()->canViewFinancial()),
                 TextColumn::make('agent.name')->label('Empresário')->placeholder('—')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('recommendation')->label('Recomendação')->badge()
-                    ->state(fn (Player $r) => \App\Support\PlayerInsight::recommendation($r)['label'])
-                    ->color(fn (Player $r) => \App\Support\PlayerInsight::recommendation($r)['color']),
+                    ->state(fn (Player $r) => PlayerInsight::recommendation($r)['label'])
+                    ->color(fn (Player $r) => PlayerInsight::recommendation($r)['color']),
                 TextColumn::make('knowledge')->label('Conhecimento')->badge()->toggleable()
-                    ->state(fn (Player $r) => \App\Support\PlayerInsight::knowledge($r)['label'])
-                    ->color(fn (Player $r) => \App\Support\PlayerInsight::knowledge($r)['color']),
+                    ->state(fn (Player $r) => PlayerInsight::knowledge($r)['label'])
+                    ->color(fn (Player $r) => PlayerInsight::knowledge($r)['color']),
                 TextColumn::make('reports_count')->label('Relatórios')->alignEnd()->sortable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('data_origin')->label('Origem')->badge()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('cbf_id')->label('ID CBF')->toggleable(isToggledHiddenByDefault: true)->placeholder('—'),
@@ -383,29 +384,36 @@ class PlayerResource extends Resource
                     ->options(fn () => Specialty::query()->where('status', '!=', 'arquivado')->orderBy('name')->pluck('name', 'id'))
                     ->query(fn (Builder $query, array $data) => $query->when($data['values'] ?? [], fn ($q, $ids) => $q->whereHas('specialtyAssessments', fn ($a) => $a->whereIn('specialty_id', $ids)->where('level', '!=', 'nao_observado')))),
                 SelectFilter::make('data_origin')->label('Origem')->options(DataOrigin::class),
-                \Filament\Tables\Filters\TernaryFilter::make('provisional')->label('Provisórios de partidas')
+                TernaryFilter::make('provisional')->label('Provisórios de partidas')
                     ->placeholder('Mostrar todos')->trueLabel('Só provisórios')->falseLabel('Ocultar')->default(false)
                     ->queries(true: fn (Builder $q) => $q->provisional(), false: fn (Builder $q) => $q->whereNot(fn ($w) => $w->provisional()),
                         blank: fn (Builder $q) => $q),
                 Filter::make('no_reports')->label('Sem relatório submetido')->toggle()
                     ->query(fn (Builder $query) => $query->whereDoesntHave('scoutingReports', fn ($r) => $r->where('status', 'submetido'))),
                 TrashedFilter::make(),
-            ], layout: \Filament\Tables\Enums\FiltersLayout::AboveContentCollapsible)
+            ], layout: FiltersLayout::AboveContentCollapsible)
             ->filtersFormColumns(4)
             ->recordActions([
                 ViewAction::make()->label('Abrir'),
+                Action::make('pin')->label('Comparar')->icon(Heroicon::OutlinedScale)->iconButton()
+                    ->tooltip(fn (Player $r) => Comparator::isPinned(auth()->user(), $r) ? 'Retirar do comparador' : 'Fixar no comparador')
+                    ->color(fn (Player $r) => Comparator::isPinned(auth()->user(), $r) ? 'primary' : 'gray')
+                    ->action(function (Player $r) {
+                        $res = Comparator::toggle(auth()->user(), $r);
+                        Notification::make()->title($res['message'])->{$res['ok'] ? 'success' : 'warning'}()->send();
+                    }),
                 EditAction::make()->iconButton(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    \App\Filament\Actions\AddPlayersToNeedBulkAction::make(),
+                    AddPlayersToNeedBulkAction::make(),
                     DeleteBulkAction::make(),
                 ]),
             ])
             ->emptyStateHeading('Nenhum atleta encontrado')
             ->emptyStateDescription('Cadastre um atleta ou importe a planilha do departamento.')
             ->emptyStateActions([
-                Action::make('import')->label('Importar planilha')->url(fn () => \App\Filament\Pages\ImportarPlanilha::getUrl())->icon(Heroicon::OutlinedArrowUpTray),
+                Action::make('import')->label('Importar planilha')->url(fn () => ImportarPlanilha::getUrl())->icon(Heroicon::OutlinedArrowUpTray),
             ]);
     }
 

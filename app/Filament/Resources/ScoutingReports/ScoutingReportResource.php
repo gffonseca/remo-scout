@@ -8,7 +8,7 @@ use App\Enums\Level;
 use App\Enums\ReportSource;
 use App\Enums\ReportStatus;
 use App\Enums\Verdict;
-use App\Filament\Resources\ScoutingReports\Pages;
+use App\Filament\Resources\Players\PlayerResource;
 use App\Filament\Support\VideoFields;
 use App\Models\Player;
 use App\Models\RecruitmentNeed;
@@ -131,7 +131,7 @@ class ScoutingReportResource extends Resource
         return $schema->components([
             Section::make()->columns(4)->schema([
                 TextEntry::make('player.name')->label('Atleta')->weight('bold')
-                    ->url(fn (ScoutingReport $r) => \App\Filament\Resources\Players\PlayerResource::getUrl('view', ['record' => $r->player_id])),
+                    ->url(fn (ScoutingReport $r) => PlayerResource::getUrl('view', ['record' => $r->player_id])),
                 TextEntry::make('tacticalRole.name')->label('Papel avaliado'),
                 TextEntry::make('level')->label('Nível')->badge(),
                 TextEntry::make('verdict')->label('Parecer')->badge(),
@@ -176,7 +176,7 @@ class ScoutingReportResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return $table->persistFiltersInSession()->persistSortInSession()
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['player.currentClub', 'author', 'tacticalRole']))
             ->defaultSort('created_at', 'desc')
             ->columns([

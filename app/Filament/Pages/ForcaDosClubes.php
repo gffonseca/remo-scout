@@ -8,6 +8,8 @@ use App\Sources\FootballData;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
@@ -41,7 +43,7 @@ class ForcaDosClubes extends Page
         return OddsMatch::query()->distinct()->orderByDesc('season')->pluck('season')->all();
     }
 
-    public function rows(): \Illuminate\Support\Collection
+    public function rows(): Collection
     {
         if (! $this->season) {
             return collect();
@@ -56,6 +58,6 @@ class ForcaDosClubes extends Page
     {
         $at = OddsMatch::max('fetched_at');
 
-        return $at ? \Illuminate\Support\Carbon::parse($at)->timezone(config('scout.display_timezone'))->format('d/m/Y H:i') : null;
+        return $at ? Carbon::parse($at)->timezone(config('scout.display_timezone'))->format('d/m/Y H:i') : null;
     }
 }

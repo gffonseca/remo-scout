@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\DataSources;
 
 use App\Jobs\RunArtisanSync;
+use App\Models\CollectorTask;
 use App\Models\DataSource;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -65,7 +67,7 @@ class DataSourceResource extends Resource
             ->columns([
                 TextColumn::make('name')->label('Fonte')->weight('bold')->wrap()
                     ->description(fn (DataSource $s) => (['coletor_local' => $s->key === 'sofascore' ? '' : 'Via coletor local (Mac Mini, diário 06:20). ', 'consulta_manual' => 'Consulta assistida (sem coleta automática). '][$s->transport] ?? '')
-                        .($s->key === 'sofascore' ? 'Sob demanda pelo Mac (tarefas a cada 15 min): '.\App\Models\CollectorTask::where('source', 'sofascore')->where('status', 'aguardando_coletor')->count().' aguardando. ' : '')
+                        .($s->key === 'sofascore' ? 'Sob demanda pelo Mac (tarefas a cada 15 min): '.CollectorTask::where('source', 'sofascore')->where('status', 'aguardando_coletor')->count().' aguardando. ' : '')
                         .$s->notes),
                 TextColumn::make('kind')->label('Tipo')->badge()->formatStateUsing(fn ($state, DataSource $s) => $s->kindLabel())
                     ->color(fn ($state) => ['nao_oficial' => 'warning', 'api_comercial' => 'info', 'documento_publico' => 'success', 'oficial_credenciado' => 'primary'][$state] ?? 'gray'),
@@ -153,7 +155,7 @@ class DataSourceResource extends Resource
                         ->visible(fn () => auth()->user()->isAdmin())
                         ->fillForm(fn (DataSource $r) => ['usage_authorization' => $r->usage_authorization, 'usage_note' => $r->usage_note])
                         ->schema([
-                            \Filament\Forms\Components\Select::make('usage_authorization')->label('Situação')->required()
+                            Select::make('usage_authorization')->label('Situação')->required()
                                 ->options(['autorizado' => 'Autorizado', 'restrito' => 'Restrito (condições na nota)', 'nao_autorizado' => 'Não autorizado', 'pendente' => 'Pendente']),
                             Textarea::make('usage_note')->label('Base da decisão (contrato, termos, quem autorizou)')->rows(3)->required(),
                         ])

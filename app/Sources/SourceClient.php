@@ -44,7 +44,7 @@ class SourceClient
     /** @return array<mixed> */
     /**
      * @param  (\Closure(string): ?array{0:string,1:string,2:string})|null  $check  valida o corpo de um HTTP 200 antes de contar como
-     *         sucesso; devolve [tipo, mensagem, saúde] quando o provedor sinaliza erro dentro da resposta (ex.: API-Football "errors").
+     *                                                                              sucesso; devolve [tipo, mensagem, saúde] quando o provedor sinaliza erro dentro da resposta (ex.: API-Football "errors").
      */
     public function getJson(string $path, array $query = [], array $headers = [], ?int $cacheSeconds = null, ?\Closure $check = null): array
     {

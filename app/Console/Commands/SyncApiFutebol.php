@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\DataSource;
 use App\Models\SyncRun;
 use App\Sources\ApiFutebol;
+use App\Support\SourceRunLock;
 use Illuminate\Console\Command;
 
 class SyncApiFutebol extends Command
@@ -16,7 +17,7 @@ class SyncApiFutebol extends Command
     public function handle(): int
     {
         $source = DataSource::byKey('api_futebol');
-        $ran = \App\Support\SourceRunLock::run('api_futebol', fn () => $this->runSync($source));
+        $ran = SourceRunLock::run('api_futebol', fn () => $this->runSync($source));
         if (! $ran) {
             $this->warn('API Futebol: já existe sincronização em andamento; esta execução foi ignorada.');
         }

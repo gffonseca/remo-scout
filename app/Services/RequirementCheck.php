@@ -10,6 +10,7 @@ use App\Models\NeedRequirementCheck;
 use App\Models\Player;
 use App\Models\PlayerRoleAssessment;
 use App\Models\RecruitmentNeed;
+use App\Support\BudgetFit;
 use Illuminate\Support\Collection;
 
 /**
@@ -24,9 +25,29 @@ use Illuminate\Support\Collection;
  */
 class RequirementCheck
 {
-    /** @return list<array{item:string,status:string,detail:string,kind:string,key:?string}> */
-    public static function evaluate(RecruitmentNeed $need, Player $player): array
+    /**
+     * Dados da necessidade que não dependem do atleta — calcular uma vez para avaliar muitos atletas (pesquisa F11).
+     *
+     * @param  iterable<Player>|null  $players  para pré-carregar as confirmações de requisitos textuais
+     * @return array{roles:Collection, specialties:Collection, checks:Collection}
+     */
+    public static function context(RecruitmentNeed $need, ?iterable $players = null): array
     {
+        $checks = NeedRequirementCheck::where('recruitment_need_id', $need->id)
+            ->when($players !== null, fn ($q) => $q->whereIn('player_id', collect($players)->pluck('id')))
+            ->with(['evidenceAuthor', 'confirmer'])->get()->groupBy('player_id');
+
+        return ['roles' => static::roleRequirements($need)->where('is_mandatory', true)->values(),
+            'specialties' => $need->specialties()->wherePivot('is_mandatory', true)->get(),
+            'checks' => $checks, 'checksComplete' => $players !== null];
+    }
+
+    /** @return list<array{item:string,status:string,detail:string,kind:string,key:?string}> */
+    public static function evaluate(RecruitmentNeed $need, Player $player, ?bool $withBudget = null, ?array $ctx = null): array
+    {
+        $ctx ??= static::context($need, [$player]);
+        // orçamento só para quem vê dados financeiros (null = usuário logado; sem usuário, ex.: jobs, inclui)
+        $withBudget ??= auth()->user()?->canViewFinancial() ?? true;
         $out = [];
         $add = function (string $item, RequirementStatus $s, string $detail, string $kind = 'auto', ?string $key = null) use (&$out) {
             $out[] = ['item' => $item, 'status' => $s->value, 'detail' => $detail, 'kind' => $kind, 'key' => $key];
@@ -55,19 +76,33 @@ class RequirementCheck
             }
         }
 
-        foreach (static::roleRequirements($need)->where('is_mandatory', true) as $req) {
-            [$status, $detail] = static::roleStatus($player, $req['tactical_role_id'], $req['phase'], $req['min_level']);
+        $assessments = $player->relationLoaded('roleAssessments') ? $player->roleAssessments : null;
+        foreach ($ctx['roles'] as $req) {
+            [$status, $detail] = static::roleStatus($player, $req['tactical_role_id'], $req['phase'], $req['min_level'], $assessments);
             $add('Nível '.$req['role_name'].' · '.GamePhase::label($req['phase']).' ≥ '.$req['min_level']->value, $status, $detail);
         }
 
-        foreach ($need->specialties()->wherePivot('is_mandatory', true)->get() as $sp) {
-            $a = $player->specialtyAssessments()->where('specialty_id', $sp->id)->latest('updated_at')->first();
+        foreach ($ctx['specialties'] as $sp) {
+            $a = $player->relationLoaded('specialtyAssessments')
+                ? $player->specialtyAssessments->where('specialty_id', $sp->id)->sortByDesc(fn ($x) => [$x->updated_at?->timestamp ?? 0, (string) $x->id])->first()
+                : $player->specialtyAssessments()->where('specialty_id', $sp->id)->latest('updated_at')->first();
             ! $a || $a->level === Level::NaoObservado
                 ? $add($sp->name, RequirementStatus::Pendente, 'especialidade não avaliada')
                 : $add($sp->name, RequirementStatus::Atende, $a->level->getLabel());
         }
 
-        $checks = NeedRequirementCheck::where('recruitment_need_id', $need->id)->where('player_id', $player->id)->get()->keyBy('requirement_key');
+        // orçamento (4 estados): dentro = atende; intersecta/desconhecido = pendente (negociar/levantar); acima = não atende
+        foreach ($withBudget ? ['Orçamento salarial' => BudgetFit::salary($need, $player), 'Orçamento de transferência' => BudgetFit::transfer($need, $player)] : [] as $label => $fit) {
+            if ($fit) {
+                $add($label, match ($fit['state']) {
+                    'dentro' => RequirementStatus::Atende,
+                    'acima' => RequirementStatus::NaoAtende,
+                    default => RequirementStatus::Pendente,
+                }, BudgetFit::LABELS[$fit['state']].' — '.$fit['detail'], 'budget', $fit['state']);
+            }
+        }
+
+        $checks = collect($ctx['checks']->get($player->id, []))->keyBy('requirement_key');
         foreach ($need->mandatory_requirements ?? [] as $text) {
             if (blank($text)) {
                 continue;
@@ -109,16 +144,20 @@ class RequirementCheck
     }
 
     /** @return array{0:RequirementStatus,1:string} */
-    public static function roleStatus(Player $player, string $roleId, ?GamePhase $phase, Level $min): array
+    /** @param  Collection<int, PlayerRoleAssessment>|null  $assessments  avaliações do atleta já carregadas (evita consultas por atleta) */
+    public static function roleStatus(Player $player, string $roleId, ?GamePhase $phase, Level $min, ?Collection $assessments = null): array
     {
-        $scope = fn ($q) => $q->where('tactical_role_id', $roleId)->when($phase, fn ($w) => $w->where('phase', $phase->value), fn ($w) => $w->whereNull('phase'));
-        $observed = PlayerRoleAssessment::where('player_id', $player->id)->where('kind', AssessmentKind::Observado->value)->where($scope)
-            ->orderByDesc('observed_on')->orderByDesc('created_at')->orderByDesc('id')->with('author')->first();
+        $all = ($assessments ?? PlayerRoleAssessment::where('player_id', $player->id)->where('tactical_role_id', $roleId)->get())
+            ->where('tactical_role_id', $roleId);
+        $samePhase = fn ($a) => $a->phase?->value === $phase?->value; // geral (null) só casa com geral
+        $kind = fn ($a) => $a->kind?->value ?? $a->kind;
+        $observed = $all->filter(fn ($a) => $kind($a) === AssessmentKind::Observado->value && $samePhase($a))
+            ->sortByDesc(fn ($a) => [$a->observed_on?->toDateString() ?? '', $a->created_at?->format('Y-m-d H:i:s.u') ?? '', (string) $a->id])->first();
+        $observed?->loadMissing('author');
 
         if (! $observed || ! $observed->level->rank()) {
-            $potential = PlayerRoleAssessment::where('player_id', $player->id)->where('kind', AssessmentKind::Potencial->value)->where($scope)->exists();
-            $other = PlayerRoleAssessment::where('player_id', $player->id)->where('kind', AssessmentKind::Observado->value)
-                ->where('tactical_role_id', $roleId)->when($phase, fn ($w) => $w->where(fn ($x) => $x->whereNull('phase')->orWhere('phase', '!=', $phase->value)), fn ($w) => $w->whereNotNull('phase'))->exists();
+            $potential = $all->contains(fn ($a) => $kind($a) === AssessmentKind::Potencial->value && $samePhase($a));
+            $other = $all->contains(fn ($a) => $kind($a) === AssessmentKind::Observado->value && ! $samePhase($a));
 
             return [RequirementStatus::Pendente, match (true) {
                 $potential => 'só há avaliação de potencial (projeção não confirma nível atual)',

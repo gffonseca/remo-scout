@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Players\RelationManagers;
 
 use App\Enums\Confirmation;
 use App\Enums\MarketKind;
+use App\Filament\Concerns\RelationCountBadge;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -13,12 +14,17 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 /** Visível só com permissão financeira (MarketObservationPolicy). */
 class MarketObservationsRelationManager extends RelationManager
 {
+    use RelationCountBadge;
+
+    protected static string|\BackedEnum|null $icon = Heroicon::OutlinedBanknotes;
+
     protected static string $relationship = 'marketObservations';
 
     protected static ?string $title = 'Mercado (valores)';

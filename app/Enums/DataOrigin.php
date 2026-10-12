@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum DataOrigin: string implements HasLabel, HasColor
+enum DataOrigin: string implements HasColor, HasLabel
 {
     case Manual = 'manual';
     case Importacao = 'importacao';

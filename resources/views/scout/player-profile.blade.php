@@ -52,7 +52,8 @@
         <div class="sc-box">
             <div class="sc-label">Nível atual · potencial</div>
             <div class="sc-levels" style="margin-top:.25rem">{!! $lvl($cur) !!} {!! $lvl($pot) !!}</div>
-            <div class="sc-muted">Escala por nível de competição (A–D)</div>
+            @php $best = PI::bestObservedAssessment($p); @endphp
+            <div class="sc-muted">{{ $best ? 'Atual = melhor observado: '.$best->tacticalRole?->name.' · '.\App\Enums\GamePhase::label($best->phase).' ('.($best->observed_on ?? $best->created_at)?->format('d/m/Y').')' : 'Sem avaliação observada vigente' }}. Não vale para outros papéis.</div>
         </div>
     </div>
 

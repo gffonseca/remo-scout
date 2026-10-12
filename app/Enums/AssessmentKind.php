@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum AssessmentKind: string implements HasLabel, HasColor
+enum AssessmentKind: string implements HasColor, HasLabel
 {
     case Observado = 'observado';
     case Potencial = 'potencial';

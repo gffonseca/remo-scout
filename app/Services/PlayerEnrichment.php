@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Agent;
+use App\Models\Club;
 use App\Models\ContractObservation;
 use App\Models\EnrichmentReview;
 use App\Models\IdentityCandidate;
@@ -10,12 +11,16 @@ use App\Models\MarketObservation;
 use App\Models\Player;
 use App\Models\PlayerExternalId;
 use App\Models\PlayerSeasonStat;
+use App\Sources\CollectorPending;
 use App\Sources\Sofascore;
 use App\Sources\SourceException;
 use App\Sources\Transfermarkt;
 use App\Support\ClubResolver;
 use App\Support\NameMatcher;
+use App\Support\RawValue;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Vinculação e enriquecimento de atletas por fontes externas.
@@ -77,7 +82,7 @@ class PlayerEnrichment
         })->sortByDesc('score')->values();
 
         return static::decide($p, Sofascore::PROVIDER, $scored, fn ($r) => ($r['name'] ?? '?').' — '.($r['team']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?'), fn ($r) => (string) $r['id'],
-            fn ($r) => isset($r['dateOfBirthTimestamp']) ? \Illuminate\Support\Carbon::createFromTimestampUTC((int) $r['dateOfBirthTimestamp'])->toDateString() : null);
+            fn ($r) => isset($r['dateOfBirthTimestamp']) ? Carbon::createFromTimestampUTC((int) $r['dateOfBirthTimestamp'])->toDateString() : null);
     }
 
     /**
@@ -99,7 +104,7 @@ class PlayerEnrichment
             if ($dob === $p->birth_date->toDateString()) {
                 return static::attach($p, $provider, $idOf($top['r']), 'Vínculo automático (nome + nascimento '.$p->birth_date->format('d/m/Y').')', 'nome_nascimento');
             }
-            $evidence = $dob ? 'Nascimento na fonte '.\Illuminate\Support\Carbon::parse($dob)->format('d/m/Y').' ≠ cadastro '.$p->birth_date->format('d/m/Y') : 'Fonte não informa nascimento';
+            $evidence = $dob ? 'Nascimento na fonte '.Carbon::parse($dob)->format('d/m/Y').' ≠ cadastro '.$p->birth_date->format('d/m/Y') : 'Fonte não informa nascimento';
         } elseif (! $p->birth_date) {
             $evidence = 'Cadastro sem data de nascimento: vínculo só por revisão humana.';
         }
@@ -248,7 +253,7 @@ class PlayerEnrichment
                 }
                 try {
                     $st = $sf->seasonStats($id, (int) $ut['uniqueTournament']['id'], (int) $season['id']);
-                } catch (\App\Sources\CollectorPending $e) {
+                } catch (CollectorPending $e) {
                     throw $e; // pedido ao coletor do Mac: a tarefa continua na próxima rodada
                 } catch (SourceException $e) {
                     continue;
@@ -294,7 +299,7 @@ class PlayerEnrichment
 
             return [1, 0];
         }
-        if (! \App\Support\RawValue::same($current, $value)
+        if (! RawValue::same($current, $value)
             && ! (is_string($current) && is_string($value) && mb_strtolower(trim($current)) === mb_strtolower(trim($value)))) {
             return [0, static::review($p, $field, $current, $value, $provider)];
         }
@@ -310,9 +315,9 @@ class PlayerEnrichment
         }
 
         return match (true) {
-            in_array($field, ['current_club_id', 'rights_holder_club_id'], true) => (\App\Models\Club::find($raw)?->name ?? 'clube inexistente').' (#'.$raw.')',
-            $field === 'agent_id' => \App\Models\Agent::find($raw)?->name ?? 'empresário inexistente',
-            (bool) preg_match('/^\d{4}-\d{2}-\d{2}/', (string) $raw) => \Illuminate\Support\Carbon::parse($raw)->format('d/m/Y'),
+            in_array($field, ['current_club_id', 'rights_holder_club_id'], true) => (Club::find($raw)?->name ?? 'clube inexistente').' (#'.$raw.')',
+            $field === 'agent_id' => Agent::find($raw)?->name ?? 'empresário inexistente',
+            (bool) preg_match('/^\d{4}-\d{2}-\d{2}/', (string) $raw) => Carbon::parse($raw)->format('d/m/Y'),
             default => is_array($raw) ? implode(', ', $raw) : (string) $raw,
         };
     }
@@ -322,7 +327,7 @@ class PlayerEnrichment
         $currentRaw = $currentRaw instanceof \DateTimeInterface ? $currentRaw->format('Y-m-d') : $currentRaw;
         $proposedRaw = $proposedRaw instanceof \DateTimeInterface ? $proposedRaw->format('Y-m-d') : $proposedRaw;
         $pending = EnrichmentReview::where('player_id', $p->id)->where('provider', $provider)->where('field', $field)->where('status', 'pendente')->get()
-            ->first(fn ($r) => \App\Support\RawValue::same($r->proposed_raw, $proposedRaw));
+            ->first(fn ($r) => RawValue::same($r->proposed_raw, $proposedRaw));
         if ($pending) {
             return 0;
         }
@@ -356,13 +361,13 @@ class PlayerEnrichment
 
                 return ['status' => 'conflito', 'message' => $why];
             };
-            if (! \Illuminate\Support\Facades\Schema::hasColumn('players', $field)) {
+            if (! Schema::hasColumn('players', $field)) {
                 return $conflict("Campo {$field} não existe no cadastro.");
             }
-            if (! \App\Support\RawValue::same($p->getRawOriginal($field), $r->current_raw)) {
+            if (! RawValue::same($p->getRawOriginal($field), $r->current_raw)) {
                 return $conflict('O cadastro mudou depois que a revisão foi aberta (agora: '.(static::label($field, $p->getRawOriginal($field)) ?? 'vazio').'). Reavalie.');
             }
-            if (in_array($field, ['current_club_id', 'rights_holder_club_id'], true) && ! \App\Models\Club::whereKey($proposed)->exists()) {
+            if (in_array($field, ['current_club_id', 'rights_holder_club_id'], true) && ! Club::whereKey($proposed)->exists()) {
                 return $conflict('Clube proposto não existe mais.');
             }
             $p->{$field} = $proposed;
@@ -371,7 +376,7 @@ class PlayerEnrichment
             $p->field_sources = $src;
             $p->save();
             $applied = DB::table('players')->where('id', $p->id)->value($field);
-            if (! \App\Support\RawValue::same($applied, $proposed)) {
+            if (! RawValue::same($applied, $proposed)) {
                 throw new \RuntimeException("Aplicação de {$field} não confirmada; nada foi alterado.");
             }
             $r->update(['status' => 'aceito', 'reviewed_by' => $userId, 'reviewed_at' => now(), 'decision_note' => null]);

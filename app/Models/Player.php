@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use App\Enums\DataOrigin;
 use App\Enums\Confirmation;
+use App\Enums\DataOrigin;
 use App\Enums\Foot;
 use App\Enums\MarketStatus;
 use App\Enums\Position;
 use App\Models\Concerns\Auditable;
+use App\Support\Media;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\ValidationException;
 
 class Player extends Model
 {
@@ -74,7 +76,7 @@ class Player extends Model
     /** URL exibível da foto: arquivo enviado (URL temporária no bucket privado) > URL da fonte. */
     public function photoUrl(): ?string
     {
-        return \App\Support\Media::url($this->photo_path) ?? $this->photo_url;
+        return Media::url($this->photo_path) ?? $this->photo_url;
     }
 
     /** Acrescenta cidadania declarada por uma fonte (sem duplicar país). Não confirma documento. */
@@ -126,7 +128,7 @@ class Player extends Model
         static::saving(function (self $p) {
             if ($p->isDirty('eu_passport') || $p->isDirty('eu_passport_evidence')) {
                 if ($p->eu_passport === true && blank($p->eu_passport_evidence)) {
-                    throw \Illuminate\Validation\ValidationException::withMessages(['eu_passport' => 'Passaporte comunitário só pode ser "Sim" com o documento conferido descrito na evidência.']);
+                    throw ValidationException::withMessages(['eu_passport' => 'Passaporte comunitário só pode ser "Sim" com o documento conferido descrito na evidência.']);
                 }
                 if ($p->eu_passport === true) { // nova evidência = nova conferência: registra quem e quando
                     $p->eu_passport_confirmed_by = auth()->id();

@@ -5,12 +5,18 @@ namespace App\Filament\Resources\Clubs;
 use App\Models\Club;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -40,10 +46,10 @@ class ClubResource extends Resource
             TextInput::make('country')->label('País')->default('Brasil')->required(),
             TextInput::make('state')->label('UF')->maxLength(2),
             TextInput::make('city')->label('Cidade'),
-            \Filament\Forms\Components\Select::make('current_division')->label('Divisão nacional (referência)')->options(['Série A' => 'Série A', 'Série B' => 'Série B', 'Série C' => 'Série C', 'Série D' => 'Série D', 'Sem divisão' => 'Sem divisão nacional', 'Exterior' => 'Exterior']),
-            \Filament\Forms\Components\TagsInput::make('aliases')->label('Outros nomes'),
+            Select::make('current_division')->label('Divisão nacional (referência)')->options(['Série A' => 'Série A', 'Série B' => 'Série B', 'Série C' => 'Série C', 'Série D' => 'Série D', 'Sem divisão' => 'Sem divisão nacional', 'Exterior' => 'Exterior']),
+            TagsInput::make('aliases')->label('Outros nomes'),
             TextInput::make('cbf_code')->label('Código CBF'),
-            \Filament\Forms\Components\FileUpload::make('crest_path')->label('Escudo (upload)')->disk('media')->directory('crests')->visibility('private')
+            FileUpload::make('crest_path')->label('Escudo (upload)')->disk('media')->directory('crests')->visibility('private')
                 ->image()->maxSize(1024)->helperText('Tem prioridade sobre o escudo vindo da API Futebol/Transfermarkt.'),
             TextInput::make('crest_url')->label('Escudo (URL externa)')->url()->disabled()->dehydrated(false)
                 ->helperText(fn ($record) => $record?->crest_source ? 'Fonte: '.$record->crest_source : null),
@@ -56,7 +62,7 @@ class ClubResource extends Resource
         return $table->defaultSort('name')
             ->modifyQueryUsing(fn ($query) => $query->withCount('players'))
             ->columns([
-                \Filament\Tables\Columns\ImageColumn::make('crest')->label('')->state(fn (Club $record) => $record->crestUrl())->imageSize(28)
+                ImageColumn::make('crest')->label('')->state(fn (Club $record) => $record->crestUrl())->imageSize(28)
                     ->defaultImageUrl(asset('images/crest-placeholder.svg'))->extraImgAttributes(['loading' => 'lazy', 'referrerpolicy' => 'no-referrer', 'style' => 'object-fit:contain', 'onerror' => "this.onerror=null;this.src='/images/crest-placeholder.svg'"])->width('1%'),
                 TextColumn::make('name')->label('Clube')->searchable()->weight('bold'),
                 TextColumn::make('current_division')->label('Divisão')->badge()->sortable()->placeholder('—')
@@ -68,10 +74,10 @@ class ClubResource extends Resource
                 TextColumn::make('players_count')->label('Atletas cadastrados')->alignEnd(),
             ])
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('current_division')->label('Divisão')->options(['Série A' => 'Série A', 'Série B' => 'Série B', 'Série C' => 'Série C', 'Série D' => 'Série D', 'Sem divisão' => 'Sem divisão', 'Exterior' => 'Exterior'])->multiple(),
-                \Filament\Tables\Filters\TernaryFilter::make('has_crest')->label('Escudo')->trueLabel('Com escudo')->falseLabel('Sem escudo')
+                SelectFilter::make('current_division')->label('Divisão')->options(['Série A' => 'Série A', 'Série B' => 'Série B', 'Série C' => 'Série C', 'Série D' => 'Série D', 'Sem divisão' => 'Sem divisão', 'Exterior' => 'Exterior'])->multiple(),
+                TernaryFilter::make('has_crest')->label('Escudo')->trueLabel('Com escudo')->falseLabel('Sem escudo')
                     ->queries(true: fn ($query) => $query->where(fn ($w) => $w->whereNotNull('crest_url')->orWhereNotNull('crest_path')), false: fn ($query) => $query->whereNull('crest_url')->whereNull('crest_path')),
-                \Filament\Tables\Filters\SelectFilter::make('state')->label('UF')->options(fn () => Club::query()->whereNotNull('state')->distinct()->orderBy('state')->pluck('state', 'state'))->multiple(),
+                SelectFilter::make('state')->label('UF')->options(fn () => Club::query()->whereNotNull('state')->distinct()->orderBy('state')->pluck('state', 'state'))->multiple(),
             ])
             ->recordActions([EditAction::make()->iconButton()]);
     }

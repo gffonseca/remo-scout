@@ -4,6 +4,7 @@ namespace App\Sources;
 
 use App\Models\Appearance;
 use App\Models\Club;
+use App\Models\ClubExternalId;
 use App\Models\Fixture;
 use App\Models\IdentityCandidate;
 use App\Models\Player;
@@ -13,6 +14,7 @@ use App\Models\SyncRun;
 use App\Services\SeasonStatsAggregator;
 use App\Support\ClubResolver;
 use App\Support\NameMatcher;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -206,7 +208,7 @@ class ApiFootball
                 $t = $d['teams'][$side] ?? [];
                 $name = self::CLUB_NAME_HINTS[$t['name'] ?? ''] ?? ($t['name'] ?? null);
                 $known = ClubResolver::byName($name) !== null
-                    || \App\Models\ClubExternalId::where('provider', self::PROVIDER)->where('external_id', (string) ($t['id'] ?? ''))->exists();
+                    || ClubExternalId::where('provider', self::PROVIDER)->where('external_id', (string) ($t['id'] ?? ''))->exists();
                 $teams[$side] = ClubResolver::resolve(self::PROVIDER, (string) ($t['id'] ?? ''), $name, true);
                 if (! $known && $teams[$side]) {
                     $run->note("Clube novo criado a partir da API-Football: {$teams[$side]->name} (conferir se é duplicata).");
@@ -214,7 +216,7 @@ class ApiFootball
             }
             $extraTime = ($d['score']['extratime']['home'] ?? null) !== null || ($d['fixture']['status']['short'] ?? '') === 'AET';
             $duration = $extraTime ? 120 : 90;
-            $played = isset($d['fixture']['date']) ? \Illuminate\Support\Carbon::parse($d['fixture']['date'])->timezone(config('scout.display_timezone')) : null;
+            $played = isset($d['fixture']['date']) ? Carbon::parse($d['fixture']['date'])->timezone(config('scout.display_timezone')) : null;
             $fixture = Fixture::updateOrCreate(['provider' => self::PROVIDER, 'external_id' => (string) $d['fixture']['id']], [
                 'competition_name' => $compName, 'season' => $season, 'round_label' => $d['league']['round'] ?? null,
                 'played_on' => $played?->toDateString(), 'home_club_id' => $teams['home']?->id, 'away_club_id' => $teams['away']?->id,

@@ -22,12 +22,26 @@ class Specialty extends Model
             'aliases' => 'array',
             'compatible_positions' => 'array',
             'status' => CatalogStatus::class,
+            'level_guide' => 'array',
+            'reviewed_at' => 'datetime',
         ];
+    }
+
+    /** F22: critério A–D editado por quem não aprova → perfil volta a "proposta" (precisa nova aprovação). */
+    protected static function booted(): void
+    {
+        static::saving(function (self $m) {
+            if ($m->exists && $m->isDirty('level_guide') && $m->getOriginal('status') === CatalogStatus::Ativo
+                && ! (auth()->user()?->isCoordinator() ?? false)) {
+                $m->status = CatalogStatus::Proposta;
+                $m->reviewed_at = null;
+            }
+        });
     }
 
     protected function versionedFields(): array
     {
-        return ['description', 'compatible_positions', 'evaluation_suggestions'];
+        return ['level_guide', 'description', 'compatible_positions', 'evaluation_suggestions'];
     }
 
     public function assessments(): HasMany
