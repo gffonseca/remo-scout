@@ -15,6 +15,8 @@ use App\Models\PlayerSeasonStat;
 use App\Models\ProviderAthlete;
 use App\Services\DataCoverage;
 use App\Services\PhotoBackfill;
+use App\Sources\SourceClient;
+use Database\Seeders\DataSourcesSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -252,5 +254,15 @@ class DataCoverageTest extends ScoutTestCase
         Livewire::test(CoberturaDados::class)->assertSee('Enriquecimento: 3 de 4')
             ->callAction('fix', [], ['correcao' => 'enriquecer'])->assertHasNoActionErrors();
         Queue::assertPushed(RunArtisanSync::class, fn ($j) => $j->command === 'scout:enrich' && $j->params['--scope'] === 'scout' && $j->params['--actor'] === 'user:'.$admin->id);
+    }
+
+    public function test_scout_scope_real_run_saves_players_without_display_fields(): void
+    {
+        $this->seed(DataSourcesSeeder::class);
+        Http::fake(['*/players/search/*' => Http::response(['results' => []])]);
+        SourceClient::$sleeper = fn () => null;
+        $p = Player::create(['name' => 'Sem resultado na fonte']);
+        $this->artisan('scout:enrich transfermarkt --scope=scout --limit=5')->expectsOutputToContain('a revisar 1')->assertSuccessful();
+        $this->assertNotNull($p->fresh()->enriched_at); // tentado: sai da fila por 14 dias
     }
 }

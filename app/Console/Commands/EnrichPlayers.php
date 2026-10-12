@@ -16,6 +16,9 @@ use Illuminate\Console\Command;
 
 class EnrichPlayers extends Command
 {
+    /** Prioridade de cada atleta na fila (só exibição; nunca vai ao modelo, que é salvo depois). @var array<string,string> */
+    private array $ranks = [];
+
     protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing|cobertura|scout} {--limit=30} {--user=} {--actor= : user:<id> (botões da tela)} {--dry-run : só lista quem seria processado, sem chamar a fonte}';
 
     protected $description = 'Vincula e enriquece atletas por fonte externa (sob demanda, em lote pequeno)';
@@ -29,7 +32,7 @@ class EnrichPlayers extends Command
         abort_unless(in_array($provider, ['transfermarkt', 'sofascore'], true), 1, 'Provedor inválido');
         $source = DataSource::byKey($provider);
         if ($this->option('dry-run')) {
-            $this->table(['Atleta', 'Clube', 'Prioridade'], $this->candidates($provider)->map(fn ($p) => [$p->name, $p->currentClub?->name ?? '—', $p->coverage_rank ?? ($p->is_priority ? 'lista prioritária' : '')])->all());
+            $this->table(['Atleta', 'Clube', 'Prioridade'], $this->candidates($provider)->map(fn ($p) => [$p->name, $p->currentClub?->name ?? '—', $this->ranks[$p->id] ?? ($p->is_priority ? 'lista prioritária' : '')])->all());
             $this->line('Prévia: nenhuma chamada à fonte.');
 
             return self::SUCCESS;
@@ -108,8 +111,10 @@ class EnrichPlayers extends Command
             return $q->whereIn('id', $ids)
                 ->whereDoesntHave('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
                 ->get()
-                ->each(fn ($p) => $p->coverage_rank = $watch->has($p->id) ? 'watchlist' : ($needs->has($p->id) ? 'necessidade aberta' : ($p->is_priority ? 'lista prioritária' : 'base')))
-                ->sortBy(fn ($p) => array_search($p->coverage_rank, $order, true).'|'.($p->enriched_at ? '1'.$p->enriched_at->format('YmdHis') : '0'))
+                ->each(function ($p) use ($watch, $needs) {
+                    $this->ranks[$p->id] = $watch->has($p->id) ? 'watchlist' : ($needs->has($p->id) ? 'necessidade aberta' : ($p->is_priority ? 'lista prioritária' : 'base'));
+                })
+                ->sortBy(fn ($p) => array_search($this->ranks[$p->id], $order, true).'|'.($p->enriched_at ? '1'.$p->enriched_at->format('YmdHis') : '0'))
                 ->take((int) $this->option('limit'))->values();
         }
         match ($this->option('scope')) {
