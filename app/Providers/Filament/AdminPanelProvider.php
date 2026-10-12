@@ -63,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Administração')->collapsed(),
             ])
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
-            ->databaseNotifications(false)
+            ->databaseNotifications()->databaseNotificationsPolling('60s')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([CentralDeMercado::class])

@@ -120,6 +120,15 @@ class ViewPlayer extends ViewRecord
                 Action::make('ogolSearch')->label('Buscar no ogol')->icon(Heroicon::OutlinedMagnifyingGlass)
                     ->url(fn () => $p->ogol_url ?: 'https://www.ogol.com.br/pesquisa?search_txt='.urlencode($p->name))->openUrlInNewTab(),
             ])->label('Pesquisar fora')->icon(Heroicon::OutlinedGlobeAlt)->button()->color('gray'),
+            Action::make('watch')->icon(Heroicon::OutlinedEye)->color('gray')
+                ->label(fn () => \App\Models\WatchlistItem::where('player_id', $p->id)->where('status', 'ativo')->exists() ? 'Na watchlist' : 'Monitorar')
+                ->disabled(fn () => \App\Models\WatchlistItem::where('player_id', $p->id)->where('status', 'ativo')->exists())
+                ->visible(fn () => auth()->user()->canEdit())
+                ->schema(fn () => \App\Filament\Resources\Watchlist\WatchlistResource::formFields(false))
+                ->action(function (array $data) use ($p) {
+                    \App\Models\WatchlistItem::create($data + ['player_id' => $p->id, 'created_by' => auth()->id(), 'status' => 'ativo', 'last_seen_club_id' => $p->current_club_id]);
+                    Notification::make()->success()->title('Atleta na watchlist')->send();
+                }),
             Action::make('pin')->icon(Heroicon::OutlinedScale)->color('gray')
                 ->label(fn () => \App\Services\Comparator::isPinned(auth()->user(), $p) ? 'Retirar do comparador' : 'Fixar no comparador')
                 ->action(function () use ($p) {
