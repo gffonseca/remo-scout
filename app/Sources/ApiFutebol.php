@@ -124,6 +124,8 @@ class ApiFutebol
         return DB::transaction(function () use ($d, $competition, $compName, $season, $run) {
             $home = ClubResolver::resolve(self::PROVIDER, (string) ($d['time_mandante']['time_id'] ?? ''), $d['time_mandante']['nome_popular'] ?? null, true);
             $away = ClubResolver::resolve(self::PROVIDER, (string) ($d['time_visitante']['time_id'] ?? ''), $d['time_visitante']['nome_popular'] ?? null, true);
+            static::crest($home, $d['time_mandante']['escudo'] ?? null);
+            static::crest($away, $d['time_visitante']['escudo'] ?? null);
             $fixture = Fixture::updateOrCreate(['provider' => self::PROVIDER, 'external_id' => (string) $d['partida_id']], [
                 'competition_id' => $competition?->id, 'competition_name' => $compName, 'season' => $season,
                 'round_label' => $d['rodada'] ?? ($d['fase']['nome'] ?? null),
@@ -228,6 +230,41 @@ class ApiFutebol
 
             return $fixture;
         });
+    }
+
+    public static function crest(?Club $club, ?string $url): void
+    {
+        if ($club && $url && ! $club->crest_url && ! $club->crest_path && str_starts_with($url, 'https://')) {
+            $club->update(['crest_url' => $url, 'crest_source' => self::PROVIDER]);
+        }
+    }
+
+    /** Escudos dos clubes das competições do plano (usa só as listas de partidas: 1 chamada por competição). */
+    public function syncCrests(array $competitionIds): int
+    {
+        $n = 0;
+        foreach ($competitionIds as $cid) {
+            try {
+                $list = $this->matches($cid);
+            } catch (SourceException $e) {
+                continue;
+            }
+            foreach ($list as $m) {
+                foreach (['time_mandante', 'time_visitante'] as $side) {
+                    $t = $m[$side] ?? null;
+                    if (! $t) {
+                        continue;
+                    }
+                    $club = ClubResolver::resolve(self::PROVIDER, (string) ($t['time_id'] ?? ''), $t['nome_popular'] ?? null);
+                    if ($club && ! $club->crest_url && ! $club->crest_path && ! empty($t['escudo'])) {
+                        static::crest($club, $t['escudo']);
+                        $n++;
+                    }
+                }
+            }
+        }
+
+        return $n;
     }
 
     /** "26:44" no 2º tempo → 71. Acréscimo (>45 no período) é limitado ao fim regulamentar. Prorrogação → 90. */

@@ -69,6 +69,12 @@ class Player extends Model
         return $this->belongsTo(Club::class, 'current_club_id');
     }
 
+    /** URL exibível da foto: arquivo enviado (URL temporária no bucket privado) > URL da fonte. */
+    public function photoUrl(): ?string
+    {
+        return \App\Support\Media::url($this->photo_path) ?? $this->photo_url;
+    }
+
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);

@@ -23,6 +23,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -99,6 +101,9 @@ class PlayerResource extends Resource
                         ->unique(ignoreRecord: true)->maxLength(32)->regex('/^[0-9]+$/')->validationMessages(['regex' => 'Somente números.']),
                     Select::make('preferred_foot')->label('Pé preferencial')->options(Foot::class)->default(Foot::NaoInformado->value)->required(),
                     TextInput::make('height_cm')->label('Altura (cm)')->numeric()->minValue(140)->maxValue(215),
+                    FileUpload::make('photo_path')->label('Foto de perfil')->disk('media')->directory('players')->visibility('private')
+                        ->image()->imageEditor()->imageCropAspectRatio('1:1')->maxSize(3072)
+                        ->helperText('Upload próprio tem prioridade sobre a foto vinda de fonte externa (Transfermarkt/Sofascore).'),
                 ]),
             Section::make('Posições')
                 ->columns(2)
@@ -246,6 +251,8 @@ class PlayerResource extends Resource
             ->persistSortInSession()
             ->columns([
                 TextColumn::make('is_priority')->label('')->state(fn (Player $r) => $r->is_priority ? '★' : null)->color('warning')->weight('bold')->tooltip(fn (Player $r) => $r->is_priority ? ($r->priority_note ?: 'Lista prioritária') : null)->width('1%'),
+                ImageColumn::make('avatar')->label('')->state(fn (Player $r) => $r->photoUrl())->circular()->imageSize(32)
+                    ->defaultImageUrl(asset('images/player-silhouette.svg'))->extraImgAttributes(['loading' => 'lazy', 'referrerpolicy' => 'no-referrer', 'onerror' => "this.onerror=null;this.src='/images/player-silhouette.svg'"])->width('1%'),
                 TextColumn::make('name')->label('Atleta')->searchable(query: fn (Builder $query, string $search) => $query->where(fn ($w) => $w
                     ->whereRaw('lower(unaccent_name(name)) like lower(unaccent_name(?))', ["%{$search}%"])
                     ->orWhereRaw('lower(unaccent_name(coalesce(full_name, \'\'))) like lower(unaccent_name(?))', ["%{$search}%"])
@@ -261,6 +268,7 @@ class PlayerResource extends Resource
                     ->formatStateUsing(fn ($state) => $state?->age)->placeholder('—'),
                 TextColumn::make('preferred_foot')->label('Pé')->badge()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('currentClub.name')->label('Clube')->searchable()->sortable()->placeholder('—')
+                    ->html()->formatStateUsing(fn ($state, Player $r) => \App\Support\Media::crestTag($r->currentClub).e($state))
                     ->description(fn (Player $r) => $r->currentClub?->current_division),
                 TextColumn::make('latestContract.status')->label('Contrato')->badge()->placeholder('sem obs.')->toggleable()
                     ->description(fn (Player $r) => $r->latestContract?->contract_end ? 'até '.$r->latestContract->contract_end->format('m/Y') : null),

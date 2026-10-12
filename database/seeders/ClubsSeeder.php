@@ -12,6 +12,22 @@ use Illuminate\Database\Seeder;
  */
 class ClubsSeeder extends Seeder
 {
+    /** Nomes usados por provedores que não batem com o nome usual (evita clube duplicado). */
+    private const ALIASES = [
+        'Red Bull Bragantino' => ['Bragantino', 'RB Bragantino', 'Red Bull Bragantino SP'],
+        'ABECAT' => ['Abecat Ouvidorense', 'ABECAT Ouvidorense'],
+        'Portuguesa-SP' => ['Portuguesa', 'Portuguesa SP', 'Associação Portuguesa de Desportos'],
+        'Athletico-PR' => ['Athletico Paranaense', 'Athletico', 'Club Athletico Paranaense'],
+        'Atlético-MG' => ['Atlético Mineiro', 'Clube Atlético Mineiro'],
+        'Atlético-GO' => ['Atlético Goianiense'],
+        'Vasco da Gama' => ['Vasco', 'CR Vasco da Gama'],
+        'Vila Nova-GO' => ['Vila Nova'],
+        'Athletic' => ['Athletic Club', 'Athletic Club (MG)'],
+        'América-MG' => ['América Mineiro'],
+        'Botafogo-SP' => ['Botafogo Ribeirão Preto'],
+        'Operário-PR' => ['Operário Ferroviário'],
+    ];
+
     public function run(): void
     {
         $data = json_decode(file_get_contents(__DIR__.'/data/clubs-2026.json'), true, flags: JSON_THROW_ON_ERROR);
@@ -26,6 +42,7 @@ class ClubsSeeder extends Seeder
                 'city' => $club->city ?: ($c['city'] ?? null),
                 'competitions' => $comps,
                 'current_division' => $club->current_division ?: ($division ?? 'Sem divisão'),
+                'aliases' => array_values(array_unique(array_merge($club->aliases ?? [], self::ALIASES[$c['name']] ?? []))) ?: null,
             ])->save();
         }
     }

@@ -23,6 +23,11 @@ class Club extends Model
         return $this->hasMany(Player::class, 'current_club_id');
     }
 
+    public function crestUrl(): ?string
+    {
+        return \App\Support\Media::url($this->crest_path) ?? $this->crest_url;
+    }
+
     public function externalIds(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ClubExternalId::class);

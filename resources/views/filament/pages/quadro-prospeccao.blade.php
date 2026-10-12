@@ -31,11 +31,13 @@
                 @forelse ($col['cases'] as $case)
                     <article class="scout-card" wire:key="case-{{ $case->id }}">
                         <div class="flex items-start justify-between gap-2">
-                            <a href="{{ \App\Filament\Resources\Players\PlayerResource::getUrl('view', ['record' => $case->player_id]) }}" class="font-semibold hover:underline">{{ $case->player->name }}</a>
+                            <a href="{{ \App\Filament\Resources\Players\PlayerResource::getUrl('view', ['record' => $case->player_id]) }}" class="flex items-center gap-2 font-semibold hover:underline">
+                                <img src="{{ $case->player->photoUrl() ?? asset('images/player-silhouette.svg') }}" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:top" onerror="this.onerror=null;this.src='{{ asset('images/player-silhouette.svg') }}'">
+                                {{ $case->player->name }}</a>
                             <x-filament::badge size="sm" :color="$case->priority->getColor()">{{ $case->priority->getLabel() }}</x-filament::badge>
                         </div>
                         <div class="text-xs text-gray-400">
-                            {{ collect([$case->player->primary_position?->value, $case->player->age ? $case->player->age.' anos' : null, $case->player->currentClub?->name])->filter()->implode(' · ') }}
+                            {!! \App\Support\Media::crestTag($case->player->currentClub, 14) !!}{{ collect([$case->player->primary_position?->value, $case->player->age ? $case->player->age.' anos' : null, $case->player->currentClub?->name])->filter()->implode(' · ') }}
                         </div>
                         @unless ($this->need)<div class="mt-1 text-xs text-primary-300">{{ $case->need->title }}</div>@endunless
                         @if ($case->next_action)

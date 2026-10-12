@@ -17,12 +17,19 @@
     $contract = $p->latestContract;
     $lvl = fn ($l) => $l ? '<span class="sc-level l-'.$l->value.'" title="'.e($l->getLabel()).'">'.($l->rank() ? $l->value : 'n/o').'</span>' : '<span class="sc-level l-none">n/o</span>';
     $roles = $p->roleAssessments->sortByDesc(fn ($a) => $a->level?->rank() ?? 0);
+    $photo = $p->photoUrl();
+    $crest = $p->currentClub?->crestUrl();
 @endphp
 <div style="display:flex;flex-direction:column;gap:1rem">
     {{-- Cabeçalho --}}
     <div class="sc-hero">
-        <div class="sc-avatar" aria-hidden="true">
-            <svg viewBox="0 0 64 64" width="78" height="78"><circle cx="32" cy="24" r="12" fill="#2c4466"/><path d="M8 64c2-16 12-24 24-24s22 8 24 24z" fill="#2c4466"/></svg>
+        <div class="sc-avatar" @if (! $photo) aria-hidden="true" @endif>
+            @if ($photo)
+                <img src="{{ $photo }}" alt="Foto de {{ $p->name }}" referrerpolicy="no-referrer" loading="lazy"
+                     onerror="this.onerror=null;this.src='{{ asset('images/player-silhouette.svg') }}'">
+            @else
+                <svg viewBox="0 0 64 64" width="78" height="78"><circle cx="32" cy="24" r="12" fill="#2c4466"/><path d="M8 64c2-16 12-24 24-24s22 8 24 24z" fill="#2c4466"/></svg>
+            @endif
         </div>
         <div>
             <div class="sc-name">{{ $p->name }}</div>
@@ -36,7 +43,7 @@
         </div>
         <div class="sc-box">
             <div class="sc-label">Clube</div>
-            <div class="sc-value">{{ $p->currentClub?->name ?? 'não informado' }}</div>
+            <div class="sc-value" style="display:flex;align-items:center;gap:.4rem">@if ($crest)<img src="{{ $crest }}" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:26px;height:26px;object-fit:contain" onerror="this.remove()">@endif{{ $p->currentClub?->name ?? 'não informado' }}</div>
             <div class="sc-muted">{{ $p->currentClub?->current_division ?? '' }}{{ $p->rightsHolderClub && $p->rightsHolderClub->id !== $p->current_club_id ? ' · direitos: '.$p->rightsHolderClub->name : '' }}</div>
         </div>
         <div class="sc-box">

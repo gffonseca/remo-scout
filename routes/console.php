@@ -7,3 +7,4 @@ Schedule::command('scout:probe-sources')->dailyAt('08:30')->withoutOverlapping()
 Schedule::command('scout:sync-api-futebol --max=400')->dailyAt('09:00')->withoutOverlapping(120);   // 06:00 Belém
 Schedule::command('scout:enrich transfermarkt --scope=priority --limit=40')->dailyAt('10:00')->withoutOverlapping(90);
 Schedule::command('scout:enrich sofascore --scope=shortlist --limit=20')->weeklyOn(1, '10:30')->withoutOverlapping(90);
+Schedule::command('scout:sync-crests')->weeklyOn(0, '09:30')->withoutOverlapping();

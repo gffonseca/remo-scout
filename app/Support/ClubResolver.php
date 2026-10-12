@@ -44,7 +44,23 @@ class ClubResolver
         }
         $coreHits = array_values(array_filter(static::$cache, fn ($c) => $core !== '' && NameMatcher::clubCore($c->name) === $core && (! $state || ! $c->state || $c->state === $state)));
 
-        return count($coreHits) === 1 ? Club::find($coreHits[0]->id) : null;
+        if (count($coreHits) === 1) {
+            return Club::find($coreHits[0]->id);
+        }
+        // subconjunto inequívoco ("Vasco" → "Vasco da Gama"; "Bragantino" → "Red Bull Bragantino")
+        $tokens = array_filter(explode(' ', $core), fn ($t) => mb_strlen($t) >= 4);
+        if ($tokens) {
+            $subset = array_values(array_filter(static::$cache, function ($c) use ($tokens, $state) {
+                $ct = explode(' ', NameMatcher::clubCore($c->name));
+
+                return ! array_diff($tokens, $ct) && (! $state || ! $c->state || $c->state === $state);
+            }));
+            if (count($subset) === 1) {
+                return Club::find($subset[0]->id);
+            }
+        }
+
+        return null;
     }
 
     public static function flush(): void

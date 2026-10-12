@@ -5,3 +5,4 @@ cd /app
 php artisan migrate --force
 php artisan db:seed --force
 php artisan scout:probe-sources || echo "[predeploy] teste de fontes falhou (não bloqueante)"
+php artisan scout:sync-crests || true

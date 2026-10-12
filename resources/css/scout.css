@@ -16,6 +16,7 @@ html:not(.dark) .scout-kanban-col { background:#eef3f9; } html:not(.dark) .scout
 .sc-hero{display:grid;grid-template-columns:96px minmax(220px,1.4fr) repeat(3,minmax(150px,1fr));gap:1rem;align-items:center;padding:1rem 1.25rem;border-radius:.9rem;background:linear-gradient(135deg,#13233a 0%,#0B1422 100%);border:1px solid rgba(121,185,242,.18)}
 html:not(.dark) .sc-hero{background:linear-gradient(135deg,#eef4fb,#dfe9f6);border-color:#c8d6ea}
 .sc-avatar{width:88px;height:88px;border-radius:50%;background:#1B2B40;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border:2px solid rgba(121,185,242,.35)}
+.sc-avatar img{width:100%;height:100%;object-fit:cover;object-position:top}
 .sc-name{font-size:1.55rem;font-weight:800;line-height:1.1;letter-spacing:-.01em}
 .sc-sub{font-size:.82rem;opacity:.75;margin-top:.15rem}
 .sc-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.4rem}

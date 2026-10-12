@@ -186,4 +186,28 @@ class SourcesTest extends ScoutTestCase
         $this->actingAs($this->user('leitor'));
         $this->get('/fontes')->assertForbidden();
     }
+
+    public function test_uploaded_photo_and_crest_take_priority_over_external(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('media');
+        $club = Club::create(['name' => 'Clube Foto', 'country' => 'Brasil', 'crest_url' => 'https://example.test/c.png']);
+        $p = Player::create(['name' => 'Atleta Foto', 'photo_url' => 'https://example.test/p.jpg']);
+        $this->assertSame('https://example.test/p.jpg', $p->photoUrl());
+        $this->assertSame('https://example.test/c.png', $club->crestUrl());
+        $p->update(['photo_path' => 'players/x.jpg']);
+        $club->update(['crest_path' => 'crests/x.png']);
+        $this->assertStringContainsString('players/x.jpg', $p->fresh()->photoUrl());
+        $this->assertStringContainsString('crests/x.png', $club->fresh()->crestUrl());
+        $this->assertSame('', \App\Support\Media::crestTag(null));
+    }
+
+    public function test_provider_club_aliases_resolve_without_duplicates(): void
+    {
+        $this->seed(\Database\Seeders\ClubsSeeder::class);
+        \App\Support\ClubResolver::flush();
+        $before = Club::count();
+        $this->assertSame('Red Bull Bragantino', \App\Support\ClubResolver::resolve('api_futebol', '999001', 'Bragantino', true)?->name);
+        $this->assertSame('ABECAT', \App\Support\ClubResolver::resolve('api_futebol', '999002', 'Abecat Ouvidorense', true)?->name);
+        $this->assertSame($before, Club::count());
+    }
 }

@@ -156,6 +156,11 @@ class PlayerEnrichment
                 $p->positions = array_values(array_unique(array_diff($others, [$pos])));
                 $changes++;
             }
+            if (! empty($prof['imageUrl']) && ! $p->photo_url && ! $p->photo_path && ! str_contains($prof['imageUrl'], 'default')) {
+                $p->photo_url = $prof['imageUrl'];
+                $p->photo_source = Transfermarkt::PROVIDER;
+                $changes++;
+            }
             if (array_intersect($cit, Transfermarkt::EU) && $p->eu_passport === null) {
                 $p->eu_passport = true;
                 $changes++;
@@ -173,6 +178,9 @@ class PlayerEnrichment
 
             // Clube e contrato observados (datados, não verdade permanente)
             $club = isset($prof['club']['name']) ? ClubResolver::resolve(Transfermarkt::PROVIDER, $prof['club']['id'] ?? null, $prof['club']['name']) : null;
+            if ($club && ! $club->crest_url && ! $club->crest_path && ! empty($prof['club']['id'])) {
+                $club->update(['crest_url' => 'https://tmssl.akamaized.net/images/wappen/head/'.$prof['club']['id'].'.png', 'crest_source' => Transfermarkt::PROVIDER]);
+            }
             if ($club && $p->current_club_id && $club->id !== $p->current_club_id) {
                 $reviews += static::review($p, 'current_club_id', $p->currentClub?->name, $club->name.' (#'.$club->id.')', Transfermarkt::PROVIDER);
             } elseif ($club && ! $p->current_club_id) {
@@ -243,6 +251,9 @@ class PlayerEnrichment
         }
         if (! $p->sofascore_url) {
             $p->update(['sofascore_url' => 'https://www.sofascore.com/player/-/'.$id]);
+        }
+        if (! $p->photo_url && ! $p->photo_path) {
+            $p->update(['photo_url' => 'https://api.sofascore.app/api/v1/player/'.$id.'/image', 'photo_source' => Sofascore::PROVIDER]);
         }
         $p->update(['enriched_at' => now()]);
 
