@@ -25,8 +25,10 @@ use Illuminate\Support\Collection;
 class RequirementCheck
 {
     /** @return list<array{item:string,status:string,detail:string,kind:string,key:?string}> */
-    public static function evaluate(RecruitmentNeed $need, Player $player): array
+    public static function evaluate(RecruitmentNeed $need, Player $player, ?bool $withBudget = null): array
     {
+        // orçamento só para quem vê dados financeiros (null = usuário logado; sem usuário, ex.: jobs, inclui)
+        $withBudget ??= auth()->user()?->canViewFinancial() ?? true;
         $out = [];
         $add = function (string $item, RequirementStatus $s, string $detail, string $kind = 'auto', ?string $key = null) use (&$out) {
             $out[] = ['item' => $item, 'status' => $s->value, 'detail' => $detail, 'kind' => $kind, 'key' => $key];
@@ -65,6 +67,17 @@ class RequirementCheck
             ! $a || $a->level === Level::NaoObservado
                 ? $add($sp->name, RequirementStatus::Pendente, 'especialidade não avaliada')
                 : $add($sp->name, RequirementStatus::Atende, $a->level->getLabel());
+        }
+
+        // orçamento (4 estados): dentro = atende; intersecta/desconhecido = pendente (negociar/levantar); acima = não atende
+        foreach ($withBudget ? ['Orçamento salarial' => \App\Support\BudgetFit::salary($need, $player), 'Orçamento de transferência' => \App\Support\BudgetFit::transfer($need, $player)] : [] as $label => $fit) {
+            if ($fit) {
+                $add($label, match ($fit['state']) {
+                    'dentro' => RequirementStatus::Atende,
+                    'acima' => RequirementStatus::NaoAtende,
+                    default => RequirementStatus::Pendente,
+                }, \App\Support\BudgetFit::LABELS[$fit['state']].' — '.$fit['detail'], 'budget', $fit['state']);
+            }
         }
 
         $checks = NeedRequirementCheck::where('recruitment_need_id', $need->id)->where('player_id', $player->id)->get()->keyBy('requirement_key');

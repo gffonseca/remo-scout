@@ -40,9 +40,12 @@ class ViewRecruitmentNeed extends ViewRecord
         $n = $this->getRecord();
 
         return [
-            Action::make('search')->label('Buscar candidatos')->icon(Heroicon::OutlinedMagnifyingGlass)
+            Action::make('search')->label('Pesquisar candidatos')->icon(Heroicon::OutlinedMagnifyingGlass)
+                ->url(RecruitmentNeedResource::getUrl('search', ['record' => $n]))
+                ->tooltip('Aplica todos os critérios desta necessidade (papel/fase, nível, especialidades, orçamento) à base; desconhecido = pendência.'),
+            Action::make('list')->label('Abrir na lista de jogadores')->icon(Heroicon::OutlinedTableCells)->color('gray')
                 ->url(static::searchUrl($n))
-                ->tooltip('Abre Jogadores filtrado pela posição, idade e pé desta necessidade. Atletas sem nascimento informado aparecem como pendentes.'),
+                ->tooltip('Filtros básicos (posição, idade, pé) na lista geral, para explorar além da pesquisa.'),
             Action::make('board')->label('Quadro de prospecção')->icon(Heroicon::OutlinedViewColumns)->color('gray')
                 ->url(QuadroProspeccao::getUrl(['need' => $n->id])),
             ActionGroup::make([

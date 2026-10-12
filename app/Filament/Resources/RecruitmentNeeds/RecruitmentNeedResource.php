@@ -175,6 +175,7 @@ class RecruitmentNeedResource extends Resource
             'index' => Pages\ListRecruitmentNeeds::route('/'),
             'create' => Pages\CreateRecruitmentNeed::route('/create'),
             'view' => Pages\ViewRecruitmentNeed::route('/{record}'),
+            'search' => Pages\SearchCandidates::route('/{record}/pesquisa'),
             'edit' => Pages\EditRecruitmentNeed::route('/{record}/edit'),
         ];
     }
