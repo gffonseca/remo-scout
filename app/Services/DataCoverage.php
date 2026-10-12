@@ -185,4 +185,31 @@ class DataCoverage
                 'last_status' => $last?->status, 'last_at' => $last?->started_at, 'ok_at' => $ok?->finished_at, 'blocked' => $d->circuitOpen() || $d->health === 'bloqueado'];
         })->filter(fn ($r) => $r->enabled || $r->last_at)->values();
     }
+
+    /** Prévia (sem gravar) do backfill de clube das estatísticas. @return array{vincular:int, a_confirmar:int, sem_vinculo:int, sem_rotulo:int} */
+    public static function clubBackfillPreview(): array
+    {
+        $trusted = "'".implode("','", ClubExternalId::TRUSTED)."'";
+        $r = DB::selectOne(<<<SQL
+            select
+              count(*) filter (where m.id is not null and (m.confirmed_at is not null or m.method in ({$trusted}))) as vincular,
+              count(*) filter (where m.id is not null and not (m.confirmed_at is not null or m.method in ({$trusted}))) as a_confirmar,
+              count(*) filter (where m.id is null) as sem_vinculo,
+              count(*) filter (where s.club_source_name is null) as sem_rotulo
+            from player_season_stats s
+            left join club_external_ids m on m.provider = s.provider and m.external_id = s.club_external_id
+            where s.club_id is null and s.club_external_id is not null
+            SQL);
+
+        return array_map('intval', (array) $r);
+    }
+
+    /** Lotes de correção (trilha), mais recentes primeiro. */
+    public static function batches(int $limit = 20): Collection
+    {
+        return collect(DB::select(<<<'SQL'
+            select batch, min(kind) as kind, count(*) as rows, count(reverted_at) as reverted, min(actor) as actor, min(created_at) as at
+            from data_fix_changes group by batch order by min(created_at) desc limit ?
+            SQL, [$limit]));
+    }
 }

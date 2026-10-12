@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\CoberturaDados;
 use App\Filament\Resources\Players\PlayerResource;
+use App\Jobs\RunArtisanSync;
 use App\Models\Appearance;
 use App\Models\Club;
 use App\Models\ClubExternalId;
@@ -13,6 +14,7 @@ use App\Models\PlayerSeasonStat;
 use App\Services\DataCoverage;
 use App\Services\SeasonStatsAggregator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -171,5 +173,28 @@ class StatsClubIdentityTest extends ScoutTestCase
         PlayerSeasonStat::create(['player_id' => $p->id, 'provider' => 'cbf', 'competition_key' => 'k', 'competition_name' => 'X', 'season' => now()->format('Y'), 'appearances' => 3, 'fetched_at' => now()]);
         $this->actingAs($this->user('leitor'));
         $this->get(CoberturaDados::getUrl(['motivo' => 'parcial']))->assertOk()->assertSee('Parcial na lista');
+    }
+
+    public function test_admin_runs_fix_from_coverage_page_and_reverts_batch(): void
+    {
+        Queue::fake();
+        $this->actingAs($this->user('admin', ['app_authentication_secret' => 'JBSWY3DPEHPK3PXP']));
+        Livewire::test(CoberturaDados::class)->callAction('fix', [], ['correcao' => 'clubes'])->assertHasNoActionErrors();
+        Queue::assertPushed(RunArtisanSync::class, fn ($j) => $j->command === 'scout:stats-clubs' && $j->params['--apply'] === true);
+
+        $p = Player::create(['name' => 'Lote tela']);
+        $s = $this->tmStat($p, '4040');
+        $c = Club::create(['name' => 'Tela FC']);
+        ClubExternalId::create(['provider' => 'transfermarkt', 'external_id' => '4040', 'club_id' => $c->id, 'method' => 'manual']);
+        $this->artisan('scout:stats-clubs --apply')->assertSuccessful();
+        $batch = DB::table('data_fix_changes')->value('batch');
+        Livewire::test(CoberturaDados::class)->assertSee($batch)->call('revertBatch', $batch);
+        $this->assertNull($s->fresh()->club_id);
+    }
+
+    public function test_coordinator_cannot_run_batch_fixes(): void
+    {
+        $this->actingAs($this->user('coordenador'));
+        Livewire::test(CoberturaDados::class)->assertActionHidden('fix', ['correcao' => 'clubes'])->call('revertBatch', 'x')->assertForbidden();
     }
 }

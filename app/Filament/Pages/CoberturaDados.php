@@ -2,8 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Jobs\RunArtisanSync;
 use App\Models\Club;
+use App\Models\Player;
 use App\Services\DataCoverage;
+use App\Services\DataFix;
+use App\Services\PhotoBackfill;
 use App\Support\PlayerStatsView;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -57,6 +61,42 @@ class CoberturaDados extends Page
             });
     }
 
+    /** Correções em lote pela tela (só admin): enfileiram o comando com trilha; cada lote pode ser desfeito aqui. */
+    public function fixAction(): Action
+    {
+        return Action::make('fix')->size('sm')
+            ->label(fn (array $arguments) => self::FIXES[$arguments['correcao'] ?? '']['label'] ?? 'Aplicar')
+            ->visible(fn () => auth()->user()->isAdmin())
+            ->requiresConfirmation()
+            ->modalHeading(fn (array $arguments) => self::FIXES[$arguments['correcao'] ?? '']['label'] ?? '')
+            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.')
+            ->action(function (array $arguments) {
+                abort_unless(auth()->user()->isAdmin(), 403);
+                $fix = self::FIXES[$arguments['correcao'] ?? ''] ?? abort(404);
+                RunArtisanSync::dispatch($fix['command'], $fix['params'] + ['--actor' => 'user:'.auth()->id()]);
+                Cache::forget('coverage.rows');
+                Notification::make()->success()->title('Correção enviada ao worker')->body('Atualize a página em alguns minutos para ver o lote.')->send();
+            });
+    }
+
+    public const FIXES = [
+        'clubes' => ['label' => 'Vincular clubes e buscar rótulos', 'command' => 'scout:stats-clubs', 'params' => ['--apply' => true, '--labels' => true],
+            'help' => 'Liga ao clube do cadastro as linhas cujo ID tem vínculo confiável e busca no Transfermarkt o nome dos clubes sem rótulo (com cache). Vínculo por semelhança não é aplicado.'],
+        'fotos' => ['label' => 'Aplicar fotos da API-Football', 'command' => 'scout:photos', 'params' => ['--backfill' => true, '--apply' => true],
+            'help' => 'Copia a foto da API-Football para atletas com vínculo confiável e sem foto. Não substitui upload nem foto da CBF.'],
+        'checar' => ['label' => 'Verificar URLs de foto (200)', 'command' => 'scout:photos', 'params' => ['--check' => true, '--apply' => true, '--limit' => 200],
+            'help' => 'Confere até 200 URLs externas (host permitido, resposta, tipo, tamanho) e grava o estado. Não apaga URL.'],
+    ];
+
+    public function revertBatch(string $batch): void
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+        $r = DataFix::revert($batch);
+        Cache::forget('coverage.rows');
+        Notification::make()->success()->title("Lote desfeito: {$r['reverted']} linha(s)")
+            ->body($r['conflicts'] ? count($r['conflicts']).' linha(s) editadas depois ficaram como estão.' : null)->send();
+    }
+
     public function data(): array
     {
         $rows = Cache::remember('coverage.rows', 60, fn () => DataCoverage::rows()); // cada clique de filtro não refaz a consulta
@@ -74,6 +114,10 @@ class CoberturaDados extends Page
             'listCount' => $list->count(),
             'field' => $field,
             'clubs' => DataCoverage::unresolvedClubs(),
+            'clubPreview' => DataCoverage::clubBackfillPreview(),
+            'photoPreview' => PhotoBackfill::candidates()->count(),
+            'photoToCheck' => Player::whereNotNull('photo_url')->whereNull('photo_path')->whereNull('photo_checked_at')->count(),
+            'batches' => DataCoverage::batches(),
             'runs' => DataCoverage::sourceRuns(),
             'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_STATES,
         ];

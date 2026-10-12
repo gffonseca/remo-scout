@@ -42,6 +42,7 @@ class StatsClubsBackfill extends Command
         $tm = $this->option('labels') ? new Transfermarkt : null;
         $stats = ['vincular' => 0, 'rotulo' => 0, 'sem_vinculo' => 0, 'vinculo_a_confirmar' => 0];
         $preview = [];
+        $labels = []; // um pedido por clube, não por linha
         foreach ($rows as $r) {
             $mapProvider = self::MAP_PROVIDER[$r->provider] ?? $r->provider;
             $map = ClubExternalId::with('club')->where('provider', $mapProvider)->where('external_id', $r->club_external_id)->first();
@@ -55,9 +56,9 @@ class StatsClubsBackfill extends Command
             if (! $r->club_source_name) {
                 $label = $map?->external_name;
                 if (! $label && $tm && $r->provider === 'transfermarkt') {
-                    $label = $tm->clubIdentity($r->club_external_id, [], true)['label'];
+                    $label = $labels[$r->club_external_id] ??= ($tm->clubIdentity($r->club_external_id, [], true)['label'] ?? '');
                 }
-                if ($label && ! ctype_digit($label)) {
+                if ($label !== null && $label !== '' && ! ctype_digit($label)) {
                     $after['club_source_name'] = $label;
                     $stats['rotulo']++;
                 }
