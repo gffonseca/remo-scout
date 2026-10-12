@@ -216,4 +216,65 @@ class RequirementsTest extends ScoutTestCase
         $this->assertNull($req->phase);
         $this->assertSame('C', $need->fresh()->target_level->value); // coluna antiga preservada
     }
+
+    public function test_analyst_cannot_reopen_a_coordinator_decision(): void
+    {
+        $text = 'Laudo médico';
+        $n = $this->need(['mandatory_requirements' => [$text]]);
+        $p = Player::create(['name' => 'X', 'primary_position' => 'CA']);
+        RequirementConfirmation::record($this->user('coordenador'), $n, $p, $text, RequirementStatus::NaoAtende, 'Reprovado', 'https://exemplo.test/laudo');
+        $this->expectException(AuthorizationException::class);
+        try {
+            RequirementConfirmation::record($this->user('analista'), $n, $p, $text, RequirementStatus::Pendente, 'Nova informação');
+        } finally {
+            $this->assertStringStartsWith('Não atende', RequirementCheck::summary($n, $p));
+        }
+    }
+
+    public function test_current_observed_scope_ignores_potential_expired_and_superseded(): void
+    {
+        $a = Player::create(['name' => 'Só potencial']);
+        $b = Player::create(['name' => 'Vencida']);
+        $c = Player::create(['name' => 'Rebaixado']);
+        $d = Player::create(['name' => 'Vigente']);
+        $this->assess($a, 'potencial', 'A');
+        $this->assess($b, 'observado', 'A', null, now()->subMonths(14)->toDateString());
+        $this->assess($c, 'observado', 'A', null, now()->subMonths(2)->toDateString());
+        $this->assess($c, 'observado', 'C', null, now()->subWeek()->toDateString());
+        $this->assess($d, 'observado', 'B');
+        $ids = Player::whereHas('roleAssessments', fn ($q) => $q->currentObserved()->whereIn('level', ['A', 'B']))->pluck('name')->all();
+        $this->assertSame(['Vigente'], $ids);
+        $this->assertNull(PlayerInsight::currentLevel($b->fresh('roleAssessments')));
+    }
+
+    public function test_general_requirement_cannot_be_duplicated_and_used_role_cannot_be_deleted(): void
+    {
+        $n = $this->need();
+        $this->phased($n, null, 'B');
+        $admin = $this->user('admin');
+        $this->assertFalse($admin->can('delete', $this->role));
+        try {
+            DB::transaction(fn () => $this->phased($n, null, 'A')); // savepoint: a falha não aborta o teste
+            $this->fail('duplicou requisito geral');
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+        }
+        $this->assertSame(1, NeedRoleRequirement::where('recruitment_need_id', $n->id)->count());
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        DB::transaction(fn () => $this->role->delete()); // FK restrict, mesmo por fora da policy
+    }
+
+    public function test_recommendation_counts_one_vote_per_author(): void
+    {
+        $a = $this->user('analista');
+        $b = $this->user('analista');
+        $p = Player::create(['name' => 'X']);
+        foreach ([1, 2, 3] as $i) {
+            ScoutingReport::create(['player_id' => $p->id, 'author_id' => $a->id, 'verdict' => 'avancar', 'level' => 'B',
+                'positives' => 'x', 'negatives' => 'y', 'status' => 'submetido', 'submitted_at' => now()->subDays(10 + $i)]);
+        }
+        ScoutingReport::create(['player_id' => $p->id, 'author_id' => $b->id, 'verdict' => 'descartar', 'level' => 'C',
+            'positives' => 'x', 'negatives' => 'y', 'status' => 'submetido', 'submitted_at' => now()->subDay()]);
+        $rec = PlayerInsight::recommendation(Player::with('submittedReports')->find($p->id));
+        $this->assertStringContainsString('(1/2)', $rec['label']); // 2 observadores, não 4 relatórios
+    }
 }

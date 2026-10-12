@@ -72,8 +72,7 @@ class RecruitmentNeedResource extends Resource
                 Select::make('preferred_foot')->label('Pé')->options(Foot::class)->placeholder('Indiferente'),
                 TextInput::make('age_min')->label('Idade mínima')->numeric()->minValue(15)->maxValue(45),
                 TextInput::make('age_max')->label('Idade máxima')->numeric()->minValue(15)->maxValue(45)->gte('age_min'),
-                Select::make('target_level')->label('Nível mínimo (papel principal, geral)')->options(collect(Level::cases())->reject(fn ($l) => $l === Level::NaoObservado)->mapWithKeys(fn ($l) => [$l->value => $l->getLabel()]))
-                    ->helperText('Atalho: vira requisito obrigatório "geral" do papel principal. Para exigir por fase, use a seção abaixo.'),
+                // Nível exigido fica só em "Requisitos por papel e fase" (uma única fonte da regra).
                 Select::make('priority')->label('Prioridade')->options(Priority::class)->default('media')->required(),
                 Select::make('horizon')->label('Horizonte')->options(Horizon::class)->default('proxima_janela')->required(),
                 TextInput::make('window_label')->label('Janela/temporada')->placeholder('ex.: Janela jan/2027'),
@@ -119,7 +118,9 @@ class RecruitmentNeedResource extends Resource
                 TextEntry::make('position')->label('Posição')->formatStateUsing(fn ($state) => $state instanceof Position ? $state->value.' — '.$state->getLabel() : $state),
                 TextEntry::make('tacticalRole.name')->label('Papel desejado')->placeholder('não definido'),
                 TextEntry::make('specialties.name')->label('Especialidades')->badge()->placeholder('—'),
-                TextEntry::make('target_level')->label('Nível mínimo')->badge()->placeholder('não definido'),
+                TextEntry::make('role_requirements_list')->label('Requisitos de papel/fase')->columnSpan(2)->listWithLineBreaks()->placeholder('nenhum')
+                    ->state(fn (RecruitmentNeed $record) => \App\Services\RequirementCheck::roleRequirements($record)
+                        ->map(fn ($r) => $r['role_name'].' · '.\App\Enums\GamePhase::label($r['phase']).' ≥ '.$r['min_level']->value.($r['is_mandatory'] ? '' : ' (desejável)'))->all()),
                 TextEntry::make('age_range')->label('Idade')->state(fn (RecruitmentNeed $r) => $r->age_min || $r->age_max ? ($r->age_min ?? '…').'–'.($r->age_max ?? '…') : 'indiferente'),
                 TextEntry::make('preferred_foot')->label('Pé')->placeholder('indiferente'),
                 TextEntry::make('priority')->label('Prioridade')->badge(),

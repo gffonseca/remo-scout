@@ -32,13 +32,15 @@ return new class extends Migration
         Schema::create('need_role_requirements', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('recruitment_need_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('tactical_role_id')->constrained()->cascadeOnDelete();
+            // restrict: excluir um papel não pode fazer um requisito obrigatório sumir em silêncio
+            $table->foreignUuid('tactical_role_id')->constrained()->restrictOnDelete();
             $table->string('phase', 20)->nullable(); // null = geral
             $table->string('min_level', 2); // A, B, C, D
             $table->boolean('is_mandatory')->default(true);
             $table->string('notes')->nullable();
             $table->timestamps();
-            $table->unique(['recruitment_need_id', 'tactical_role_id', 'phase']);
+            // nullsNotDistinct: no PostgreSQL, NULL repetido não violaria o unique; "geral" deve ser único também
+            $table->unique(['recruitment_need_id', 'tactical_role_id', 'phase'])->nullsNotDistinct();
         });
         foreach (DB::table('recruitment_needs')->whereNotNull('tactical_role_id')->whereIn('target_level', ['A', 'B', 'C', 'D'])->get() as $n) {
             DB::table('need_role_requirements')->insert([

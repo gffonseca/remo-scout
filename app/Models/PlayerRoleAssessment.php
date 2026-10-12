@@ -42,6 +42,24 @@ class PlayerRoleAssessment extends Model
         return $this->referenceDate()->lt(now()->subMonths((int) config('scout.assessment_valid_months', 12)));
     }
 
+    /**
+     * Avaliações OBSERVADAS vigentes: dentro da validade e a mais recente de cada atleta+papel+fase
+     * (uma reavaliação substitui a anterior, mesmo que a anterior fosse mais alta).
+     */
+    public function scopeCurrentObserved($query)
+    {
+        $cutoff = now()->subMonths((int) config('scout.assessment_valid_months', 12))->toDateString();
+
+        return $query->where('player_role_assessments.kind', 'observado')
+            ->whereRaw('coalesce(player_role_assessments.observed_on, player_role_assessments.created_at::date) >= ?', [$cutoff])
+            ->whereNotExists(fn ($n) => $n->selectRaw('1')->from('player_role_assessments as newer')
+                ->whereColumn('newer.player_id', 'player_role_assessments.player_id')
+                ->whereColumn('newer.tactical_role_id', 'player_role_assessments.tactical_role_id')
+                ->whereRaw('newer.phase is not distinct from player_role_assessments.phase')
+                ->where('newer.kind', 'observado')
+                ->whereRaw('(coalesce(newer.observed_on, newer.created_at::date), newer.created_at, newer.id) > (coalesce(player_role_assessments.observed_on, player_role_assessments.created_at::date), player_role_assessments.created_at, player_role_assessments.id)'));
+    }
+
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);

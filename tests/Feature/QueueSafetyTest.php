@@ -21,14 +21,16 @@ class QueueSafetyTest extends ScoutTestCase
 
     public function test_job_timeout_is_below_effective_retry_after_and_lock_ttl_in_between(): void
     {
+        // Produção usa QUEUE_CONNECTION=database: o retry_after que vale é o dessa conexão.
+        $retryAfter = (int) config('queue.connections.database.retry_after');
         $job = new RunArtisanSync('scout:sync-api-futebol', ['--max' => 300]);
-        $retryAfter = (int) config('queue.connections.'.config('queue.default').'.retry_after', config('queue.connections.database.retry_after'));
-        $this->assertLessThan(config('queue.connections.database.retry_after'), $job->timeout);
+        $this->assertSame(1800, $retryAfter, 'mudou o padrão? DB_QUEUE_RETRY_AFTER não pode ficar abaixo do timeout');
+        $this->assertLessThan($retryAfter, $job->timeout);
+        $this->assertLessThan($job->timeout, \App\Sources\ApiFutebol::MAX_RUN_SECONDS); // a própria execução para antes do timeout
         $this->assertGreaterThan($job->timeout, SourceRunLock::TTL);
-        $this->assertLessThan(config('queue.connections.database.retry_after'), SourceRunLock::TTL);
+        $this->assertLessThan($retryAfter, SourceRunLock::TTL);
         $this->assertSame(1, $job->tries);
         $this->assertTrue($job->failOnTimeout);
-        $this->assertGreaterThan(0, $retryAfter);
     }
 
     public function test_same_command_and_source_do_not_overlap_on_the_queue(): void
@@ -45,6 +47,8 @@ class QueueSafetyTest extends ScoutTestCase
 
     public function test_second_worker_or_scheduler_skips_source_already_running(): void
     {
+        // Contenção entre processos reais com o cache em banco (como em produção) foi verificada fora da suíte:
+        // o teste roda dentro de transação revertida, onde a trava de banco do PostgreSQL não pode ser exercida.
         $lock = Cache::lock('source-run:api_futebol', SourceRunLock::TTL);
         $this->assertTrue($lock->get()); // "worker 1" em execução
         try {
@@ -67,5 +71,16 @@ class QueueSafetyTest extends ScoutTestCase
         } catch (\RuntimeException) {
         }
         $this->assertTrue(SourceRunLock::run('teste', fn () => null));
+    }
+
+    public function test_orphan_running_sync_is_closed_as_failed_on_next_run(): void
+    {
+        $ds = \App\Models\DataSource::byKey('api_futebol');
+        $old = SyncRun::create(['data_source_id' => $ds->id, 'job' => 'partidas', 'status' => 'em_execucao', 'started_at' => now()->subHours(2)]);
+        $recent = SyncRun::create(['data_source_id' => $ds->id, 'job' => 'partidas', 'status' => 'em_execucao', 'started_at' => now()->subMinutes(5)]);
+        $this->assertSame(1, SyncRun::closeStale($ds->id, 40));
+        $this->assertSame('falhou', $old->fresh()->status);
+        $this->assertStringContainsString('Interrompida', implode(' ', $old->fresh()->messages));
+        $this->assertSame('em_execucao', $recent->fresh()->status);
     }
 }

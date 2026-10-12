@@ -29,6 +29,8 @@ class EnrichPlayers extends Command
 
     private function enrich(string $provider, DataSource $source): void
     {
+        SyncRun::closeStale($source->id, 40);
+        $deadline = microtime(true) + 1200; // abaixo do lock por fonte e do timeout do job
         $run = SyncRun::create(['data_source_id' => $source->id, 'job' => 'enriquecimento', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['scope' => $this->option('scope'), 'limit' => (int) $this->option('limit')], 'requested_by' => $this->option('user')]);
 
@@ -41,6 +43,10 @@ class EnrichPlayers extends Command
             default => $q->where('is_priority', true),
         };
         foreach ($q->orderByDesc('is_priority')->limit((int) $this->option('limit'))->get() as $p) {
+            if (microtime(true) > $deadline) {
+                $run->note('Prazo da execução atingido; continua na próxima.');
+                break;
+            }
             try {
                 $link = $provider === 'transfermarkt' ? PlayerEnrichment::linkTransfermarkt($p) : PlayerEnrichment::linkSofascore($p);
                 $run->requests_made++;

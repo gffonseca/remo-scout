@@ -74,9 +74,13 @@ class ApiFutebol
     }
 
     /** Sincroniza partidas finalizadas ainda não processadas (ou alteradas). Limita chamadas por execução. */
+    /** Prazo interno da execução: bem abaixo do lock por fonte (1700 s) e do timeout do job (1500 s). */
+    public const MAX_RUN_SECONDS = 1200;
+
     public function sync(SyncRun $run, array $competitionIds, int $maxDetails = 300): void
     {
         $budget = $maxDetails;
+        $deadline = microtime(true) + self::MAX_RUN_SECONDS;
         foreach ($competitionIds as $cid) {
             $compName = self::COMPETITIONS[$cid] ?? "API Futebol #{$cid}";
             $competition = Competition::where('name', $compName)->first();
@@ -95,6 +99,10 @@ class ApiFutebol
             $run->note("{$compName} {$season}: ".count($finished).' finalizadas, '.count($pending).' novas, '.count($refresh).' a reconsultar (parciais/recentes)');
             $pending = array_merge($pending, $refresh); // novas primeiro; reconsultas usam o saldo restante
             foreach ($pending as $m) {
+                if (microtime(true) > $deadline) {
+                    $run->note('Prazo da execução ('.self::MAX_RUN_SECONDS.' s) atingido; continua na próxima.');
+                    break 2;
+                }
                 if ($budget <= 0) {
                     $run->note('Limite de chamadas desta execução atingido; continua na próxima.');
                     break 2;
@@ -274,9 +282,12 @@ class ApiFutebol
                 }
                 // Reconciliação: quem saiu da escalação corrigida deste lado deixa de constar na partida.
                 // Só para o lado cuja escalação veio na resposta (escalação ausente não apaga nada).
-                Appearance::where('fixture_id', $fixture->id)->where('provider', self::PROVIDER)
-                    ->when($club, fn ($q) => $q->where('club_id', $club->id), fn ($q) => $q->whereNull('club_id'))
-                    ->whereNotIn('player_id', $seen)->delete();
+                // Escalação vazia ou sem atletas identificados também não apaga (é falha da fonte, não correção).
+                if ($seen !== []) {
+                    Appearance::where('fixture_id', $fixture->id)->where('provider', self::PROVIDER)
+                        ->when($club, fn ($q) => $q->where('club_id', $club->id), fn ($q) => $q->whereNull('club_id'))
+                        ->whereNotIn('player_id', $seen)->delete();
+                }
             }
 
             return $fixture;

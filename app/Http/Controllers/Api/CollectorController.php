@@ -38,6 +38,7 @@ class CollectorController extends Controller
     public function start(Request $request, string $source): JsonResponse
     {
         $ds = $this->source($source);
+        SyncRun::closeStale($ds->id, 240); // coleta local leva ~90 min; 4 h sem fim = coletor caiu
         $run = SyncRun::create(['data_source_id' => $ds->id, 'job' => 'coletor_local', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['host' => mb_substr((string) $request->input('host'), 0, 60), 'versao' => mb_substr((string) $request->input('version'), 0, 20)]]);
 

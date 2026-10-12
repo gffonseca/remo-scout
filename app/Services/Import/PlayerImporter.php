@@ -374,8 +374,19 @@ class PlayerImporter
                 $conflicts[] = compact('entity', 'id', 'label', 'field', 'reason');
             };
 
-            ContractObservation::where('import_batch_id', $batch->id)->delete();
-            MarketObservation::where('import_batch_id', $batch->id)->delete();
+            // Observações do lote: saem, salvo se alguém as editou/confirmou depois (aí ficam como conflito,
+            // e o atleta delas também fica — apagá-lo levaria a observação junto, em cascata).
+            $keptObsPlayers = [];
+            foreach ([ContractObservation::class => 'contract_observation', MarketObservation::class => 'market_observation'] as $cls => $type) {
+                foreach ($cls::where('import_batch_id', $batch->id)->get() as $o) {
+                    if ($o->updated_at && $o->created_at && $o->updated_at->gt($o->created_at->copy()->addSeconds(2))) {
+                        $conflict($type, $o->id, $o->player?->name ?? '—', null, 'observação editada depois da importação; mantida');
+                        $keptObsPlayers[] = $o->player_id;
+                    } else {
+                        $o->delete();
+                    }
+                }
+            }
 
             // 1) campos alterados em atletas que já existiam
             foreach ($batch->changes()->where('entity_type', 'player')->where('action', 'updated')->get() as $ch) {
@@ -397,13 +408,21 @@ class PlayerImporter
             $createdLog = $batch->changes()->where('entity_type', 'player')->where('action', 'created')->get()->keyBy('entity_id');
             $createdIds = $batch->has_change_log ? $createdLog->keys() : Player::where('import_batch_id', $batch->id)->pluck('id');
             foreach (Player::withTrashed()->whereIn('id', $createdIds)->get() as $p) {
-                $hasWork = $p->scoutingReports()->exists() || $p->roleAssessments()->exists()
-                    || $p->specialtyAssessments()->exists() || $p->prospectCases()->exists() || $p->videoReferences()->exists();
+                // qualquer registro que aponte para o atleta (exceto observações deste lote) = trabalho posterior
+                $usedBy = static::referencedBy('players', $p->id, ['contract_observations' => $batch->id, 'market_observations' => $batch->id]);
                 $snap = $createdLog->get($p->id)?->new_value ?? [];
                 $edited = collect($snap)->filter(fn ($v, $f) => ! static::same($p->getRawOriginal($f), $v))->keys();
-                if ($hasWork || $edited->isNotEmpty()) {
+                $touchedLater = $batch->completed_at && $p->updated_at && $p->updated_at->gt($batch->completed_at->copy()->addSeconds(2));
+                if (in_array($p->id, $keptObsPlayers, true)) {
+                    $usedBy[] = 'observação do lote mantida';
+                }
+                if ($usedBy !== [] || $edited->isNotEmpty() || $touchedLater) {
                     $kept++;
-                    $conflict('player', $p->id, $p->name, null, $hasWork ? 'atleta já tem relatório, avaliação, vídeo ou candidatura' : 'editado depois da importação: '.$edited->implode(', '));
+                    $conflict('player', $p->id, $p->name, null, match (true) {
+                        $usedBy !== [] => 'já referenciado por: '.implode(', ', $usedBy),
+                        $edited->isNotEmpty() => 'editado depois da importação: '.$edited->implode(', '),
+                        default => 'cadastro alterado depois da importação',
+                    });
                 } else {
                     $p->forceDelete();
                     $removed++;
@@ -416,13 +435,9 @@ class PlayerImporter
                 if (! $model) {
                     continue;
                 }
-                $inUse = $ch->entity_type === 'agent'
-                    ? Player::withTrashed()->where('agent_id', $model->id)->exists()
-                    : Player::withTrashed()->where(fn ($q) => $q->where('current_club_id', $model->id)->orWhere('rights_holder_club_id', $model->id))->exists()
-                        || DB::table('fixtures')->where('home_club_id', $model->id)->orWhere('away_club_id', $model->id)->exists()
-                        || DB::table('appearances')->where('club_id', $model->id)->exists();
-                if ($inUse) {
-                    $conflict($ch->entity_type, $model->id, $model->name, null, 'em uso por outros registros; mantido');
+                $usedBy = static::referencedBy($ch->entity_type === 'agent' ? 'agents' : 'clubs', $model->id);
+                if ($usedBy !== []) {
+                    $conflict($ch->entity_type, $model->id, $model->name, null, 'em uso por: '.implode(', ', $usedBy).'; mantido');
                 } else {
                     $model->delete();
                     $removedOther++;
@@ -435,6 +450,35 @@ class PlayerImporter
 
             return $report;
         });
+    }
+
+    /**
+     * Tabelas que ainda referenciam o registro, descobertas pelas chaves estrangeiras do próprio banco
+     * (cobre tabelas futuras sem manutenção manual). $ignoreBatch: tabela => lote cujas linhas não contam.
+     *
+     * @return list<string>
+     */
+    private static function referencedBy(string $table, string $id, array $ignoreBatch = []): array
+    {
+        static $fks = [];
+        $fks[$table] ??= DB::select("
+            select kcu.table_name as tbl, kcu.column_name as col
+            from information_schema.referential_constraints rc
+            join information_schema.key_column_usage kcu on kcu.constraint_name = rc.constraint_name and kcu.constraint_schema = rc.constraint_schema
+            join information_schema.key_column_usage pk on pk.constraint_name = rc.unique_constraint_name and pk.constraint_schema = rc.unique_constraint_schema
+            where pk.table_name = ? and kcu.constraint_schema = current_schema()", [$table]);
+        $hits = [];
+        foreach ($fks[$table] as $fk) {
+            $q = DB::table($fk->tbl)->where($fk->col, $id);
+            if (isset($ignoreBatch[$fk->tbl])) {
+                $q->where(fn ($w) => $w->whereNull('import_batch_id')->orWhere('import_batch_id', '!=', $ignoreBatch[$fk->tbl]));
+            }
+            if ($q->exists()) {
+                $hits[] = $fk->tbl;
+            }
+        }
+
+        return array_values(array_unique($hits));
     }
 
     /** Compara valor bruto do banco com o registrado (decimais "25000.00" = 25000, JSON, booleanos, datas). */

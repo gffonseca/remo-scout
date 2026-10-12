@@ -262,7 +262,7 @@ class PlayerResource extends Resource
                 TextColumn::make('nationality')->label('Nação')->placeholder('—')->toggleable(isToggledHiddenByDefault: true)->limit(12),
                 TextColumn::make('primary_position')->label('Posição')->sortable()
                     ->formatStateUsing(fn ($state, Player $r) => collect([$state instanceof Position ? $state->value : $state])->merge($r->positions ?? [])->unique()->implode(', '))
-                    ->description(fn (Player $r) => $r->roleAssessments->sortByDesc(fn ($a) => $a->level?->rank() ?? 0)->first()?->tacticalRole?->name)
+                    ->description(fn (Player $r) => \App\Support\PlayerInsight::bestObservedAssessment($r)?->tacticalRole?->name)
                     ->placeholder('n/i'),
                 TextColumn::make('birth_date')->label('Idade')->sortable()->alignEnd()
                     ->formatStateUsing(fn ($state) => $state?->age)->placeholder('—'),
@@ -360,8 +360,8 @@ class PlayerResource extends Resource
                 SelectFilter::make('role')->label('Papel avaliado')->multiple()->searchable()
                     ->options(fn () => TacticalRole::query()->where('status', '!=', 'arquivado')->orderBy('position_group')->orderBy('name')->get()->mapWithKeys(fn ($r) => [$r->id => $r->label()]))
                     ->query(fn (Builder $query, array $data) => $query->when($data['values'] ?? [], fn ($q, $ids) => $q->whereHas('roleAssessments', fn ($a) => $a->whereIn('tactical_role_id', $ids)->where('level', '!=', 'nao_observado')))),
-                Filter::make('role_level')->label('Nível mínimo no papel')
-                    ->schema([Select::make('level')->label('Nível mínimo (em qualquer papel avaliado)')->options(['A' => 'A', 'B' => 'B ou melhor', 'C' => 'C ou melhor', 'D' => 'D ou melhor'])])
+                Filter::make('role_level')->label('Nível mínimo observado no papel')
+                    ->schema([Select::make('level')->label('Nível observado mínimo (avaliação vigente, qualquer papel; potencial não conta)')->options(['A' => 'A', 'B' => 'B ou melhor', 'C' => 'C ou melhor', 'D' => 'D ou melhor'])])
                     ->query(function (Builder $query, array $data) {
                         $lvl = $data['level'] ?? null;
                         if (! $lvl) {
@@ -369,7 +369,7 @@ class PlayerResource extends Resource
                         }
                         $ok = array_slice(['A', 'B', 'C', 'D'], 0, array_search($lvl, ['A', 'B', 'C', 'D']) + 1);
 
-                        return $query->whereHas('roleAssessments', fn ($a) => $a->whereIn('level', $ok));
+                        return $query->whereHas('roleAssessments', fn ($a) => $a->currentObserved()->whereIn('level', $ok));
                     }),
                 SelectFilter::make('specialty')->label('Especialidade')->multiple()
                     ->options(fn () => Specialty::query()->where('status', '!=', 'arquivado')->orderBy('name')->pluck('name', 'id'))

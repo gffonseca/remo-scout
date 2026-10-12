@@ -35,13 +35,26 @@ class ExportAccessTest extends ScoutTestCase
         $this->get(route('dossie.player', $p))->assertOk()->assertHeader('content-type', 'application/pdf');
     }
 
-    public function test_non_admin_roles_follow_policy_without_forced_mfa(): void
+    public static function nonAdminRoles(): array
+    {
+        return [['coordenador'], ['analista'], ['leitor']];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('nonAdminRoles')]
+    public function test_non_admin_roles_follow_policy_without_forced_mfa(string $role): void
     {
         $p = Player::create(['name' => 'Atleta']);
-        foreach (['coordenador', 'analista', 'leitor'] as $role) {
-            $this->actingAs($this->user($role));
-            $this->get(route('dossie.player', $p))->assertOk();
-        }
+        $this->actingAs($this->user($role));
+        $this->get(route('dossie.player', $p))->assertOk();
+    }
+
+    public function test_password_change_elsewhere_invalidates_export_session(): void
+    {
+        $p = Player::create(['name' => 'Atleta']);
+        $u = $this->user('analista');
+        $this->actingAs($u)->get(route('dossie.player', $p))->assertOk();
+        $u->forceFill(['password' => 'outra-senha-forte-123'])->save(); // troca de senha em outro dispositivo
+        $this->get(route('dossie.player', $p))->assertRedirect();
     }
 
     public function test_inactive_user_cannot_export_even_with_open_session(): void

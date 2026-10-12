@@ -43,6 +43,9 @@ class RequirementConfirmation
         $check = NeedRequirementCheck::firstOrNew([
             'recruitment_need_id' => $need->id, 'player_id' => $player->id, 'requirement_key' => NeedRequirementCheck::keyFor($requirement),
         ]);
+        if ($check->exists && $check->confirmed_at && ! $user->isCoordinator()) {
+            throw new AuthorizationException('Requisito já decidido por '.($check->confirmer?->name ?? 'coordenação').'. Só coordenador/admin reabre ou altera.');
+        }
         $check->fill([
             'requirement_text' => $requirement, 'status' => $status, 'evidence' => trim($evidence),
             'evidence_url' => $url ?: $check->evidence_url, 'evidence_path' => $path ?: $check->evidence_path,

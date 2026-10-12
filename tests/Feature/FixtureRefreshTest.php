@@ -90,6 +90,17 @@ class FixtureRefreshTest extends ScoutTestCase
         $glitch['escalacoes']['visitante'] = null;
         $this->api->ingestMatch($glitch, null, 'Teste', '2026', $this->run);
         $this->assertNotNull($this->app('Beltrano'));
+
+        $empty = $this->payload(['placar_visitante' => 0]);
+        $empty['escalacoes']['visitante'] = ['titulares' => [], 'reservas' => []]; // vazia
+        $empty['partida_id'] = 77;
+        $empty['status'] = 'finalizado ';  // payload diferente para forçar reprocessamento
+        $this->api->ingestMatch($empty, null, 'Teste', '2026', $this->run);
+        $this->assertNotNull($this->app('Beltrano'));
+        $noIds = $this->payload();
+        $noIds['escalacoes']['visitante']['titulares'] = [['atleta' => null]]; // atletas sem identificação
+        $this->api->ingestMatch($noIds, null, 'Teste', '2026', $this->run);
+        $this->assertNotNull($this->app('Beltrano'));
     }
 
     public function test_identical_payload_only_touches_fetched_at(): void

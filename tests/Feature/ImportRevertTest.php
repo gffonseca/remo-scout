@@ -133,4 +133,40 @@ class ImportRevertTest extends ScoutTestCase
         $this->assertSame(1, $r['removed']);
         $this->assertSame(0, Player::where('cbf_id', '701')->count());
     }
+
+    public function test_created_player_with_any_later_reference_or_field_outside_snapshot_is_kept(): void
+    {
+        $b = $this->import([['Nome' => 'Um', 'CBF' => '801'], ['Nome' => 'Dois', 'CBF' => '802'], ['Nome' => 'Três', 'CBF' => '803']]);
+        $this->travel(5)->seconds();
+        Player::where('cbf_id', '801')->first()->update(['birth_date' => '2001-01-01']); // campo fora do snapshot
+        \App\Models\PlayerExternalId::create(['player_id' => Player::where('cbf_id', '802')->value('id'), 'provider' => 'transfermarkt', 'external_id' => '999']);
+        $r = PlayerImporter::revert($b, null);
+        $this->assertSame(1, $r['removed']);
+        $this->assertEqualsCanonicalizing(['801', '802'], Player::pluck('cbf_id')->all());
+        $this->assertSame(1, \App\Models\PlayerExternalId::count()); // vínculo externo não sumiu em cascata
+        $this->assertStringContainsString('player_external_ids', collect($r['conflicts'])->firstWhere('label', 'Dois')['reason']);
+    }
+
+    public function test_batch_observation_edited_later_is_kept(): void
+    {
+        $map = $this->map + ['contract_end' => 'Fim'];
+        $b = PlayerImporter::commit(PlayerImporter::plan([['Nome' => 'X', 'CBF' => '901', 'Fim' => '31/12/2026']], $map, true), 'l.csv', $map, null);
+        $obs = \App\Models\ContractObservation::first();
+        $this->travel(10)->seconds();
+        $obs->update(['confirmation' => 'confirmado']);
+        $r = PlayerImporter::revert($b, null);
+        $this->assertNotNull($obs->fresh());
+        $this->assertSame('contract_observation', $r['conflicts'][0]['entity']);
+    }
+
+    public function test_club_created_by_batch_with_external_id_later_is_kept(): void
+    {
+        $b = $this->import([['Nome' => 'A', 'CBF' => '1001', 'Clube' => 'Clube Novíssimo']]);
+        $club = Club::where('name', 'Clube Novíssimo')->first();
+        \App\Models\ClubExternalId::create(['club_id' => $club->id, 'provider' => 'api_futebol', 'external_id' => '555']);
+        Player::where('cbf_id', '1001')->first()->forceDelete(); // atleta já não segura o clube
+        PlayerImporter::revert($b, null);
+        $this->assertNotNull($club->fresh());
+        $this->assertSame(1, \App\Models\ClubExternalId::count());
+    }
 }

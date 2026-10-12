@@ -19,24 +19,42 @@ class PlayerInsight
      * Melhor nível entre as avaliações MAIS RECENTES de cada papel+fase do tipo pedido (F10).
      * Uma avaliação antiga mais alta não supera a reavaliação mais recente do mesmo papel/fase.
      */
+    /**
+     * Melhor nível entre as avaliações MAIS RECENTES de cada papel+fase do tipo pedido (F10).
+     * Uma avaliação antiga mais alta não supera a reavaliação mais recente do mesmo papel/fase.
+     * Para "observado", só avaliações dentro da validade contam (vencida = não sabemos o nível atual).
+     */
     public static function bestLevel($assessments, string $kind): ?Level
+    {
+        return static::bestAssessment($assessments, $kind)?->level;
+    }
+
+    public static function bestAssessment($assessments, string $kind): ?\App\Models\PlayerRoleAssessment
     {
         return collect($assessments)->filter(fn ($a) => $a->kind?->value === $kind)
             ->sortByDesc(fn ($a) => [($a->observed_on ?? $a->created_at)?->timestamp ?? 0, $a->created_at?->timestamp ?? 0, (string) $a->id])
             ->unique(fn ($a) => $a->tactical_role_id.'|'.($a->phase?->value ?? 'geral'))
-            ->filter(fn ($a) => $a->level?->rank())
-            ->sortByDesc(fn ($a) => $a->level->rank())->first()?->level;
+            ->filter(fn ($a) => $a->level?->rank() && ($kind !== 'observado' || ! $a->isExpired()))
+            ->sortByDesc(fn ($a) => $a->level->rank())->first();
+    }
+
+    public static function bestObservedAssessment(Player $p): ?\App\Models\PlayerRoleAssessment
+    {
+        return static::bestAssessment($p->roleAssessments, 'observado');
     }
 
     /**
-     * Nível atual = somente evidência observada: avaliação de papel do tipo "observado" ou, na falta dela,
-     * o relatório submetido mais recente do tipo "observado". Potencial nunca vira nível atual.
+     * Nível atual = somente evidência observada e vigente: avaliação de papel do tipo "observado" ou, na falta dela,
+     * o relatório submetido mais recente do tipo "observado" dentro da validade. Potencial nunca vira nível atual.
      */
     public static function currentLevel(Player $p): ?Level
     {
+        $cutoff = now()->subMonths((int) config('scout.assessment_valid_months', 12));
+
         return static::bestLevel($p->roleAssessments, 'observado')
             ?? collect($p->submittedReports ?? [])
-                ->filter(fn ($r) => ($r->assessment_type?->value ?? $r->assessment_type) === 'observado' && $r->level?->rank())
+                ->filter(fn ($r) => ($r->assessment_type?->value ?? $r->assessment_type) === 'observado' && $r->level?->rank()
+                    && ($r->match_date ?? $r->submitted_at)?->gte($cutoff))
                 ->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->first()?->level;
     }
 
@@ -51,7 +69,8 @@ class PlayerInsight
     /** @return array{label:string,color:string} */
     public static function recommendation(Player $p): array
     {
-        $reports = collect($p->submittedReports ?? []);
+        // Um voto por observador: vale o relatório submetido mais recente de cada autor.
+        $reports = collect($p->submittedReports ?? [])->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->unique('author_id');
         if ($reports->isEmpty()) {
             return ['label' => 'Sem parecer', 'color' => 'gray'];
         }

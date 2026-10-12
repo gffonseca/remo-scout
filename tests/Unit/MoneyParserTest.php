@@ -77,7 +77,7 @@ class MoneyParserTest extends TestCase
         foreach ([0.0, 0.5, 999.99, 25000.0, 25000.5, 1250000.0, 987654321.12] as $v) {
             $written = 'R$ '.number_format($v, 2, ',', '.');
             $this->assertSame($v, MoneyParser::parse($written)['value'], $written);
-            $this->assertSame($v, MoneyParser::parse(number_format($v, 0, '', '') === (string) (int) $v && $v == (int) $v ? (int) $v : $v)['value']);
+            $this->assertSame($v, MoneyParser::parse(number_format($v, 2, ',', '.'))['value'], 'sem símbolo de moeda');
         }
     }
 

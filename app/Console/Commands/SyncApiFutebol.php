@@ -26,6 +26,7 @@ class SyncApiFutebol extends Command
 
     private function runSync(DataSource $source): void
     {
+        SyncRun::closeStale($source->id, 40);
         $run = SyncRun::create(['data_source_id' => $source->id, 'job' => 'partidas', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['competitions' => $this->option('competitions'), 'max' => (int) $this->option('max')], 'requested_by' => $this->option('user')]);
         try {
