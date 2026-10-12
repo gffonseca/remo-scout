@@ -33,7 +33,7 @@ Decisões tomadas por Gustavo em sessões de Q&A em 12/10/2026. Este arquivo é 
 | Sofascore | **Mantida apenas via coletor local (Mac)**, sob demanda, com kill switch. Não é dependência de nenhum fluxo. Gustavo ciente do risco de termos de uso (endpoint interno não licenciado). Sem contornar bloqueio no Railway. |
 | Vínculo de identidade | Autoaceite só com ID oficial já confirmado ou **nome + data de nascimento iguais**. Sem nascimento: candidato em revisão. CBF com mesmo clube e nome compatível vira "provável" até o nascimento conferir. |
 | Ensaio de restauração | No **Mac Mini**, Postgres local isolado, com dump real. Gustavo autorizou expressamente mesmo com o FileVault desligado no Mini (decisão dele, registrada em 12/10/2026). Apagar o dump local após o ensaio. |
-| IA para notícias | **Ollama no Mac Mini** (modelo local). Curadoria manual estruturada primeiro; rascunho com IA local depois, com citação por afirmação e aprovação humana. Conteúdo externo nunca comanda o modelo. |
+| IA para notícias | **Claude (API da Anthropic)**, decidido em 12/10 em substituição ao Ollama no Mini. Curadoria manual estruturada primeiro; rascunho com IA depois, com citação por afirmação e aprovação humana. Conteúdo externo nunca comanda o modelo. Liga só com `LLM_ENABLED=true` e a chave `ANTHROPIC_API_KEY` cadastrada pelo Gustavo no Railway (não colar no chat), com teto mensal de gasto definido por ele antes de ativar. |
 | Nomenclatura | "Perfil psicológico" passa a ser **contexto profissional e comportamental documentado**. Sem inferência de saúde mental ou traços sensíveis; sem veto automático. |
 
 ### Bloco 3 e piloto
