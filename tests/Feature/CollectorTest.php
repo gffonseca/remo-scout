@@ -7,6 +7,7 @@ use App\Models\CbfAthlete;
 use App\Models\CbfIntermediary;
 use App\Models\Club;
 use App\Models\DataSource;
+use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerSeasonStat;
 use Database\Seeders\DataSourcesSeeder;
@@ -65,7 +66,7 @@ class CollectorTest extends ScoutTestCase
         $this->assertSame($p->id, $a->player_id);
         $this->assertSame('provavel', $a->link_status); // F14: nome + clube = provável
         $this->assertNull($p->fresh()->cbf_id);        // nada copiado antes de confirmar
-        $this->assertTrue(\App\Models\IdentityCandidate::where('player_id', $p->id)->where('kind', 'confirmar')->exists());
+        $this->assertTrue(IdentityCandidate::where('player_id', $p->id)->where('kind', 'confirmar')->exists());
         $this->assertSame($club->id, $a->club_id);
         $this->assertSame('https://conteudo.cbf.com.br/clubes/20045/escudo.jpg', $club->fresh()->crest_url);
         $this->assertStringNotContainsString('12345678909', json_encode(DB::table('cbf_athletes')->get()));

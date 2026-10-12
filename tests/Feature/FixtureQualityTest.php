@@ -10,6 +10,7 @@ use App\Models\SyncRun;
 use App\Services\SeasonStatsAggregator;
 use App\Sources\ApiFutebol;
 use App\Sources\SourceClient;
+use App\Support\PlayerStatsView;
 use Database\Seeders\DataSourcesSeeder;
 
 /** F13 — qualidade por campo: escalação, evento sem jogador, minuto ilegível, prorrogação (120) e agregados coerentes. */
@@ -148,7 +149,7 @@ class FixtureQualityTest extends ScoutTestCase
         $this->assertSame(0, $s->appearances);
         $this->assertNull($s->minutes); // não é "0 minutos"
         $this->assertSame(1, $s->extra['participacao_indeterminada']);
-        $this->assertSame('≥0', \App\Support\PlayerStatsView::appearances($s));
+        $this->assertSame('≥0', PlayerStatsView::appearances($s));
     }
 
     public function test_old_partial_fixture_without_field_quality_counts_goals_as_unverified(): void
@@ -158,6 +159,6 @@ class FixtureQualityTest extends ScoutTestCase
         SeasonStatsAggregator::rebuildProvider(ApiFutebol::PROVIDER);
         $s = PlayerSeasonStat::where('player_id', Player::where('name', 'Fulano')->value('id'))->sole();
         $this->assertSame(1, $s->extra['jogos_gols_nao_conferidos']);
-        $this->assertNull(\App\Support\PlayerStatsView::goalsPer90($s));
+        $this->assertNull(PlayerStatsView::goalsPer90($s));
     }
 }

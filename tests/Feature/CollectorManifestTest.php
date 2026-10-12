@@ -74,7 +74,7 @@ class CollectorManifestTest extends ScoutTestCase
         $this->page($run, 1);
         // outro coletor logo em seguida não entra numa execução que ainda está rodando
         $this->assertNotSame($run, $this->api('POST', 'cbf_atletas/inicio', ['resume' => true])->json('run_id'));
-        \App\Models\SyncRun::where('id', '!=', $run)->delete();
+        SyncRun::where('id', '!=', $run)->delete();
         // coletor cai aqui (sem /fim). Parada há mais de 10 min, no mesmo dia: retoma a mesma execução
         $this->travel(11)->minutes();
         $again = $this->api('POST', 'cbf_atletas/inicio', ['resume' => true, 'version' => '1.1.0'])->assertJsonPath('resumed', true);

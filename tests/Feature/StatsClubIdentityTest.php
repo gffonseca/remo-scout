@@ -13,6 +13,7 @@ use App\Models\Player;
 use App\Models\PlayerSeasonStat;
 use App\Services\DataCoverage;
 use App\Services\SeasonStatsAggregator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
@@ -202,10 +203,10 @@ class StatsClubIdentityTest extends ScoutTestCase
     {
         Player::create(['name' => 'Cache']);
         $this->actingAs($this->user('leitor'));
-        $this->get(\App\Filament\Pages\CoberturaDados::getUrl())->assertOk();
-        $cached = \Illuminate\Support\Facades\Cache::get('coverage.rows');
+        $this->get(CoberturaDados::getUrl())->assertOk();
+        $cached = Cache::get('coverage.rows');
         $this->assertIsArray($cached);
         $this->assertIsArray($cached[0]); // serializable_classes=false em produção: objeto viraria __PHP_Incomplete_Class
-        $this->get(\App\Filament\Pages\CoberturaDados::getUrl())->assertOk()->assertSee('Cache');
+        $this->get(CoberturaDados::getUrl())->assertOk()->assertSee('Cache');
     }
 }

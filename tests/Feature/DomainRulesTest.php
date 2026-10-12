@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Level;
-use App\Models\Club;
 use App\Models\Player;
 use App\Models\PlayerRoleAssessment;
 use App\Models\PlayerSpecialtyAssessment;

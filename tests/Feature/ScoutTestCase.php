@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Sources\SourceClient;
+use App\Support\ClubResolver;
 use Database\Seeders\CatalogSeeder;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,8 +17,8 @@ abstract class ScoutTestCase extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \App\Support\ClubResolver::flush(); // cache estático de clubes não pode vazar entre testes
-        \App\Sources\SourceClient::$sleeper = null;
+        ClubResolver::flush(); // cache estático de clubes não pode vazar entre testes
+        SourceClient::$sleeper = null;
         $this->seed([ReferenceDataSeeder::class, CatalogSeeder::class]);
     }
 

@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Appearance;
 use App\Models\CbfAthlete;
 use App\Models\Club;
+use App\Models\ClubExternalId;
 use App\Models\DataSource;
+use App\Models\Fixture;
 use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerExternalId;
@@ -14,11 +16,16 @@ use App\Models\SyncRun;
 use App\Services\Collector\CbfIngest;
 use App\Services\IdentityReview;
 use App\Services\PlayerEnrichment;
+use App\Services\PlayerMerge;
+use App\Services\SeasonStatsAggregator;
 use App\Sources\ApiFutebol;
 use App\Sources\SourceClient;
 use Database\Seeders\DataSourcesSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /** F14 — vínculo automático só com ID oficial ou nome + nascimento; o resto vai à revisão humana. */
 class IdentityTest extends ScoutTestCase
@@ -32,7 +39,7 @@ class IdentityTest extends ScoutTestCase
     private function fakeTm(string $dob, string $id = '1'): void
     {
         Http::fake([
-            "*/players/search/*" => Http::sequence()->push(['results' => [['id' => $id, 'name' => 'João Silva', 'club' => ['name' => 'Remo'], 'age' => 25]]]),
+            '*/players/search/*' => Http::sequence()->push(['results' => [['id' => $id, 'name' => 'João Silva', 'club' => ['name' => 'Remo'], 'age' => 25]]]),
             "*/players/{$id}/profile" => Http::response(['id' => $id, 'dateOfBirth' => $dob, 'citizenship' => ['Brazil']]),
         ]);
     }
@@ -56,8 +63,8 @@ class IdentityTest extends ScoutTestCase
         $this->assertStringContainsString('≠ cadastro', IdentityCandidate::first()->evidence);
 
         IdentityCandidate::query()->delete();
-        $this->app->forgetInstance(\Illuminate\Http\Client\Factory::class);
-        \Illuminate\Support\Facades\Http::clearResolvedInstances();
+        $this->app->forgetInstance(Factory::class);
+        Http::clearResolvedInstances();
         $this->fakeTm('2000-01-01', '2');
         $this->assertSame('vinculado', PlayerEnrichment::linkTransfermarkt($p->fresh()->load('currentClub'))['status']);
         $this->assertTrue(PlayerExternalId::first()->verified);
@@ -151,7 +158,7 @@ class IdentityTest extends ScoutTestCase
     {
         $p = Player::create(['name' => 'X']);
         $c = IdentityCandidate::create(['player_id' => $p->id, 'provider' => 'transfermarkt', 'external_id' => '1', 'label' => 'X', 'status' => 'pendente']);
-        $this->expectException(\Illuminate\Auth\Access\AuthorizationException::class);
+        $this->expectException(AuthorizationException::class);
         IdentityReview::confirm($c, $this->user('leitor'));
     }
 
@@ -160,7 +167,7 @@ class IdentityTest extends ScoutTestCase
         $m = require database_path('migrations/2026_10_14_000300_identity_confidence.php');
         $m->down();
         $p = Player::create(['name' => 'Legado']);
-        DB::table('player_external_ids')->insert(['id' => (string) \Illuminate\Support\Str::uuid7(), 'player_id' => $p->id, 'provider' => 'transfermarkt',
+        DB::table('player_external_ids')->insert(['id' => (string) Str::uuid7(), 'player_id' => $p->id, 'provider' => 'transfermarkt',
             'external_id' => '42', 'verified' => false, 'created_at' => now(), 'updated_at' => now()]);
         $m->up();
         $this->assertSame('nome_clube_legado', PlayerExternalId::first()->link_method);
@@ -181,7 +188,7 @@ class IdentityTest extends ScoutTestCase
             'escalacoes' => ['mandante' => ['titulares' => [['atleta' => ['atleta_id' => 10, 'nome_popular' => 'Fulano']]], 'reservas' => []], 'visitante' => null],
             'gols' => ['mandante' => [], 'visitante' => []], 'cartoes' => [], 'substituicoes' => ['mandante' => [], 'visitante' => []],
         ], null, 'Teste', '2026', $run);
-        \App\Services\SeasonStatsAggregator::rebuildProvider('api_futebol');
+        SeasonStatsAggregator::rebuildProvider('api_futebol');
         $this->assertSame(1, $p->appearances()->count());
         $c = IdentityCandidate::create(['player_id' => $p->id, 'provider' => 'api_futebol', 'external_id' => '10', 'kind' => 'confirmar', 'label' => 'x', 'status' => 'pendente']);
 
@@ -200,12 +207,12 @@ class IdentityTest extends ScoutTestCase
         $into = Player::create(['name' => 'Destino']);
         $from = Player::create(['name' => 'Provisório', 'data_origin' => 'provedor']);
         foreach ([[$into, 1], [$from, 2]] as [$pl, $n]) {
-            $f = \App\Models\Fixture::create(['provider' => 'api_football', 'external_id' => (string) $n, 'competition_name' => 'Série A', 'season' => '2026', 'data_quality' => 'completo',
+            $f = Fixture::create(['provider' => 'api_football', 'external_id' => (string) $n, 'competition_name' => 'Série A', 'season' => '2026', 'data_quality' => 'completo',
                 'field_quality' => ['gols' => 'conferem']]);
-            \App\Models\Appearance::create(['fixture_id' => $f->id, 'player_id' => $pl->id, 'provider' => 'api_football', 'started' => true, 'used' => true, 'minutes' => 90]);
+            Appearance::create(['fixture_id' => $f->id, 'player_id' => $pl->id, 'provider' => 'api_football', 'started' => true, 'used' => true, 'minutes' => 90]);
         }
-        \App\Services\SeasonStatsAggregator::rebuildProvider('api_football');
-        \App\Services\PlayerMerge::merge($from, $into, null);
+        SeasonStatsAggregator::rebuildProvider('api_football');
+        PlayerMerge::merge($from, $into, null);
         $this->assertSame(180, PlayerSeasonStat::where('player_id', $into->id)->where('provider', 'api_football')->sole()->minutes);
     }
 }
@@ -215,6 +222,6 @@ class ClubFixtureHelper
 {
     public static function bind(Club $club, string $ext): void
     {
-        \App\Models\ClubExternalId::create(['club_id' => $club->id, 'provider' => 'api_futebol', 'external_id' => $ext, 'external_name' => $club->name]);
+        ClubExternalId::create(['club_id' => $club->id, 'provider' => 'api_futebol', 'external_id' => $ext, 'external_name' => $club->name]);
     }
 }

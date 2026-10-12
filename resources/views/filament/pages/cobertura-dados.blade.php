@@ -59,6 +59,7 @@
             <span class="v">{{ ($this->fixAction)(['correcao' => 'clubes']) }}</span></div>
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoPreview'] }} atleta(s) recebem a foto da API-Football (vínculo confiável, sem foto)</span><span class="v">{{ ($this->fixAction)(['correcao' => 'fotos']) }}</span></div>
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoToCheck'] }} URL(s) externas ainda não verificadas</span><span class="v">{{ ($this->fixAction)(['correcao' => 'checar']) }}</span></div>
+        <div class="sc-row"><span class="k">Enriquecimento: {{ $d['toEnrich'] }} de {{ $d['total'] }} atleta(s) do scout sem consulta ao Transfermarkt nos últimos 14 dias</span><span class="v">{{ ($this->fixAction)(['correcao' => 'enriquecer']) }}</span></div>
         @if ($d['batches']->isNotEmpty())
             <h4 style="margin-top:.9rem">Lotes de correção</h4>
             @foreach ($d['batches'] as $b)

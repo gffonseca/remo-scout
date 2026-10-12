@@ -40,7 +40,9 @@ class DataCoverage
 
     public const PHOTO_REASONS = [
         'sem_vinculo' => ['Sem vínculo com fonte de foto', 'Foto vem da API-Football (vínculo confirmado), CBF, Transfermarkt ou Sofascore. Vincule o atleta ou envie a foto.'],
-        'fonte_sem_foto' => ['Fonte vinculada sem foto', 'A fonte não tem foto deste atleta. Envie a foto pelo cadastro.'],
+        'fonte_sem_foto' => ['Fonte vinculada sem foto', 'A fonte não tem foto deste atleta (ou devolve a imagem-padrão "sem foto"). Envie a foto pelo cadastro.'],
+        'url_quebrada' => ['Link de foto quebrado', 'A verificação não encontrou imagem válida no link da fonte. Envie a foto ou aguarde nova coleta.'],
+        'nao_verificada' => ['Link de foto não verificado', 'Há link, mas ainda não foi conferido. Use "Verificar URLs de foto".'],
     ];
 
     /** @return array{players:int, states:array<string,int>, photo:array<string,int>, with_photo:int} */
@@ -112,8 +114,11 @@ class DataCoverage
                 else 'aguardando_vinculo'
               end as stats_state,
               case
-                when p.photo_url is not null or p.photo_path is not null then null
-                when coalesce(ext.photo_link, false) or p.cbf_id is not null then 'fonte_sem_foto'
+                when p.photo_path is not null then null
+                when p.photo_url is not null and p.photo_status is null then 'nao_verificada'
+                when p.photo_url is not null and p.photo_status in ('quebrada', 'nao_imagem', 'host_nao_permitido') then 'url_quebrada'
+                when p.photo_url is not null and p.photo_status <> 'generica' then null
+                when p.photo_url is not null or coalesce(ext.photo_link, false) or p.cbf_id is not null then 'fonte_sem_foto'
                 else 'sem_vinculo'
               end as photo_reason
             from p left join clubs c on c.id = p.current_club_id left join st on st.player_id = p.id

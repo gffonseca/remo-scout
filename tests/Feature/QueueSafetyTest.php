@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Jobs\RunArtisanSync;
+use App\Models\DataSource;
 use App\Models\SyncRun;
+use App\Sources\ApiFutebol;
 use App\Support\SourceRunLock;
 use Database\Seeders\DataSourcesSeeder;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
@@ -26,7 +28,7 @@ class QueueSafetyTest extends ScoutTestCase
         $job = new RunArtisanSync('scout:sync-api-futebol', ['--max' => 300]);
         $this->assertSame(1800, $retryAfter, 'mudou o padrão? DB_QUEUE_RETRY_AFTER não pode ficar abaixo do timeout');
         $this->assertLessThan($retryAfter, $job->timeout);
-        $this->assertLessThan($job->timeout, \App\Sources\ApiFutebol::MAX_RUN_SECONDS); // a própria execução para antes do timeout
+        $this->assertLessThan($job->timeout, ApiFutebol::MAX_RUN_SECONDS); // a própria execução para antes do timeout
         $this->assertGreaterThan($job->timeout, SourceRunLock::TTL);
         $this->assertLessThan($retryAfter, SourceRunLock::TTL);
         $this->assertSame(1, $job->tries);
@@ -75,7 +77,7 @@ class QueueSafetyTest extends ScoutTestCase
 
     public function test_orphan_running_sync_is_closed_as_failed_on_next_run(): void
     {
-        $ds = \App\Models\DataSource::byKey('api_futebol');
+        $ds = DataSource::byKey('api_futebol');
         $old = SyncRun::create(['data_source_id' => $ds->id, 'job' => 'partidas', 'status' => 'em_execucao', 'started_at' => now()->subHours(2)]);
         $recent = SyncRun::create(['data_source_id' => $ds->id, 'job' => 'partidas', 'status' => 'em_execucao', 'started_at' => now()->subMinutes(5)]);
         $this->assertSame(1, SyncRun::closeStale($ds->id, 40));
