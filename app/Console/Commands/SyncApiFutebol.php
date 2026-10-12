@@ -16,6 +16,16 @@ class SyncApiFutebol extends Command
     public function handle(): int
     {
         $source = DataSource::byKey('api_futebol');
+        $ran = \App\Support\SourceRunLock::run('api_futebol', fn () => $this->runSync($source));
+        if (! $ran) {
+            $this->warn('API Futebol: já existe sincronização em andamento; esta execução foi ignorada.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function runSync(DataSource $source): void
+    {
         $run = SyncRun::create(['data_source_id' => $source->id, 'job' => 'partidas', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['competitions' => $this->option('competitions'), 'max' => (int) $this->option('max')], 'requested_by' => $this->option('user')]);
         try {
@@ -27,7 +37,5 @@ class SyncApiFutebol extends Command
             $run->finish('falhou');
         }
         $this->info("API Futebol: {$run->status} · requisições {$run->requests_made} · partidas {$run->received} · atletas novos {$run->created} · vinculados {$run->updated} · erros {$run->errors}");
-
-        return self::SUCCESS;
     }
 }

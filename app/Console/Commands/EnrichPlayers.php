@@ -20,6 +20,15 @@ class EnrichPlayers extends Command
         $provider = $this->argument('provider');
         abort_unless(in_array($provider, ['transfermarkt', 'sofascore'], true), 1, 'Provedor inválido');
         $source = DataSource::byKey($provider);
+        if (! \App\Support\SourceRunLock::run($provider, fn () => $this->enrich($provider, $source))) {
+            $this->warn("{$provider}: já existe enriquecimento em andamento; esta execução foi ignorada.");
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function enrich(string $provider, DataSource $source): void
+    {
         $run = SyncRun::create(['data_source_id' => $source->id, 'job' => 'enriquecimento', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['scope' => $this->option('scope'), 'limit' => (int) $this->option('limit')], 'requested_by' => $this->option('user')]);
 
@@ -55,7 +64,5 @@ class EnrichPlayers extends Command
         }
         $run->finish();
         $this->info("{$provider}: {$run->status} · enriquecidos {$run->updated} · a revisar {$run->discarded} · erros {$run->errors}");
-
-        return self::SUCCESS;
     }
 }
