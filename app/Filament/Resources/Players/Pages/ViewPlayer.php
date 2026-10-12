@@ -99,6 +99,9 @@ class ViewPlayer extends ViewRecord
                     ->url(fn () => 'https://www.google.com/search?tbm=nws&q='.urlencode('"'.$p->name.'"'.($p->currentClub ? ' '.$p->currentClub->name : '').' futebol'))
                     ->openUrlInNewTab()
                     ->tooltip('Abre a busca no navegador. Não há síntese automática validada; registre manualmente o que for relevante.'),
+                Action::make('bid')->label('Abrir no BID da CBF')->icon(Heroicon::OutlinedDocumentCheck)
+                    ->url(fn () => \App\Support\Bid::url($p))->openUrlInNewTab()
+                    ->tooltip('O BID exige CAPTCHA: consulte no navegador e registre em Contrato › "Registrar consulta ao BID".'),
                 Action::make('sofascoreSearch')->label('Buscar no Sofascore')->icon(Heroicon::OutlinedMagnifyingGlass)
                     ->url(fn () => $p->sofascore_url ?: 'https://www.sofascore.com/pt/search?q='.urlencode($p->name))->openUrlInNewTab(),
                 Action::make('tmSearch')->label('Buscar no Transfermarkt')->icon(Heroicon::OutlinedMagnifyingGlass)

@@ -54,7 +54,25 @@ class ContractObservationsRelationManager extends RelationManager
                 TextColumn::make('source_label')->label('Fonte')->url(fn ($record) => $record->source_url, true)->placeholder('—'),
                 TextColumn::make('author.name')->label('Autor')->placeholder('importação'),
             ])
-            ->headerActions([CreateAction::make()->label('Registrar observação')->mutateDataUsing(fn (array $d) => $d + ['author_id' => auth()->id()])])
+            ->headerActions([
+                \Filament\Actions\Action::make('bid')->label('Registrar consulta ao BID')->icon('heroicon-o-document-check')->color('gray')
+                    ->visible(fn () => auth()->user()->canEdit())
+                    ->modalDescription(fn () => new \Illuminate\Support\HtmlString('Abra o <a href="'.e(\App\Support\Bid::url($this->getOwnerRecord())).'" target="_blank" rel="noopener" class="underline">BID da CBF</a>, resolva o CAPTCHA e copie aqui o que aparece. Fica registrado como observação confirmada, com data, link e seu nome.'))
+                    ->schema([
+                        Select::make('tipo')->label('Tipo de contrato')->options(\App\Support\Bid::CONTRACT_TYPES)->required(),
+                        TextInput::make('numero')->label('Nº do contrato')->maxLength(40),
+                        Select::make('club_id')->label('Clube')->options(fn () => \App\Models\Club::orderBy('name')->pluck('name', 'id'))->searchable(),
+                        DatePicker::make('inicio')->label('Data início')->native(false)->displayFormat('d/m/Y'),
+                        DatePicker::make('fim')->label('Fim de contrato (se constar)')->native(false)->displayFormat('d/m/Y'),
+                        DatePicker::make('publicacao')->label('Publicação no BID')->native(false)->displayFormat('d/m/Y')->maxDate(now())->required(),
+                        Textarea::make('notas')->label('Observações')->rows(2),
+                    ])
+                    ->action(function (array $data) {
+                        \App\Support\Bid::record($this->getOwnerRecord(), $data, auth()->user());
+                        \Filament\Notifications\Notification::make()->success()->title('Consulta ao BID registrada')->send();
+                    }),
+                CreateAction::make()->label('Registrar observação')->mutateDataUsing(fn (array $d) => $d + ['author_id' => auth()->id()]),
+            ])
             ->recordActions([EditAction::make()->iconButton(), DeleteAction::make()->iconButton()])
             ->emptyStateHeading('Sem observação contratual')
             ->emptyStateDescription('Contrato, empréstimo e disponibilidade são observações datadas com fonte — não verdade permanente.');
