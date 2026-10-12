@@ -1,0 +1,521 @@
+{
+  "version": "1.1",
+  "research_date": "2026-10-11",
+  "note": "Catálogo proposto; fontes sustentam comportamentos e conceitos, não cada rótulo ou uma taxonomia oficial universal. Configurar com os analistas do Remo. Métricas dependem de cobertura e licença.",
+  "roles": [
+    {
+      "id": "role_01",
+      "position_group": "Goleiro",
+      "name": "Padrão/equilibrado",
+      "description": "Perfil geral de proteção do gol, área e reposição.",
+      "evaluation_suggestions": "Defesas, cruzamentos enfrentados, decisões e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/fifa-insight/fifa-insight-ep03.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_02",
+      "position_group": "Goleiro",
+      "name": "Defensor de finalizações",
+      "description": "Prioriza posicionamento e intervenção diante de chutes.",
+      "evaluation_suggestions": "Defesas/chutes no alvo; qualidade das finalizações se disponível; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/fifa-insight/fifa-insight-ep03.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_03",
+      "position_group": "Goleiro",
+      "name": "Construtor/bom com os pés",
+      "description": "Participa da saída e escolhe passes sob pressão.",
+      "evaluation_suggestions": "Passes por distância e pressão, perdas na saída e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/fifa-insight/fifa-insight-ep03.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_04",
+      "position_group": "Goleiro",
+      "name": "Goleiro-líbero",
+      "description": "Controla espaço atrás de uma linha defensiva alta.",
+      "evaluation_suggestions": "Intervenções fora da área, leitura de profundidade e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/fifa-insight/fifa-insight-ep03.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_05",
+      "position_group": "Zagueiro",
+      "name": "Marcador de confronto",
+      "description": "Enfrenta o atacante e disputa o primeiro contato.",
+      "evaluation_suggestions": "Duelos terrestres e aéreos com denominadores; vídeo.",
+      "source_url": "https://learning.coachesvoice.com/cv/modern-centre-back-football-tactics-explained-van-dijk-ramos-dias-bonucci/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_06",
+      "position_group": "Zagueiro",
+      "name": "Cobertura/profundidade",
+      "description": "Protege espaço atrás e ao lado dos companheiros.",
+      "evaluation_suggestions": "Recuperações em profundidade, posicionamento e vídeo; velocidade só com dado próprio.",
+      "source_url": "https://learning.coachesvoice.com/cv/modern-centre-back-football-tactics-explained-van-dijk-ramos-dias-bonucci/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_07",
+      "position_group": "Zagueiro",
+      "name": "Construtor",
+      "description": "Inicia jogadas e rompe linhas com passe ou condução.",
+      "evaluation_suggestions": "Passes progressivos/entrelinhas e conduções, conforme definição da fonte.",
+      "source_url": "https://www.hudl.com/blog/modern-scouting-workflows-player-archetypes-statsbomb",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_08",
+      "position_group": "Zagueiro",
+      "name": "Zagueiro de lado em linha de três",
+      "description": "Defende o corredor e apoia progressão na lateral da linha de três.",
+      "evaluation_suggestions": "Cobertura do ala, condução e defesa no corredor; vídeo.",
+      "source_url": "https://learning.coachesvoice.com/cv/back-three-explained-why-conte-moyes-guardiola/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_09",
+      "position_group": "Zagueiro",
+      "name": "Líbero/organizador da última linha",
+      "description": "Coordena a cobertura e a saída atrás dos demais defensores.",
+      "evaluation_suggestions": "Leitura de jogo, cobertura e comunicação observada; vídeo.",
+      "source_url": "https://learning.coachesvoice.com/cv/modern-centre-back-football-tactics-explained-van-dijk-ramos-dias-bonucci/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_10",
+      "position_group": "Lateral/ala",
+      "name": "Lateral defensivo",
+      "description": "Prioriza proteção do corredor e estabilidade da linha.",
+      "evaluation_suggestions": "Duelos defensivos, prevenção de cruzamentos e posicionamento; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fcwc/2025/team-analyses/emerging-positioning-of-the-inverted-full-back.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_11",
+      "position_group": "Lateral/ala",
+      "name": "Lateral equilibrado",
+      "description": "Alterna apoio ofensivo e proteção defensiva.",
+      "evaluation_suggestions": "Progressão, apoio e retorno defensivo contextualizados.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fcwc/2025/team-analyses/emerging-positioning-of-the-inverted-full-back.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_12",
+      "position_group": "Lateral/ala",
+      "name": "Lateral ofensivo de ultrapassagem",
+      "description": "Oferece amplitude por fora do ponta.",
+      "evaluation_suggestions": "Ultrapassagens, cruzamentos/cutbacks e recepções abertas; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fcwc/2025/team-analyses/emerging-positioning-of-the-inverted-full-back.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_13",
+      "position_group": "Lateral/ala",
+      "name": "Lateral invertido/interior",
+      "description": "Entra no meio para construir, progredir ou proteger a transição.",
+      "evaluation_suggestions": "Recepções internas, passes de progressão e reação à perda; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fcwc/2025/team-analyses/emerging-positioning-of-the-inverted-full-back.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_14",
+      "position_group": "Lateral/ala",
+      "name": "Lateral que fecha como terceiro zagueiro",
+      "description": "Compõe uma linha de três na fase de construção.",
+      "evaluation_suggestions": "Posição na saída e proteção das transições; vídeo.",
+      "source_url": "https://learning.coachesvoice.com/cv/back-three-explained-why-conte-moyes-guardiola/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_15",
+      "position_group": "Lateral/ala",
+      "name": "Ala de amplitude",
+      "description": "Ocupa o corredor em estrutura com três zagueiros e retorna à linha defensiva.",
+      "evaluation_suggestions": "Participação ofensiva, cruzamentos e recomposição; carga física só quando medida.",
+      "source_url": "https://learning.coachesvoice.com/cv/back-three-explained-why-conte-moyes-guardiola/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_16",
+      "position_group": "Volante",
+      "name": "Protetor da defesa/âncora",
+      "description": "Preserva o espaço diante da zaga e dá equilíbrio.",
+      "evaluation_suggestions": "Intercepções contextualizadas, cobertura e disciplina posicional; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/environment/interviews/read/mascherano-on-the-evolution-of-the-central-defensive-spine.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_17",
+      "position_group": "Volante",
+      "name": "Recuperador/pressionador",
+      "description": "Ataca a posse adversária e disputa recuperações.",
+      "evaluation_suggestions": "Pressões e recuperações quando disponíveis; duelos, faltas e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/environment/interviews/read/mascherano-on-the-evolution-of-the-central-defensive-spine.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_18",
+      "position_group": "Volante",
+      "name": "Organizador recuado/regista",
+      "description": "Dita circulação e progressão a partir da base do meio.",
+      "evaluation_suggestions": "Passes progressivos, inversões e disponibilidade para receber; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_19",
+      "position_group": "Volante",
+      "name": "Volante de saída sob pressão",
+      "description": "Recebe perto da defesa e supera a primeira pressão.",
+      "evaluation_suggestions": "Recepções pressionadas, passes e conduções sob pressão; perdas e vídeo.",
+      "source_url": "https://www.hudl.com/blog/modern-scouting-workflows-player-archetypes-statsbomb",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_20",
+      "position_group": "Volante",
+      "name": "Volante que baixa entre zagueiros",
+      "description": "Desce à última linha na construção e reocupa o meio ao defender.",
+      "evaluation_suggestions": "Comportamento entre fases, cobertura e qualidade da saída; vídeo.",
+      "source_url": "https://learning.coachesvoice.com/cv/back-three-explained-why-conte-moyes-guardiola/",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_21",
+      "position_group": "Meio-campista central",
+      "name": "Box-to-box/segundo volante",
+      "description": "Conecta defesa e ataque com movimentos entre as áreas.",
+      "evaluation_suggestions": "Conduções, chegada à área, recuperações; carga física se disponível.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_22",
+      "position_group": "Meio-campista central",
+      "name": "Controlador de ritmo",
+      "description": "Organiza a posse e escolhe quando acelerar.",
+      "evaluation_suggestions": "Circulação, progressão, controle sob pressão e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_23",
+      "position_group": "Meio-campista central",
+      "name": "Interior de criação",
+      "description": "Cria conexões e oportunidades pelos corredores internos.",
+      "evaluation_suggestions": "Passes para o terço final, chances criadas e recepções entrelinhas.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_24",
+      "position_group": "Meio-campista central",
+      "name": "Interior de chegada",
+      "description": "Ataca a área partindo do meio-campo.",
+      "evaluation_suggestions": "Entradas e toques na área, finalizações e corridas observadas.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_25",
+      "position_group": "Meio-campista central",
+      "name": "Interior de apoio lateral/cobertura",
+      "description": "Apoia o corredor e protege espaços deixados por lateral ou ala.",
+      "evaluation_suggestions": "Apoios e coberturas laterais, transições e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_26",
+      "position_group": "Meia ofensivo",
+      "name": "Armador/10",
+      "description": "Cria oportunidades e conecta meio e ataque entre linhas.",
+      "evaluation_suggestions": "Chances criadas, passes de ruptura, recepções entrelinhas e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_27",
+      "position_group": "Meia ofensivo",
+      "name": "Meia condutor/driblador",
+      "description": "Rompe marcações por condução e drible.",
+      "evaluation_suggestions": "Conduções e dribles com tentativas/sucessos; criação posterior.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_28",
+      "position_group": "Meia ofensivo",
+      "name": "Meia de infiltração/finalização",
+      "description": "Ataca a área e finaliza vindo de trás.",
+      "evaluation_suggestions": "Finalizações sem pênalti, recepções na área e movimentos; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/position-specific-training/developing-players-using-position-specific-training.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_29",
+      "position_group": "Meia ofensivo",
+      "name": "Meia de pressão e conexão",
+      "description": "Participa da pressão alta e das combinações perto do atacante.",
+      "evaluation_suggestions": "Pressão, apoios curtos e reação à perda quando observáveis.",
+      "source_url": "https://www.fifatrainingcentre.com/en/environment/interviews/read/mascherano-on-the-evolution-of-the-central-defensive-spine.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_30",
+      "position_group": "Ponta/meia de lado",
+      "name": "Ponta de amplitude/1 contra 1",
+      "description": "Abre o campo e busca superar o defensor no corredor.",
+      "evaluation_suggestions": "Dribles tentados/sucessos, ações posteriores e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fu17wwc/2025/wingers-dominating-1v1s-in-wide-areas.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_31",
+      "position_group": "Ponta/meia de lado",
+      "name": "Ponta invertido/finalizador",
+      "description": "Parte do lado para ameaçar o gol por dentro.",
+      "evaluation_suggestions": "Finalizações sem pênalti, entradas na área e conduções para dentro.",
+      "source_url": "https://www.hudl.com/blog/modern-scouting-workflows-player-archetypes-statsbomb",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_32",
+      "position_group": "Ponta/meia de lado",
+      "name": "Ponta criador",
+      "description": "Usa o lado como origem da criação de chances.",
+      "evaluation_suggestions": "Chances criadas, cruzamentos/cutbacks e passes decisivos.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fu17wwc/2025/wingers-dominating-1v1s-in-wide-areas.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_33",
+      "position_group": "Ponta/meia de lado",
+      "name": "Ponta de profundidade/transição",
+      "description": "Ataca espaço atrás da defesa e acelera contra-ataques.",
+      "evaluation_suggestions": "Corridas em profundidade e ações em transição; tracking ou vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fu17wwc/2025/wingers-dominating-1v1s-in-wide-areas.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_34",
+      "position_group": "Ponta/meia de lado",
+      "name": "Meia de lado de recomposição",
+      "description": "Ajuda a defender o corredor e oferece saída desde posições mais baixas.",
+      "evaluation_suggestions": "Acompanhamento do lateral rival, apoio ao próprio lateral e vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/game/tournaments/fu17wwc/2025/wingers-dominating-1v1s-in-wide-areas.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_35",
+      "position_group": "Atacante",
+      "name": "Finalizador de área",
+      "description": "Concentra movimentos e finalizações perto do gol.",
+      "evaluation_suggestions": "Finalizações, toques na área e gols sem pênalti; xG só se disponível.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/technical-and-tactical-analysis/the-role-of-the-number-9--more-goals-yet-fewer-attempts.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_36",
+      "position_group": "Atacante",
+      "name": "Referência/pivô",
+      "description": "Recebe de costas, retém a bola e apoia companheiros.",
+      "evaluation_suggestions": "Duelos, retenção, apoios e ligação com o meio; vídeo.",
+      "source_url": "https://www.hudl.com/blog/modern-scouting-workflows-player-archetypes-statsbomb",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_37",
+      "position_group": "Atacante",
+      "name": "Atacante de profundidade",
+      "description": "Ataca a última linha e espaços atrás da defesa.",
+      "evaluation_suggestions": "Corridas, recepções em profundidade, impedimentos e finalizações.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/technical-and-tactical-analysis/the-role-of-the-number-9--more-goals-yet-fewer-attempts.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_38",
+      "position_group": "Atacante",
+      "name": "Falso 9",
+      "description": "Recua da última linha para conectar e criar espaço para outros.",
+      "evaluation_suggestions": "Recepções entrelinhas, criação, apoios e movimentos sem bola.",
+      "source_url": "https://www.fifatrainingcentre.com/en/fwc2022/technical-and-tactical-analysis/the-role-of-the-number-9--more-goals-yet-fewer-attempts.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_39",
+      "position_group": "Atacante",
+      "name": "Atacante pressionador",
+      "description": "Lidera a pressão e direciona a saída adversária.",
+      "evaluation_suggestions": "Pressões/contexto, fechamento de linhas e reação à perda; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/environment/interviews/read/mascherano-on-the-evolution-of-the-central-defensive-spine.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    },
+    {
+      "id": "role_40",
+      "position_group": "Atacante",
+      "name": "Segundo atacante",
+      "description": "Joga ao redor de uma referência, combinando criação e finalização.",
+      "evaluation_suggestions": "Apoios, combinações, criação e finalizações; vídeo.",
+      "source_url": "https://www.fifatrainingcentre.com/en/practice/talent-coach-programme/create-and-finish/finishing-from-1v1-to-3v3.php",
+      "status": "proposta_editavel",
+      "weights": null,
+      "thresholds": null
+    }
+  ],
+  "specialties": [
+    {
+      "id": "specialty_01",
+      "name": "Pegador de pênaltis",
+      "evaluation_suggestions": "Separar pênaltis em jogo e disputas; defesas, gols, trave e fora; contar amostra e repetições.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_02",
+      "name": "Batedor de pênaltis",
+      "evaluation_suggestions": "Conversão por cobranças válidas; separar jogo/disputa e amostra.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_03",
+      "name": "Batedor de faltas diretas",
+      "evaluation_suggestions": "Cobranças diretas, direção, distância, acerto no alvo e conversão; vídeo.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_04",
+      "name": "Batedor de faltas indiretas",
+      "evaluation_suggestions": "Qualidade de entrega e oportunidades geradas; vídeo.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_05",
+      "name": "Cobrador de escanteios",
+      "evaluation_suggestions": "Entrega, zona, tipo de bola e oportunidade gerada; vídeo.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_06",
+      "name": "Arremesso lateral longo",
+      "evaluation_suggestions": "Alcance e utilidade demonstrados em situações de jogo; vídeo.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_07",
+      "name": "Jogo aéreo ofensivo",
+      "evaluation_suggestions": "Participação e duelos ofensivos, finalizações aéreas e posicionamento.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_08",
+      "name": "Jogo aéreo defensivo",
+      "evaluation_suggestions": "Duelos defensivos e controle de cruzamentos contextualizados.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_09",
+      "name": "Uso do pé não dominante",
+      "evaluation_suggestions": "Ações observadas com ambos os pés; não presumir ambidestria pelo cadastro.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_10",
+      "name": "Passe longo/inversão",
+      "evaluation_suggestions": "Precisão, distância, pressão e destino; tentativas/sucessos.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_11",
+      "name": "Finalização de média/longa distância",
+      "evaluation_suggestions": "Localização, volume, qualidade e vídeo; poucos gols não bastam.",
+      "status": "proposta_editavel"
+    },
+    {
+      "id": "specialty_12",
+      "name": "Comando/organização em campo",
+      "evaluation_suggestions": "Comunicação funcional observada; descrição profissional, sem inferir personalidade.",
+      "status": "proposta_editavel"
+    }
+  ]
+}

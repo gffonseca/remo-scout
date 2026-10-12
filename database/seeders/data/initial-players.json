@@ -1,0 +1,3436 @@
+[
+ {
+  "name": "Erick Belé",
+  "club": "Palmeiras",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Palmeiras).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Figueiredo",
+  "club": "Palmeiras",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Palmeiras).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jefté",
+  "club": "Palmeiras",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Palmeiras). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Milans",
+  "club": "Corinthians",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matheus Pereira",
+  "club": "Corinthians",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Charles Rigon",
+  "club": "Corinthians",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Pedro Thoca",
+  "club": "Corinthians",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kayke Ferrare",
+  "club": "Corinthians",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Raul",
+  "club": "Corinthians",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "André",
+  "club": "Corinthians",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dieguinho",
+  "club": "Corinthians",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gui Negão",
+  "club": "Corinthians",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Corinthians). Categoria indicada no guia: U20.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Maik Gomes",
+  "club": "São Paulo",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Felipe Negrucci",
+  "club": "São Paulo",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Sabino",
+  "club": "São Paulo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Ramon",
+  "club": "São Paulo",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Igor Felisberto",
+  "club": "São Paulo",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Danielzinho",
+  "club": "São Paulo",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ryan Francisco",
+  "club": "São Paulo",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucca Marques",
+  "club": "São Paulo",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Tetê",
+  "club": "São Paulo",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "André Silva",
+  "club": "São Paulo",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de São Paulo).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Diogenes",
+  "club": "Santos",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gonzalo Escobar",
+  "club": "Santos",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Adonis Frias",
+  "club": "Santos",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vinicius Lira",
+  "club": "Santos",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Zé Ivaldo",
+  "club": "Santos",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Bontempo",
+  "club": "Santos",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Zé Rafael",
+  "club": "Santos",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Robinho JR",
+  "club": "Santos",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Menino",
+  "club": "Santos",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Miguelito",
+  "club": "Santos",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lautaro Diaz",
+  "club": "Santos",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Santos).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Cleiton",
+  "club": "Red Bull Bragantino",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gustavinho",
+  "club": "Red Bull Bragantino",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Praxedes",
+  "club": "Red Bull Bragantino",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Caue Nascimento",
+  "club": "Red Bull Bragantino",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Eduardo Santos",
+  "club": "Red Bull Bragantino",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ryan Augusto",
+  "club": "Red Bull Bragantino",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Marcelinho",
+  "club": "Red Bull Bragantino",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Red Bull Bragantino). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Willian Machado",
+  "club": "Mirassol",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Rodrigues",
+  "club": "Mirassol",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Oliveira",
+  "club": "Mirassol",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Igor Formiga",
+  "club": "Mirassol",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Neto Moura",
+  "club": "Mirassol",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Denilson",
+  "club": "Mirassol",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Aldo",
+  "club": "Mirassol",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Shaylon",
+  "club": "Mirassol",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "André Luis",
+  "club": "Mirassol",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Alesson",
+  "club": "Mirassol",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Antonio Galeano",
+  "club": "Mirassol",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Negueba",
+  "club": "Mirassol",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de Mirassol).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Grando",
+  "club": "Grêmio",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "André Henrique",
+  "club": "Grêmio",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Leonel Perez",
+  "club": "Grêmio",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Viery",
+  "club": "Grêmio",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio). Categoria indicada no guia: U2.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Monsalve",
+  "club": "Grêmio",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Gabriel",
+  "club": "Grêmio",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Mec",
+  "club": "Grêmio",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Roger Dias",
+  "club": "Grêmio",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Grêmio). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Clayton Sampaio",
+  "club": "Internacional",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matheus Bahia",
+  "club": "Internacional",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Juninho",
+  "club": "Internacional",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Victor Gabriel",
+  "club": "Internacional",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Braian Aguirre",
+  "club": "Internacional",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Alisson",
+  "club": "Internacional",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Paulinho Paula",
+  "club": "Internacional",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Allex",
+  "club": "Internacional",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Bruno Tabata",
+  "club": "Internacional",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Internacional).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Andrew Ventura",
+  "club": "Flamengo",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 10 (lista 'Para ficar de olho'/'Promessa' de Flamengo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Da Mata",
+  "club": "Flamengo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 10 (lista 'Para ficar de olho'/'Promessa' de Flamengo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Daniel Sales",
+  "club": "Flamengo",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 10 (lista 'Para ficar de olho'/'Promessa' de Flamengo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Wallace Yan",
+  "club": "Flamengo",
+  "primary_position": "SA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 10 (lista 'Para ficar de olho'/'Promessa' de Flamengo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Douglas Telles",
+  "club": "Flamengo",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 10 (lista 'Para ficar de olho'/'Promessa' de Flamengo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Leo Linck",
+  "club": "Botafogo",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Justino",
+  "club": "Botafogo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Anthony",
+  "club": "Botafogo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kadu",
+  "club": "Botafogo",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ythallo",
+  "club": "Botafogo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Newton",
+  "club": "Botafogo",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kadir Barria",
+  "club": "Botafogo",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Villalba",
+  "club": "Botafogo",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "JR Santos",
+  "club": "Botafogo",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Chris Ramos",
+  "club": "Botafogo",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Botafogo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Victor Eudes",
+  "club": "Fluminense",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Igor Rabelo",
+  "club": "Fluminense",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Julio Fidelis",
+  "club": "Fluminense",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Samuel Xavier",
+  "club": "Fluminense",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Riquelme Davi",
+  "club": "Fluminense",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matheus Reis",
+  "club": "Fluminense",
+  "primary_position": "SA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Wesley Natã",
+  "club": "Fluminense",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Fluminense). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Daniel Fuzato",
+  "club": "Vasco da Gama",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Hugo Moura",
+  "club": "Vasco da Gama",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Walace Fernandes",
+  "club": "Vasco da Gama",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Freitas",
+  "club": "Vasco da Gama",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Riquelme Avelar",
+  "club": "Vasco da Gama",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matheus Carvalho",
+  "club": "Vasco da Gama",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "JP",
+  "club": "Vasco da Gama",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Nuno Moreira",
+  "club": "Vasco da Gama",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Adson",
+  "club": "Vasco da Gama",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vasco da Gama).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Silva",
+  "club": "Cruzeiro",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Cruzeiro).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kaiquy Luiz",
+  "club": "Cruzeiro",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Cruzeiro). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Japa",
+  "club": "Cruzeiro",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Cruzeiro). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Murilo Rhikman",
+  "club": "Cruzeiro",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Cruzeiro). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Juan Gabriel",
+  "club": "Cruzeiro",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Cruzeiro). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kaique Kenji",
+  "club": "Cruzeiro",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Cruzeiro). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ivan Roman",
+  "club": "Atlético-MG",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de Atlético-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Cissé",
+  "club": "Atlético-MG",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de Atlético-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matheus Iseppe",
+  "club": "Atlético-MG",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de Atlético-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kauã Pascini",
+  "club": "Atlético-MG",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de Atlético-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Patrick Silva",
+  "club": "Atlético-MG",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de Atlético-MG). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Cauã Soares",
+  "club": "Atlético-MG",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de Atlético-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Leo Vieira",
+  "club": "Bahia",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Iago Borduchi",
+  "club": "Bahia",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Marcos Victor",
+  "club": "Bahia",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Luis Gustavo",
+  "club": "Bahia",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Paulo",
+  "club": "Bahia",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "David Martins",
+  "club": "Bahia",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Everaldo",
+  "club": "Bahia",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kaue Furquim",
+  "club": "Bahia",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dell",
+  "club": "Bahia",
+  "primary_position": "SA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Bahia). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Rangel",
+  "club": "Coritiba",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Tiago Coser",
+  "club": "Coritiba",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "JP Chermont",
+  "club": "Coritiba",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Keiller",
+  "club": "Coritiba",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Almeida",
+  "club": "Coritiba",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jacy",
+  "club": "Coritiba",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Bruno Melo",
+  "club": "Coritiba",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Sebastian Gomez",
+  "club": "Coritiba",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Fernando Sobral",
+  "club": "Coritiba",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vini Paulista",
+  "club": "Coritiba",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Josué",
+  "club": "Coritiba",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Rocha",
+  "club": "Coritiba",
+  "primary_position": "SA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Joaquin Lavega",
+  "club": "Coritiba",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Breno Lopes",
+  "club": "Coritiba",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Fabinho",
+  "club": "Coritiba",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Coritiba).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Walter Clar",
+  "club": "Chapecoense",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Camilo Reijers",
+  "club": "Chapecoense",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Rafael Carvalheira",
+  "club": "Chapecoense",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Vitor",
+  "club": "Chapecoense",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Italo Vargas",
+  "club": "Chapecoense",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mauricio Garcez",
+  "club": "Chapecoense",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Enio",
+  "club": "Chapecoense",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Chapecoense).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Marcelo Rangel",
+  "club": "Remo",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mayk",
+  "club": "Remo",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Duplexe Tchamba",
+  "club": "Remo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kayky Almeida",
+  "club": "Remo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Marcelinho",
+  "club": "Remo",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Leonel Picco",
+  "club": "Remo",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vitor Bueno",
+  "club": "Remo",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "David Braga",
+  "club": "Remo",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Taliari",
+  "club": "Remo",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jajá",
+  "club": "Remo",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série A (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Remo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dodô",
+  "club": "Náutico",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Náutico).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vinicius",
+  "club": "Náutico",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Náutico).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Wenderson",
+  "club": "Náutico",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Náutico).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Betão",
+  "club": "Náutico",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 2 (lista 'Para ficar de olho'/'Promessa' de Náutico).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Augusto Pucci",
+  "club": "Sport",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Zé Marcos",
+  "club": "Sport",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Zé Lucas",
+  "club": "Sport",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Felipinho",
+  "club": "Sport",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Biel Fonseca",
+  "club": "Sport",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Fábio Matheus",
+  "club": "Sport",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Chrystian Barletta",
+  "club": "Sport",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Perotti",
+  "club": "Sport",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 3 (lista 'Para ficar de olho'/'Promessa' de Sport).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matheus Albino",
+  "club": "CRB",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Henri",
+  "club": "CRB",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Walace",
+  "club": "CRB",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Guilherme Estrela",
+  "club": "CRB",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Crhystopher",
+  "club": "CRB",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Fabio Alemão",
+  "club": "CRB",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Thiaguinho",
+  "club": "CRB",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mikael",
+  "club": "CRB",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Hereda",
+  "club": "CRB",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dadá Belmonte",
+  "club": "CRB",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 4 (lista 'Para ficar de olho'/'Promessa' de CRB).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Ricardo",
+  "club": "Fortaleza",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mailton",
+  "club": "Fortaleza",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kauã Rocha",
+  "club": "Fortaleza",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Bruninho",
+  "club": "Fortaleza",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mauricio",
+  "club": "Fortaleza",
+  "primary_position": "LD",
+  "positions": [
+   "LE"
+  ],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Luiz Fernando",
+  "club": "Fortaleza",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ryan",
+  "club": "Fortaleza",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vitinho",
+  "club": "Fortaleza",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pierre",
+  "club": "Fortaleza",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Emanoel",
+  "club": "Fortaleza",
+  "primary_position": "MEI",
+  "positions": [
+   "SA"
+  ],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucca Prior",
+  "club": "Fortaleza",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 5 (lista 'Para ficar de olho'/'Promessa' de Fortaleza). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dieguinho",
+  "club": "Ceará",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Fernando",
+  "club": "Ceará",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mateus Araújo",
+  "club": "Ceará",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Zanocelo",
+  "club": "Ceará",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Melk",
+  "club": "Ceará",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará). Categoria indicada no guia: U20.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Fernandinho",
+  "club": "Ceará",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gilmar",
+  "club": "Ceará",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Giulio",
+  "club": "Ceará",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 6 (lista 'Para ficar de olho'/'Promessa' de Ceará). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Augusto",
+  "club": "São Bernardo",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de São Bernardo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Romisson",
+  "club": "São Bernardo",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de São Bernardo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Victor",
+  "club": "São Bernardo",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 7 (lista 'Para ficar de olho'/'Promessa' de São Bernardo).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Maykon Jesus",
+  "club": "Novorizontino",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Léo Naldi",
+  "club": "Novorizontino",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Patrick",
+  "club": "Novorizontino",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Diego Galo",
+  "club": "Novorizontino",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dantas",
+  "club": "Novorizontino",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Zenatti",
+  "club": "Novorizontino",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Romulo",
+  "club": "Novorizontino",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vinicius Paiva",
+  "club": "Novorizontino",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Hector",
+  "club": "Novorizontino",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 8 (lista 'Para ficar de olho'/'Promessa' de Novorizontino). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Patrick Brey",
+  "club": "Botafogo-SP",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Botafogo-SP).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Everton Morelli",
+  "club": "Botafogo-SP",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 9 (lista 'Para ficar de olho'/'Promessa' de Botafogo-SP).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kevyson",
+  "club": "Ponte Preta",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 10 (lista 'Para ficar de olho'/'Promessa' de Ponte Preta). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Tadeu",
+  "club": "Goiás",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Nicolas",
+  "club": "Goiás",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Ribeiro",
+  "club": "Goiás",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Diego Caito",
+  "club": "Goiás",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Rodrigues",
+  "club": "Goiás",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedrinho",
+  "club": "Goiás",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jean Carlos",
+  "club": "Goiás",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás). Categoria indicada no guia: U23.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Baldória",
+  "club": "Goiás",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Cadu",
+  "club": "Goiás",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 11 (lista 'Para ficar de olho'/'Promessa' de Goiás). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ewerthon",
+  "club": "Atlético-GO",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Guilherme Lopes",
+  "club": "Atlético-GO",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Tito",
+  "club": "Atlético-GO",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Cristiano",
+  "club": "Atlético-GO",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Geovany Soares",
+  "club": "Atlético-GO",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Bruno José",
+  "club": "Atlético-GO",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gustavo Coutinho",
+  "club": "Atlético-GO",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 12 (lista 'Para ficar de olho'/'Promessa' de Atlético-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Elias Lira",
+  "club": "Vila Nova-GO",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Pedro Romano",
+  "club": "Vila Nova-GO",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Vieira",
+  "club": "Vila Nova-GO",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ryan",
+  "club": "Vila Nova-GO",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Higor",
+  "club": "Vila Nova-GO",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Enzo Bizzotto",
+  "club": "Vila Nova-GO",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dudu",
+  "club": "Vila Nova-GO",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Nathan Camargo",
+  "club": "Vila Nova-GO",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 13 (lista 'Para ficar de olho'/'Promessa' de Vila Nova-GO). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Luan Polli",
+  "club": "Athletic",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ian Luccas",
+  "club": "Athletic",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Diogo Batista",
+  "club": "Athletic",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Bruninho",
+  "club": "Athletic",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Lucas Belezi",
+  "club": "Athletic",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Moyses",
+  "club": "Athletic",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Dixon Vera",
+  "club": "Athletic",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jota",
+  "club": "Athletic",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Max",
+  "club": "Athletic",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Kauã R.",
+  "club": "Athletic",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Felipe Vieira",
+  "club": "Athletic",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Miguel",
+  "club": "Athletic",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Indio",
+  "club": "Athletic",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 14 (lista 'Para ficar de olho'/'Promessa' de Athletic). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Rafa Barcelos",
+  "club": "América-MG",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de América-MG). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Thallyson",
+  "club": "América-MG",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de América-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Yago Santos",
+  "club": "América-MG",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de América-MG). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Yago Souza",
+  "club": "América-MG",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de América-MG). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Felipe Amaral",
+  "club": "América-MG",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de América-MG). Categoria indicada no guia: U23.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Matias Segovia",
+  "club": "América-MG",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 15 (lista 'Para ficar de olho'/'Promessa' de América-MG). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Wallison",
+  "club": "Avaí",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Avaí).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Douglas Teixeira",
+  "club": "Avaí",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Avaí). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Thayllon",
+  "club": "Avaí",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Avaí). Categoria indicada no guia: U20.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Paulo Victor",
+  "club": "Avaí",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Avaí). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Wallace França",
+  "club": "Avaí",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Avaí). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Sorriso",
+  "club": "Avaí",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 16 (lista 'Para ficar de olho'/'Promessa' de Avaí). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Alisson",
+  "club": "Criciúma",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Marcelo Hermes",
+  "club": "Criciúma",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "William Lepo",
+  "club": "Criciúma",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Ruan Carvalho",
+  "club": "Criciúma",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jonatha Robert",
+  "club": "Criciúma",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gui Lobo",
+  "club": "Criciúma",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Felipe Mateus",
+  "club": "Criciúma",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 17 (lista 'Para ficar de olho'/'Promessa' de Criciúma).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel Feliciano",
+  "club": "Operário-PR",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Operário-PR).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mikael Doka",
+  "club": "Operário-PR",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Operário-PR).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Moraes JR",
+  "club": "Operário-PR",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Operário-PR).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Boschilia",
+  "club": "Operário-PR",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 18 (lista 'Para ficar de olho'/'Promessa' de Operário-PR).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Jandrei",
+  "club": "Juventude",
+  "primary_position": "GOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Raí Ramos",
+  "club": "Juventude",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Patryck",
+  "club": "Juventude",
+  "primary_position": "LE",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Marcos Paulo",
+  "club": "Juventude",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude). Categoria indicada no guia: U23.",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Mandaca",
+  "club": "Juventude",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Raí Silva",
+  "club": "Juventude",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "MP",
+  "club": "Juventude",
+  "primary_position": "SA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 19 (lista 'Para ficar de olho'/'Promessa' de Juventude).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "João Tavares",
+  "club": "Londrina",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 20 (lista 'Para ficar de olho'/'Promessa' de Londrina). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Vitinho",
+  "club": "Londrina",
+  "primary_position": "PD",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 20 (lista 'Para ficar de olho'/'Promessa' de Londrina). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Iago Teles",
+  "club": "Londrina",
+  "primary_position": "PE",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 20 (lista 'Para ficar de olho'/'Promessa' de Londrina).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Yago Lincoln",
+  "club": "Londrina",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 20 (lista 'Para ficar de olho'/'Promessa' de Londrina). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Bruno Santos",
+  "club": "Londrina",
+  "primary_position": "CA",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 20 (lista 'Para ficar de olho'/'Promessa' de Londrina).",
+  "priority_list": true,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Andre Cardoso",
+  "club": "Londrina",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 20 (lista 'Para ficar de olho'/'Promessa' de Londrina). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Gabriel K.",
+  "club": "Cuiabá",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "David Miguel",
+  "club": "Cuiabá",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Raylan",
+  "club": "Cuiabá",
+  "primary_position": "LD",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Weverson",
+  "club": "Cuiabá",
+  "primary_position": "MC",
+  "positions": [],
+  "preferred_foot": "esquerdo",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Calebe Costa",
+  "club": "Cuiabá",
+  "primary_position": "VOL",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá). Categoria indicada no guia: U23.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Luis Soares",
+  "club": "Cuiabá",
+  "primary_position": "ZAG",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá). Categoria indicada no guia: U20.",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Hernandes",
+  "club": "Cuiabá",
+  "primary_position": "MEI",
+  "positions": [],
+  "preferred_foot": "direito",
+  "notes": "Fonte: Guia Brasileirão 2026 — Série B (PDF interno), p. 21 (lista 'Para ficar de olho'/'Promessa' de Cuiabá).",
+  "priority_list": false,
+  "source": "guia_pdf"
+ },
+ {
+  "name": "Adrianinho",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "André Luís",
+  "club": "Vila Nova-GO",
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube informado na lista.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Arnaldo",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Barletta",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Bergson",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Brítez",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Caíto",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Carlos Junior",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Chico da Costa",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Clebão",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Coutinho",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "DG",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Douglas Mendes",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Dudu",
+  "club": "Atlético-MG",
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube informado na lista.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Ede Oloko",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Felipe Clemente",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Gabriel Veron",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Germán Cano",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Gustavo Caballero",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Gustavo Ferrareis",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Ítalo",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Jean Franco Castillo",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Júnior Brumado",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Kauã Maranhão",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Kauã Rodrigues",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Léo Bonatini",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Lorenzo",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Luan",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Marcinho",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Maxwell",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Nahuel Estévez",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Neto Berola",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Nico",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Paulo Vitor",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Perotti",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Peterson",
+  "club": "Brusque",
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube informado na lista.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Raí",
+  "club": "Sport",
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube informado na lista.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Raimar",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Reidney",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Renan Peixoto",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Ricardo Graça",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Robson",
+  "club": "Novorizontino",
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube informado na lista.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Rodrigão",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Ronaldo Tavares",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Sandry",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Saulo Mineiro",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Silvère Ganvoula",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Telmo Arcanjo",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Terans",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Vietto",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Vitinho",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar. Há homônimos no guia — clube a confirmar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Vombergar",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Wallace",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ },
+ {
+  "name": "Ziyech",
+  "club": null,
+  "primary_position": null,
+  "positions": [],
+  "preferred_foot": "nao_informado",
+  "notes": "Lista prioritária enviada por Gustavo em 11/10/2026. Clube e posição não informados — completar.",
+  "priority_list": true,
+  "source": "lista_gustavo"
+ }
+]
