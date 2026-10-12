@@ -1,0 +1,25 @@
+{
+  "data": "2026-10-12",
+  "zip_original_sha256": "491138ad7864ccba4d7ceb6b440188927382a5257b76e309de8698c790bbec80",
+  "zip_crc": "OK",
+  "arquivos_exportados": 458,
+  "entradas_zip": 578,
+  "bytes_zip": 18935151,
+  "bytes_descompactados": 47534156,
+  "git_head": "3c35f973fc49c71748aabebd5f80096ff262a35b",
+  "git_commits": 14,
+  "arquivos_php_lint": 222,
+  "lint_falhas": 0,
+  "testes_originais": 45,
+  "assercoes_originais": 227,
+  "regressoes_propostas": 8,
+  "regressoes_falharam": 8,
+  "achados": 22,
+  "prioridades": {
+    "P1": 8,
+    "P2": 12,
+    "P3": 2
+  },
+  "producao_alterada": false,
+  "tipo": "auditoria de snapshot + leitura autenticada; limites no relatório"
+}

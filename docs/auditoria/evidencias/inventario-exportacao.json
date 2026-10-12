@@ -1,0 +1,1834 @@
+[
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/04-especificacao-prompt-v2/catalogo-papeis-remo-scout.json",
+    "size": 24045
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/04-especificacao-prompt-v2/prompt-claude-remo-scout-v2.md",
+    "size": 26823
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/conversa-completa.md",
+    "size": 902005
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-subagents/agent-a4c42af3590b301e6.meta.json",
+    "size": 197
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-subagents/agent-acb60f1f8afc687c5.jsonl",
+    "size": 779268
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-subagents/agent-a4c42af3590b301e6.jsonl",
+    "size": 1371810
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-subagents/agent-a4c42af3590b301e6.prefix.json",
+    "size": 27194
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-subagents/agent-acb60f1f8afc687c5.prefix.json",
+    "size": 12416
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-subagents/agent-acb60f1f8afc687c5.meta.json",
+    "size": 195
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-tool-results/mcp-claude_ai-read_conversation-1791798055695.txt",
+    "size": 327960
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-tool-results/mcp-claude_ai-read_conversation-1791797973152.txt",
+    "size": 57467
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-tool-results/mcp-claude_ai-read_conversation-1791798087069.txt",
+    "size": 181812
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-tool-results/mcp-claude_ai-read_conversation-1791798099222.txt",
+    "size": 104154
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-tool-results/mcp-Git_Hub-get_file_contents-1791763189827.txt",
+    "size": 142701
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-tool-results/bn2nz0sez.txt",
+    "size": 7359387
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-tool-results/btvk5wg05.txt",
+    "size": 166469
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-1-tool-results/b6ehfmrnn.txt",
+    "size": 53715
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-subagents/agent-a58b1e6bd108226d1.prefix.json",
+    "size": 13369
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-subagents/agent-a58b1e6bd108226d1.jsonl",
+    "size": 936450
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/parte-2-subagents/agent-a58b1e6bd108226d1.meta.json",
+    "size": 190
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/sessao-parte-1.jsonl",
+    "size": 2801036
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/01-conversa/transcricoes-brutas/sessao-parte-2.jsonl",
+    "size": 3950840
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/LEIA-ME.md",
+    "size": 2899
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/prod_login.png",
+    "size": 43776
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/ziyech.png",
+    "size": 256106
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_.png",
+    "size": 134641
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/list_crop.png",
+    "size": 161566
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_atletas.png",
+    "size": 406573
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/topbar.png",
+    "size": 30069
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_usuarios.png",
+    "size": 120701
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_importacoes.png",
+    "size": 92683
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_atletas_create.png",
+    "size": 163593
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_profile.png",
+    "size": 93451
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_papeis_create.png",
+    "size": 203354
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_quadro_prospeccao.png",
+    "size": 130292
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_atletas_01a12dc3_2758_721a_87d6_aebd43bb1ebb.png",
+    "size": 327093
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_importacoes.png",
+    "size": 81006
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_necessidades.png",
+    "size": 107885
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_.png",
+    "size": 145454
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_atletas_create.png",
+    "size": 163572
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_relatorios.png",
+    "size": 308712
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_competicoes.png",
+    "size": 152970
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/players.png",
+    "size": 177392
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_atletas.png",
+    "size": 335521
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_importar_planilha.png",
+    "size": 89665
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_empresarios.png",
+    "size": 81231
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_importar_planilha.png",
+    "size": 89808
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/clubs.png",
+    "size": 167568
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_relatorios_create.png",
+    "size": 184397
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_papeis.png",
+    "size": 229357
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_clubes.png",
+    "size": 109789
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_clubes.png",
+    "size": 360286
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_auditoria.png",
+    "size": 157396
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_papeis.png",
+    "size": 402531
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/profile.png",
+    "size": 253894
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_papeis_create.png",
+    "size": 202359
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_atletas_01a12dc3_2d45_71c6_aea6_8876e0dcdc38.png",
+    "size": 330121
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_especialidades.png",
+    "size": 232721
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_competicoes.png",
+    "size": 152184
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_relatorios.png",
+    "size": 119110
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_quadro_prospeccao.png",
+    "size": 129706
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_necessidades_create.png",
+    "size": 163784
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_necessidades.png",
+    "size": 404942
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/coordenador_relatorios_create.png",
+    "size": 183254
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/login.png",
+    "size": 21418
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_necessidades_create.png",
+    "size": 164184
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/capturas-de-tela/admin_especialidades.png",
+    "size": 390985
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c14.json",
+    "size": 1968
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/apif_par.json",
+    "size": 151
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/cache-break-state-cd79c7f5-c538-584d-963c-a704865ac79a.json",
+    "size": 11166
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c10.json",
+    "size": 1191
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c27.json",
+    "size": 151
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/tmapi.json",
+    "size": 58974
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c15.json",
+    "size": 151
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/pm2.json",
+    "size": 6468
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/ss.json",
+    "size": 28466
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c2.json",
+    "size": 6263
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/package-lock.json",
+    "size": 1067
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/p16.json",
+    "size": 126794
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/pm.json",
+    "size": 10520
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c65.json",
+    "size": 151
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/package.json",
+    "size": 56
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/apif.json",
+    "size": 52126
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c17.json",
+    "size": 6150
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/respostas-api-futebol/c16.json",
+    "size": 2526
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/cobertura.html",
+    "size": 493969
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/clubs.json",
+    "size": 18848
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/cov.html",
+    "size": 5392
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/parse.py",
+    "size": 779
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/shots.py",
+    "size": 840
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/planos.html",
+    "size": 42967
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/D.tsv",
+    "size": 6102
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/apif.html",
+    "size": 99351
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/ds.md",
+    "size": 139118
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/dl/bdd1.json",
+    "size": 43971
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/dl/bdd2.json",
+    "size": 30592
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/dl/af_leagues.json",
+    "size": 99216
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/dl/bdd.json",
+    "size": 43971
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/dl/af2.json",
+    "size": 140795
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/dl/bdd3.json",
+    "size": 30286
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/C.tsv",
+    "size": 804
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/serieD.txt",
+    "size": 161179
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/x_Campeonato_Paraense_de_Futebol_de_2026_-_S%C3%A9rie_A.txt",
+    "size": 37422
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/serieA.txt",
+    "size": 121271
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/Copa_do_Nordeste_de_Futebol_de_2026.txt",
+    "size": 36855
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/x_Copa_Verde_de_2026.txt",
+    "size": 1930
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/Campeonato_Paraense_de_Futebol_de_2026_-_S├⌐rie_A.txt",
+    "size": 2090
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/serieC.txt",
+    "size": 83292
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/serieB.txt",
+    "size": 94718
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/x_Copa_Verde_de_Futebol_de_2026.txt",
+    "size": 25116
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/Copa_do_Nordeste_de_2026.txt",
+    "size": 1929
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/Campeonato_Paraense_de_Futebol_de_2026.txt",
+    "size": 1930
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/wk/Copa_Verde_de_2026.txt",
+    "size": 1929
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/B.tsv",
+    "size": 813
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/fpf.html",
+    "size": 36298
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/A.tsv",
+    "size": 772
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/fs.html",
+    "size": 266389
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/tools/gt.py",
+    "size": 551
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/doc.html",
+    "size": 38381
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/build.py",
+    "size": 4280
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/cartola.json",
+    "size": 375141
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/x.html",
+    "size": 277114
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/eb.html",
+    "size": 107116
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/wyd.html",
+    "size": 125618
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/bdd2.html",
+    "size": 91544
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/sst2.html",
+    "size": 138476
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/ssp.html",
+    "size": 245285
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/bdd.html",
+    "size": 100309
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/ssc.html",
+    "size": 285724
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/tsa0.html",
+    "size": 163637
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/hl.html",
+    "size": 69224
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fdc.html",
+    "size": 194245
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/es.html",
+    "size": 178935
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fmt2.html",
+    "size": 358661
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/sst.html",
+    "size": 138714
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fmt.html",
+    "size": 358661
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/st.html",
+    "size": 109549
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/tsdb.html",
+    "size": 29017
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/sa.html",
+    "size": 56353
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fl.html",
+    "size": 112838
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fdp.html",
+    "size": 70543
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/bsd.html",
+    "size": 166057
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/gh1.html",
+    "size": 378
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/tr.html",
+    "size": 266155
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/kg.html",
+    "size": 10978
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fl2.html",
+    "size": 112838
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/tm.html",
+    "size": 97873
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fst.html",
+    "size": 420958
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/fla.html",
+    "size": 125031
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/t7.html",
+    "size": 17409
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/gs.html",
+    "size": 86924
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/gsc.html",
+    "size": 1460032
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/tsa.html",
+    "size": 126012
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pages/ft.html",
+    "size": 247099
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/pdf/fpf.pdf",
+    "size": 35572
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/05-arquivos-de-trabalho/pesquisa-e-scripts/brand.py",
+    "size": 724
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/catalogo-papeis-remo-scout.json",
+    "size": 24045
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/Brasileir_o_Serie_B_2026_Todos_os_Destaques.pdf",
+    "size": 4035007
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/remo-scout-pacote.zip",
+    "size": 108160
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/pesquisa-e-decisoes-remo-scout.md",
+    "size": 15528
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/LEIA-ME.md",
+    "size": 958
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/remo-scout-projeto.html",
+    "size": 185381
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/catalogo-papeis-remo-scout.csv",
+    "size": 12379
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/referencias-football-manager-e-jogos.md",
+    "size": 10787
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/Brasileir_o_2026_Todos_os_Clubes_e_Destaques.pdf",
+    "size": 3854334
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/catalogo-papeis-remo-scout.md",
+    "size": 12615
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/image.png",
+    "size": 759725
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/prompt-claude-remo-scout.md",
+    "size": 55548
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/manifesto-sha256.json",
+    "size": 1520
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/02-anexos-enviados/verificacao-do-pacote.md",
+    "size": 1933
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout-historico-git.bundle",
+    "size": 382835
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.gitattributes",
+    "size": 186
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/vite.config.js",
+    "size": 632
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000100_create_scout_core_tables.php",
+    "size": 21302
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000200_add_player_name_index.php",
+    "size": 396
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000600_add_fixture_quality.php",
+    "size": 655
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000700_add_photos_and_crests.php",
+    "size": 1104
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000800_create_cbf_registries.php",
+    "size": 2700
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/0001_01_01_000000_create_users_table.php",
+    "size": 1473
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000060_create_uuid_max_aggregate.php",
+    "size": 1079
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000500_create_sources_and_stats_tables.php",
+    "size": 9667
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/0001_01_01_000002_create_jobs_table.php",
+    "size": 1883
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/0001_01_01_000001_create_cache_table.php",
+    "size": 873
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000050_enable_unaccent.php",
+    "size": 635
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000300_add_agents_and_market_fields.php",
+    "size": 3144
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/migrations/2026_10_12_000400_add_club_details_and_player_contacts.php",
+    "size": 1368
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/.gitignore",
+    "size": 10
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/AdminUserSeeder.php",
+    "size": 905
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/DatabaseSeeder.php",
+    "size": 441
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/ClubsSeeder.php",
+    "size": 2427
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/InitialPlayersSeeder.php",
+    "size": 3314
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/DemoSeeder.php",
+    "size": 5691
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/data/catalogo-papeis-remo-scout.json",
+    "size": 24045
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/data/initial-players.json",
+    "size": 112271
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/data/clubs-2026.json",
+    "size": 18848
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/CatalogSeeder.php",
+    "size": 3314
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/ReferenceDataSeeder.php",
+    "size": 3475
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/seeders/DataSourcesSeeder.php",
+    "size": 3863
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/database/factories/UserFactory.php",
+    "size": 1044
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/collector/remo_scout_coletor.py",
+    "size": 12080
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/collector/instalar-mac.sh",
+    "size": 1012
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/collector/br.com.remo.scout.coletor.plist",
+    "size": 908
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.dockerignore",
+    "size": 193
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/filesystems.php",
+    "size": 3348
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/logging.php",
+    "size": 4606
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/session.php",
+    "size": 8423
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/services.php",
+    "size": 1039
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/cache.php",
+    "size": 4370
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/database.php",
+    "size": 6876
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/queue.php",
+    "size": 4199
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/mail.php",
+    "size": 3631
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/app.php",
+    "size": 4281
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/auth.php",
+    "size": 4040
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/config/scout.php",
+    "size": 2058
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/images/player-silhouette.svg",
+    "size": 221
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/images/remo-escudo.svg",
+    "size": 12553
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/images/crest-placeholder.svg",
+    "size": 176
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/index.php",
+    "size": 543
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/favicon.ico",
+    "size": 0
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/.htaccess",
+    "size": 740
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/public/robots.txt",
+    "size": 24
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.npmrc",
+    "size": 31
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.github/dependabot.yml",
+    "size": 222
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.github/workflows/issues.yml",
+    "size": 204
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.github/workflows/tests.yml",
+    "size": 1074
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.github/workflows/update-changelog.yml",
+    "size": 247
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.github/workflows/pull-requests.yml",
+    "size": 236
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.github/workflows/dependabot-auto-merge.yml",
+    "size": 282
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/NeedStatus.php",
+    "size": 680
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Confirmation.php",
+    "size": 837
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Position.php",
+    "size": 4586
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/CatalogStatus.php",
+    "size": 706
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Horizon.php",
+    "size": 914
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/ReportSource.php",
+    "size": 780
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Priority.php",
+    "size": 648
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Foot.php",
+    "size": 840
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/DataOrigin.php",
+    "size": 845
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Confidence.php",
+    "size": 653
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/MarketStatus.php",
+    "size": 840
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/AssessmentKind.php",
+    "size": 618
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Verdict.php",
+    "size": 834
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/ReportStatus.php",
+    "size": 592
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/Level.php",
+    "size": 1100
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/UserRole.php",
+    "size": 1069
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/ContractStatus.php",
+    "size": 845
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Enums/MarketKind.php",
+    "size": 1139
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/SumulaParser.php",
+    "size": 8425
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/ApiFutebol.php",
+    "size": 15133
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/SourceException.php",
+    "size": 241
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/SumulaImporter.php",
+    "size": 7714
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/Transfermarkt.php",
+    "size": 2578
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/SourceClient.php",
+    "size": 5122
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Sources/Sofascore.php",
+    "size": 1511
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/AuditEvent.php",
+    "size": 941
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Player.php",
+    "size": 8711
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/PlayerSeasonStat.php",
+    "size": 907
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/RosterSpell.php",
+    "size": 577
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/IdentityCandidate.php",
+    "size": 462
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/EnrichmentReview.php",
+    "size": 584
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ClubExternalId.php",
+    "size": 365
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ContractObservation.php",
+    "size": 981
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/RecruitmentNeed.php",
+    "size": 2327
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Appearance.php",
+    "size": 678
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Club.php",
+    "size": 1214
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/DataSource.php",
+    "size": 1610
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/PlayerRoleAssessment.php",
+    "size": 1214
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/PlayerSpecialtyAssessment.php",
+    "size": 1747
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Agent.php",
+    "size": 979
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ScoutingReport.php",
+    "size": 2995
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/CbfIntermediary.php",
+    "size": 444
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/SyncRun.php",
+    "size": 1403
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/StageHistory.php",
+    "size": 693
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Fixture.php",
+    "size": 1080
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/User.php",
+    "size": 2128
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ImportBatch.php",
+    "size": 682
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Concerns/Versioned.php",
+    "size": 1579
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Concerns/Auditable.php",
+    "size": 1166
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ProspectCase.php",
+    "size": 3161
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/CatalogVersion.php",
+    "size": 650
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ProspectStage.php",
+    "size": 716
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/ImportMappingProfile.php",
+    "size": 310
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/CbfAthlete.php",
+    "size": 966
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Competition.php",
+    "size": 307
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/MarketObservation.php",
+    "size": 980
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/VideoReference.php",
+    "size": 705
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/TacticalRole.php",
+    "size": 1505
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/PlayerExternalId.php",
+    "size": 464
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Models/Specialty.php",
+    "size": 950
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Jobs/RunArtisanSync.php",
+    "size": 733
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Support/ClubResolver.php",
+    "size": 2811
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Support/PlayerInsight.php",
+    "size": 3288
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Support/NameMatcher.php",
+    "size": 2125
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Support/Media.php",
+    "size": 1080
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Support/CatalogActions.php",
+    "size": 4695
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Support/VideoFields.php",
+    "size": 1321
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Pages/CentralDeMercado.php",
+    "size": 912
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Pages/ImportarPlanilha.php",
+    "size": 6885
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Pages/QuadroProspeccao.php",
+    "size": 3993
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Widgets/OpenNeeds.php",
+    "size": 1642
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Widgets/RecentReports.php",
+    "size": 1287
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Widgets/MarketStats.php",
+    "size": 1498
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Widgets/TaskList.php",
+    "size": 2016
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Actions/AddPlayersToNeedBulkAction.php",
+    "size": 1410
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Clubs/ClubResource.php",
+    "size": 4987
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Clubs/Pages/ManageClubs.php",
+    "size": 408
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/DataSources/RelationManagers/RunsRelationManager.php",
+    "size": 2232
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/DataSources/Pages/EditDataSource.php",
+    "size": 272
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/DataSources/Pages/ListDataSources.php",
+    "size": 523
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/DataSources/DataSourceResource.php",
+    "size": 6636
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/RecruitmentNeeds/RecruitmentNeedResource.php",
+    "size": 9460
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/RecruitmentNeeds/RelationManagers/CasesRelationManager.php",
+    "size": 7098
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/RecruitmentNeeds/Pages/ListRecruitmentNeeds.php",
+    "size": 463
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/RecruitmentNeeds/Pages/EditRecruitmentNeed.php",
+    "size": 634
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/RecruitmentNeeds/Pages/CreateRecruitmentNeed.php",
+    "size": 451
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/RecruitmentNeeds/Pages/ViewRecruitmentNeed.php",
+    "size": 2573
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/TacticalRoles/RelationManagers/VersionsRelationManager.php",
+    "size": 1419
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/TacticalRoles/Pages/CreateTacticalRole.php",
+    "size": 288
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/TacticalRoles/Pages/ViewTacticalRole.php",
+    "size": 574
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/TacticalRoles/Pages/ListTacticalRoles.php",
+    "size": 748
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/TacticalRoles/Pages/EditTacticalRole.php",
+    "size": 689
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/TacticalRoles/TacticalRoleResource.php",
+    "size": 8342
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ImportBatches/Pages/ListImportBatches.php",
+    "size": 514
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ImportBatches/ImportBatchResource.php",
+    "size": 4216
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Fixtures/RelationManagers/AppearancesRelationManager.php",
+    "size": 1809
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Fixtures/Pages/ViewFixture.php",
+    "size": 353
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Fixtures/Pages/ListFixtures.php",
+    "size": 3114
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Fixtures/FixtureResource.php",
+    "size": 4114
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Specialties/Pages/ListSpecialties.php",
+    "size": 733
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Specialties/Pages/CreateSpecialty.php",
+    "size": 275
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Specialties/Pages/EditSpecialty.php",
+    "size": 544
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Specialties/SpecialtyResource.php",
+    "size": 4183
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Users/Pages/ManageUsers.php",
+    "size": 411
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Users/UserResource.php",
+    "size": 3641
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/AuditEvents/Pages/ListAuditEvents.php",
+    "size": 275
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/AuditEvents/AuditEventResource.php",
+    "size": 2870
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/EnrichmentReviews/Pages/ListEnrichmentReviews.php",
+    "size": 305
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/EnrichmentReviews/EnrichmentReviewResource.php",
+    "size": 4223
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/CbfAthletes/CbfAthleteResource.php",
+    "size": 7110
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/CbfAthletes/Pages/ListCbfAthletes.php",
+    "size": 275
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ScoutingReports/Pages/ViewScoutingReport.php",
+    "size": 452
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ScoutingReports/Pages/ListScoutingReports.php",
+    "size": 457
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ScoutingReports/Pages/SubmitReportAction.php",
+    "size": 1128
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ScoutingReports/Pages/EditScoutingReport.php",
+    "size": 657
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ScoutingReports/Pages/CreateScoutingReport.php",
+    "size": 633
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/ScoutingReports/ScoutingReportResource.php",
+    "size": 12936
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Competitions/Pages/ManageCompetitions.php",
+    "size": 450
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Competitions/CompetitionResource.php",
+    "size": 2714
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/SpecialtyAssessmentsRelationManager.php",
+    "size": 3717
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/ScoutingReportsRelationManager.php",
+    "size": 2181
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/MarketObservationsRelationManager.php",
+    "size": 3729
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/RosterSpellsRelationManager.php",
+    "size": 2371
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/VideoReferencesRelationManager.php",
+    "size": 2024
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/ProspectCasesRelationManager.php",
+    "size": 1520
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/ContractObservationsRelationManager.php",
+    "size": 3435
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/RelationManagers/RoleAssessmentsRelationManager.php",
+    "size": 4011
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/Pages/CreatePlayer.php",
+    "size": 1476
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/Pages/ListPlayers.php",
+    "size": 754
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/Pages/EditPlayer.php",
+    "size": 648
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/Pages/ViewPlayer.php",
+    "size": 7000
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Players/PlayerResource.php",
+    "size": 31804
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Agents/Pages/ManageAgents.php",
+    "size": 490
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Filament/Resources/Agents/AgentResource.php",
+    "size": 3780
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Providers/AppServiceProvider.php",
+    "size": 538
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Providers/Filament/AdminPanelProvider.php",
+    "size": 3846
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/CatalogTransfer.php",
+    "size": 5198
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/SeasonStatsAggregator.php",
+    "size": 2109
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/Collector/CbfIngest.php",
+    "size": 13000
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/RequirementCheck.php",
+    "size": 4332
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/Import/PlayerImporter.php",
+    "size": 21184
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/Import/SpreadsheetReader.php",
+    "size": 3019
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Services/PlayerEnrichment.php",
+    "size": 17509
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Http/Controllers/Api/CollectorController.php",
+    "size": 4691
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Http/Controllers/Controller.php",
+    "size": 77
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Http/Controllers/ExportController.php",
+    "size": 5140
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Http/Middleware/RequireMfaForAdmins.php",
+    "size": 639
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Http/Middleware/EnsureUserIsActive.php",
+    "size": 597
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Http/Middleware/AuthenticateCollector.php",
+    "size": 669
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/PlayerSpecialtyAssessmentPolicy.php",
+    "size": 92
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/ProspectCasePolicy.php",
+    "size": 79
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/MarketObservationPolicy.php",
+    "size": 676
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/ScoutingReportPolicy.php",
+    "size": 993
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/RecruitmentNeedPolicy.php",
+    "size": 82
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/TacticalRolePolicy.php",
+    "size": 82
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/ClubPolicy.php",
+    "size": 71
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/CatalogPolicy.php",
+    "size": 733
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/ContractObservationPolicy.php",
+    "size": 86
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/EnrichmentReviewPolicy.php",
+    "size": 83
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/ImportBatchPolicy.php",
+    "size": 335
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/AgentPolicy.php",
+    "size": 72
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/CompetitionPolicy.php",
+    "size": 78
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/UserPolicy.php",
+    "size": 798
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/DataSourcePolicy.php",
+    "size": 556
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/PlayerPolicy.php",
+    "size": 73
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/SpecialtyPolicy.php",
+    "size": 79
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/BasePolicy.php",
+    "size": 1230
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/PlayerRoleAssessmentPolicy.php",
+    "size": 87
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/FixturePolicy.php",
+    "size": 74
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/VideoReferencePolicy.php",
+    "size": 81
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Policies/AuditEventPolicy.php",
+    "size": 716
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Console/Commands/SyncApiFutebol.php",
+    "size": 1384
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Console/Commands/EnrichPlayers.php",
+    "size": 3066
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Console/Commands/SyncCrests.php",
+    "size": 694
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Console/Commands/ImportSumula.php",
+    "size": 956
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/app/Console/Commands/ProbeSources.php",
+    "size": 2446
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/composer.json",
+    "size": 2891
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/README.md",
+    "size": 1559
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/phpunit.xml",
+    "size": 1472
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/CLAUDE.md",
+    "size": 757
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/scripts/start.sh",
+    "size": 527
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/scripts/predeploy.sh",
+    "size": 346
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/Dockerfile",
+    "size": 915
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.gitignore",
+    "size": 418
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.editorconfig",
+    "size": 275
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/artisan",
+    "size": 425
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/CHECKPOINT.md",
+    "size": 6117
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/app/public/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/app/.gitignore",
+    "size": 33
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/app/private/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/cache/.gitignore",
+    "size": 29
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/cache/data/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/cache/locks/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/views/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/.gitignore",
+    "size": 129
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/sessions/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/framework/testing/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/storage/logs/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Unit/ParsingTest.php",
+    "size": 2867
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/fixtures/sumula-fpf-cameta-remo-2026.pdf",
+    "size": 35572
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/TestCase.php",
+    "size": 142
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Feature/CollectorTest.php",
+    "size": 7173
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Feature/ImportTest.php",
+    "size": 3103
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Feature/AccessTest.php",
+    "size": 3434
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Feature/SourcesTest.php",
+    "size": 11838
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Feature/ScoutTestCase.php",
+    "size": 748
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/tests/Feature/DomainRulesTest.php",
+    "size": 9075
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.styleci.yml",
+    "size": 120
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/package.json",
+    "size": 461
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/scout/topbar-context.blade.php",
+    "size": 492
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/scout/player-profile.blade.php",
+    "size": 14746
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/scout/brand.blade.php",
+    "size": 179
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/filament/pages/importar-planilha.blade.php",
+    "size": 6893
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/filament/pages/quadro-prospeccao.blade.php",
+    "size": 4208
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/welcome.blade.php",
+    "size": 72302
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/pdf/shortlist.blade.php",
+    "size": 2289
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/pdf/player-dossier.blade.php",
+    "size": 8352
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/views/pdf/_style.blade.php",
+    "size": 1130
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/css/app.css",
+    "size": 339
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/css/scout.css",
+    "size": 6092
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/resources/js/app.js",
+    "size": 3
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/.env.example",
+    "size": 1124
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/composer.lock",
+    "size": 427255
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/docs/PROMPT-v2.md",
+    "size": 26823
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/routes/web.php",
+    "size": 583
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/routes/console.php",
+    "size": 699
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/routes/api.php",
+    "size": 712
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/bootstrap/providers.php",
+    "size": 118
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/bootstrap/cache/.gitignore",
+    "size": 14
+  },
+  {
+    "path": "CIFUT-Remo-export-2026-10-12/03-codigo-cifut-remo/remo-scout/bootstrap/app.php",
+    "size": 911
+  }
+]
