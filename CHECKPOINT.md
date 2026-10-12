@@ -26,3 +26,9 @@ Atualize a cada sessão. Última atualização: 11/10/2026 (sessão de construç
 1. Confirmar deploy e criar usuários do Rafael/analistas.
 2. Fontes adicionais indicadas por Gustavo: páginas públicas CBF de atletas por campeonato (ID CBF; descartar CPF), registro público de intermediários CBF (intermediario.cbf.com.br) para o cadastro de empresários, API CBF de parceiros (requer credencial).
 3. Fatia 2 começando por: API Futebol (calendário/escalações BR), CBF atletas por competição (ID CBF), Transfermarkt (perfil/valor sob demanda), súmulas.
+
+## 12/10/2026 — fotos, escudos e alcance das fontes a partir do Railway
+- Foto do atleta: upload próprio (bucket, disco `media`) > foto da fonte externa (TM/Sofascore, hotlink). Escudo: upload > API Futebol (`scout:sync-crests`, semanal + predeploy) > TM. Produção: 123 escudos.
+- Aliases de clube por provedor no ClubsSeeder (Bragantino→Red Bull Bragantino, Portuguesa→Portuguesa-SP, Abecat Ouvidorense→ABECAT).
+- Probe a partir do Railway (us-west2): OK api_futebol, transfermarkt, sumula_fpf. FALHA: cbf_atletas, cbf_intermediarios, sumula_cbf (conexão — provável bloqueio de IP fora do Brasil) e sofascore (403, IP de datacenter).
+- Decisão pendente (Gustavo): rota de saída com IP brasileiro para CBF/Sofascore (coletor no Mac dele via app desktop, ou proxy/VPS BR — custo). Até lá, adapters CBF ficam parados.
