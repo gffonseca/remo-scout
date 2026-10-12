@@ -1,6 +1,6 @@
 # CHECKPOINT — REMO SCOUT
 
-Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 3 publicado; branch `confiabilidade` aguardando autorização).
+Atualize a cada sessão. Última atualização: 12/10/2026 noite (confiabilidade publicada, PRs #3–#14; convergência de identidades ativa).
 
 ## Decisões vigentes (ver docs/PROMPT-v2.md §2)
 - Usuários: Gustavo (admin/piloto), Rafael (coordenador), 2 analistas (a contratar), Executivo de Futebol (leitor; financeiro por permissão).
@@ -82,3 +82,14 @@ Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 3 publicado; b
 - F03: especialidade obrigatória exige limiar. F01: teste com sessão real e desafio MFA.
 - Pro Soccer (portal do próprio Remo): coletor de descoberta no Mac Mini; aguarda senha no Chaves do Mac Mini. Fora: documentos, saúde, financeiro, cláusulas/valores.
 - Detalhes: docs/auditoria/CONFIABILIDADE-ENTREGA.md. Próximo: súmulas CBF, Football-Data (licença), comparativo de fontes, Pro Soccer após a descoberta.
+
+## 12/10/2026 (noite) — produção: confiabilidade publicada e enriquecimento (PRs #3–#14, merges autorizados por Gustavo)
+- Publicado: clube canônico nas estatísticas (#3/#4), Cobertura com correções em lote reversíveis (#5/#6), fotos pelo próprio CIFUT (#7–#9), contagem real de fotos e enriquecimento do scout inteiro (#10/#11), convergência de identidades (#12–#14).
+- Números (343 atletas do scout): estatística disponível 14, parcial 130, desatualizado 1, identidade pendente 131, aguardando vínculo 46, não coletado 21.
+  Foto real 145/343 (todos os links do scout verificados; silhuetas eram de cadastros provisórios); sem fonte de foto 181, fonte sem foto 17.
+- Lotes: stats_club (702 linhas), photo (1.310), photo_check (7 lotes, ~1.320 URLs) — todos com "Desfazer" na Cobertura.
+- Gargalo confirmado: cadastros sem nascimento (só apelido). Vínculo automático exige nome + nascimento (F14); 37 de 40 da 1ª rodada de enriquecimento foram para a fila. Fila de identidades: 634 itens pendentes.
+- Decisão do Gustavo (opção B, 12/10/2026): ligação automática quando duas fontes concordam — único candidato do Transfermarkt no clube do cadastro + único registro CBF do mesmo clube com o MESMO nascimento e nome compatível (`scout:identities-converge`, prévia/aplicar/desfazer na Cobertura). 1ª prévia: 0 ligar (18 com Transfermarkt único no clube, mas registro CBF sem nascimento). Correção #14: a fila de detalhe do coletor CBF passa a incluir registros livres do mesmo clube → nascimentos chegam na coleta das 06:20.
+- Próximo: após a coleta de 13/10 06:20, rodar a prévia de convergência, aplicar e enriquecer os ligados; o restante segue para revisão humana (opção A), priorizando os 65 prioritários.
+- Pendências de decisão do Gustavo: quem revisa a fila de identidades; MFA para acesso financeiro; histórico de transferências (Transfermarkt `/transfers`) ainda não coletado; Pro Soccer aguarda senha no Mac Mini.
+
