@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Http;
 
 class SourcesTest extends ScoutTestCase
 {
+    use CompleteLineups;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -88,6 +90,8 @@ class SourcesTest extends ScoutTestCase
             'cartoes' => ['amarelo' => ['mandante' => [], 'visitante' => []], 'vermelho' => ['mandante' => [], 'visitante' => []]],
             'substituicoes' => ['mandante' => [['saiu' => ['atleta_id' => 10], 'entrou' => ['atleta_id' => 11], 'minuto' => '20:00', 'periodo_slug' => 'segundo-tempo']], 'visitante' => []],
         ];
+        $base['substituicoes']['_fill'] = true;
+        $base = $this->completeLineups($base);
         $api = new ApiFutebol(SourceClient::for('api_futebol'));
         $f = $api->ingestMatch($base, null, 'Teste', '2026', $run);
         $this->assertSame('completo', $f->data_quality);
@@ -102,7 +106,7 @@ class SourcesTest extends ScoutTestCase
         $f2 = $api->ingestMatch($partial, null, 'Teste', '2026', $run);
         $this->assertSame('parcial', $f2->data_quality);
         $this->assertNull($f2->appearances()->where('started', true)->first()->minutes); // indeterminado, não 90
-        $this->assertSame(3, Player::count()); // reaproveita ids do provedor
+        $this->assertSame(24, Player::count()); // reaproveita ids do provedor (22 titulares + 2 reservas usados)
     }
 
     public function test_source_client_kill_switch_quota_and_block(): void
@@ -136,7 +140,7 @@ class SourcesTest extends ScoutTestCase
     public function test_transfermarkt_enrichment_fills_empty_and_reviews_conflicts(): void
     {
         $club = Club::create(['name' => 'Botafogo', 'state' => 'RJ']);
-        $p = Player::create(['name' => 'Ziyech', 'current_club_id' => $club->id, 'height_cm' => 175]);
+        $p = Player::create(['name' => 'Ziyech', 'current_club_id' => $club->id, 'height_cm' => 175, 'birth_date' => '1993-03-19']);
         Http::fake([
             '*/players/search/*' => Http::response(['results' => [['id' => '217111', 'name' => 'Hakim Ziyech', 'position' => 'RW', 'club' => ['id' => '537', 'name' => 'Botafogo de Futebol e Regatas'], 'age' => 33]]]),
             '*/players/217111/profile' => Http::response(['id' => '217111', 'url' => 'https://www.transfermarkt.com/x', 'dateOfBirth' => '1993-03-19', 'height' => 180,
@@ -149,13 +153,15 @@ class SourcesTest extends ScoutTestCase
         $res = PlayerEnrichment::enrichTransfermarkt($p->fresh());
         $this->assertSame('ok', $res['status']);
         $p->refresh();
-        $this->assertSame('1993-03-19', $p->birth_date->toDateString());
         $this->assertSame('PD', $p->primary_position->value);
+        $this->assertSame('nome_nascimento', $p->externalIds()->where('provider', 'transfermarkt')->value('link_method'));
         $this->assertSame('esquerdo', $p->preferred_foot->value);
-        $this->assertTrue($p->eu_passport);
+        $this->assertNull($p->eu_passport); // F15: cidadania holandesa declarada não confirma passaporte
+        $this->assertSame(['Marrocos', 'Holanda'], collect($p->citizenships)->pluck('country')->all());
+        $this->assertSame('transfermarkt', $p->citizenships[1]['source']);
         $this->assertSame(175, $p->height_cm); // não sobrescreve
         $this->assertTrue(EnrichmentReview::where('player_id', $p->id)->where('field', 'height_cm')->where('proposed_value', '180')->exists());
-        $this->assertSame('transfermarkt', $p->field_sources['birth_date']['source']);
+        $this->assertSame('transfermarkt', $p->field_sources['preferred_foot']['source']);
         $this->assertSame(1, $p->seasonStats()->where('provider', 'transfermarkt')->count());
         $this->assertTrue($p->marketObservations()->where('currency', 'EUR')->exists());
     }

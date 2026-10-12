@@ -1,49 +1,73 @@
-name: Tests
+name: Testes
 
+# CI do CIFUT Remo (F07/F23): roda em push/PR na main e na branch de refinamento,
+# com o mesmo PHP da imagem de produção (8.3) e PostgreSQL isolado. Sem gatilho noturno.
 on:
   push:
-    branches:
-      - master
-      - '*.x'
+    branches: [main, refino]
   pull_request:
-  schedule:
-    - cron: '0 0 * * *'
+    branches: [main]
 
 permissions:
   contents: read
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-    strategy:
-      fail-fast: true
-      matrix:
-        php: [8.3, 8.4, 8.5]
-
-    name: PHP ${{ matrix.php }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: scout
+          POSTGRES_PASSWORD: scout
+          POSTGRES_DB: remo_scout_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U scout -d remo_scout_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Setup PHP
+      - name: PHP 8.3 (igual à imagem dunglas/frankenphp:1-php8.3)
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          php-version: '8.3'
+          extensions: pdo_pgsql, pgsql, intl, zip, gd, bcmath, pcntl, mbstring, dom, curl
           coverage: none
 
-      - name: Install Composer dependencies
+      - name: Ferramentas do sistema (iguais à imagem de produção)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+
+      - name: Dependências
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Copy environment file
-        run: cp .env.example .env
+      - name: Ambiente de teste (sem segredos reais)
+        run: |
+          cp .env.example .env
+          php artisan key:generate
 
-      - name: Generate app key
-        run: php artisan key:generate
+      - name: Lint PHP
+        run: find app config database routes tests -name '*.php' -print0 | xargs -0 -n1 -P4 php -l > /dev/null
 
-      - name: Execute tests
+      - name: Testes (originais + regressões da auditoria)
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_DATABASE: remo_scout_test
+          DB_USERNAME: scout
+          DB_PASSWORD: scout
         run: php artisan test
+
+      - name: Testes do coletor local (Python, sem rede)
+        run: python3 collector/test_coletor.py

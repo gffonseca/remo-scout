@@ -15,6 +15,8 @@ abstract class ScoutTestCase extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \App\Support\ClubResolver::flush(); // cache estático de clubes não pode vazar entre testes
+        \App\Sources\SourceClient::$sleeper = null;
         $this->seed([ReferenceDataSeeder::class, CatalogSeeder::class]);
     }
 

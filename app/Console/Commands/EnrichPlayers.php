@@ -20,6 +20,17 @@ class EnrichPlayers extends Command
         $provider = $this->argument('provider');
         abort_unless(in_array($provider, ['transfermarkt', 'sofascore'], true), 1, 'Provedor inválido');
         $source = DataSource::byKey($provider);
+        if (! \App\Support\SourceRunLock::run($provider, fn () => $this->enrich($provider, $source))) {
+            $this->warn("{$provider}: já existe enriquecimento em andamento; esta execução foi ignorada.");
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function enrich(string $provider, DataSource $source): void
+    {
+        SyncRun::closeStale($source->id, 40);
+        $deadline = microtime(true) + 1200; // abaixo do lock por fonte e do timeout do job
         $run = SyncRun::create(['data_source_id' => $source->id, 'job' => 'enriquecimento', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['scope' => $this->option('scope'), 'limit' => (int) $this->option('limit')], 'requested_by' => $this->option('user')]);
 
@@ -32,6 +43,18 @@ class EnrichPlayers extends Command
             default => $q->where('is_priority', true),
         };
         foreach ($q->orderByDesc('is_priority')->limit((int) $this->option('limit'))->get() as $p) {
+            if (microtime(true) > $deadline) {
+                $run->note('Prazo da execução atingido; continua na próxima.');
+                break;
+            }
+            if ($source->transport === 'coletor_local') { // Sofascore: pedido ao coletor do Mac, concluído nas próximas rodadas
+                $t = \App\Services\Collector\SofascoreTasks::request($p, $this->option('user') ? (int) $this->option('user') : null);
+                $run->note("{$p->name}: ".($t->status === 'aguardando_coletor' ? 'pedido enviado ao coletor do Mac' : ($t->result ?? $t->status)));
+                $t->status === 'falhou' ? $run->errors++ : $run->updated++;
+                $run->save();
+
+                continue;
+            }
             try {
                 $link = $provider === 'transfermarkt' ? PlayerEnrichment::linkTransfermarkt($p) : PlayerEnrichment::linkSofascore($p);
                 $run->requests_made++;
@@ -55,7 +78,5 @@ class EnrichPlayers extends Command
         }
         $run->finish();
         $this->info("{$provider}: {$run->status} · enriquecidos {$run->updated} · a revisar {$run->discarded} · erros {$run->errors}");
-
-        return self::SUCCESS;
     }
 }

@@ -92,7 +92,7 @@ class CbfAthleteResource extends Resource
                             'cbf_id' => $record->cbf_id, 'data_origin' => 'provedor', 'current_club_id' => $record->club_id, 'birth_date' => $record->birth_date,
                             'field_sources' => ['cbf_id' => ['source' => 'cbf', 'at' => now()->toDateString()]],
                         ]);
-                        $record->update(['player_id' => $p->id]);
+                        $record->update(['player_id' => $p->id, 'link_status' => 'confirmado', 'detail_fetched_at' => null]); // ID oficial
                         Notification::make()->success()->title("{$p->name} cadastrado no scout")
                             ->actions([Action::make('ver')->label('Abrir perfil')->url(PlayerResource::getUrl('view', ['record' => $p]))])->send();
                     }),

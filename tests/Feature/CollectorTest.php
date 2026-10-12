@@ -49,7 +49,8 @@ class CollectorTest extends ScoutTestCase
     public function test_athlete_list_drops_cpf_links_and_details_fill_profile(): void
     {
         $club = Club::create(['name' => 'Centro Sportivo Alagoano', 'country' => 'Brasil', 'state' => 'AL', 'aliases' => ['CSA']]);
-        $p = Player::create(['name' => 'Abraão', 'current_club_id' => $club->id]);
+        $p = Player::create(['name' => 'Abraão', 'current_club_id' => $club->id, 'birth_date' => '2004-07-30']);
+        $sem = Player::create(['name' => 'Gabriel', 'current_club_id' => $club->id]); // sem nascimento no cadastro
         $run = $this->api('POST', 'cbf_atletas/inicio', ['host' => 'mini'])->assertOk()->json('run_id');
 
         $this->api('POST', 'cbf_atletas/lote', ['run_id' => $run, 'kind' => 'lista', 'competition' => ['slug' => 'campeonato-brasileiro/serie-d', 'label' => 'Série D', 'season' => '2026'],
@@ -62,7 +63,9 @@ class CollectorTest extends ScoutTestCase
 
         $a = CbfAthlete::where('cbf_id', '828757')->firstOrFail();
         $this->assertSame($p->id, $a->player_id);
-        $this->assertSame('828757', $p->fresh()->cbf_id);
+        $this->assertSame('provavel', $a->link_status); // F14: nome + clube = provável
+        $this->assertNull($p->fresh()->cbf_id);        // nada copiado antes de confirmar
+        $this->assertTrue(\App\Models\IdentityCandidate::where('player_id', $p->id)->where('kind', 'confirmar')->exists());
         $this->assertSame($club->id, $a->club_id);
         $this->assertSame('https://conteudo.cbf.com.br/clubes/20045/escudo.jpg', $club->fresh()->crest_url);
         $this->assertStringNotContainsString('12345678909', json_encode(DB::table('cbf_athletes')->get()));
@@ -86,6 +89,8 @@ class CollectorTest extends ScoutTestCase
         ]]])->assertOk()->assertJsonPath('ok', 1);
 
         $p->refresh();
+        $this->assertSame('828757', $p->cbf_id); // nascimento CBF = cadastro → confirmado e aplicado
+        $this->assertSame('confirmado', $a->fresh()->link_status);
         $this->assertSame('2004-07-30', $p->birth_date->toDateString());
         $this->assertSame('Abraao Marques De Lucena', $p->full_name);
         $this->assertStringStartsWith('players/cbf/828757-', $p->photo_path);

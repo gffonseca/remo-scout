@@ -50,10 +50,11 @@ class TacticalRoleResource extends Resource
 
     public const GROUPS = ['Goleiro', 'Zagueiro', 'Lateral/ala', 'Volante', 'Meio-campista central', 'Meia ofensivo', 'Ponta/meia de lado', 'Atacante'];
 
-    public const PHASES = [
-        'com_posse' => 'Com posse', 'sem_posse' => 'Sem posse', 'transicao_ofensiva' => 'Transição ofensiva',
-        'transicao_defensiva' => 'Transição defensiva', 'bola_parada' => 'Bola parada',
-    ];
+    /** Fases do modelo (decisão 12/10/2026). Transições são comportamentos do papel. */
+    public const PHASES = ['com_posse' => 'Com posse', 'sem_posse' => 'Sem posse', 'bola_parada' => 'Bola parada'];
+
+    /** Rótulos de valores antigos ainda presentes em versões do catálogo. */
+    public const LEGACY_PHASES = ['transicao_ofensiva' => 'Transição ofensiva (comportamento)', 'transicao_defensiva' => 'Transição defensiva (comportamento)'];
 
     public static function form(Schema $schema): Schema
     {
@@ -95,7 +96,7 @@ class TacticalRoleResource extends Resource
                 TextEntry::make('version')->label('Versão')->prefix('v'),
                 TextEntry::make('description')->label('Descrição')->columnSpanFull(),
                 TextEntry::make('compatible_positions')->label('Posições compatíveis')->badge()->columnSpan(2)->placeholder('—'),
-                TextEntry::make('phases')->label('Fases')->badge()->formatStateUsing(fn ($state) => self::PHASES[$state] ?? $state)->columnSpan(2)->placeholder('—'),
+                TextEntry::make('phases')->label('Fases')->badge()->formatStateUsing(fn ($state) => self::PHASES[$state] ?? self::LEGACY_PHASES[$state] ?? $state)->columnSpan(2)->placeholder('—'),
                 TextEntry::make('behaviors')->label('Comportamentos')->columnSpan(2)->placeholder('—'),
                 TextEntry::make('evaluation_suggestions')->label('Evidências sugeridas')->columnSpan(2)->placeholder('—'),
                 TextEntry::make('mandatory_requirements')->label('Obrigatórios')->columnSpan(2)->placeholder('—'),

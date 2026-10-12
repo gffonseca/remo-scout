@@ -16,6 +16,10 @@ class ProbeSources extends Command
 
     private const PROBES = [
         'api_futebol' => '/v1/campeonatos/10',
+        'api_football' => '/status',
+        'football_data' => '/notes.txt',
+        'dados_futebol' => '/v1/me',
+        'sportmonks' => 'https://api.sportmonks.com/v3/my/leagues',
         'transfermarkt' => '/players/search/Ziyech',
         'sofascore' => '/api/v1/search/all?q=remo',
         'sumula_fpf' => 'https://www.fpfpara.com.br/',
@@ -32,14 +36,24 @@ class ProbeSources extends Command
             }
             $path = self::PROBES[$s->key] ?? null;
             if ($s->transport === 'coletor_local') {
-                $this->line("[probe] {$s->key}: coletada pelo coletor local (Mac Mini); saúde vem da última execução");
+                // F17: sem ingestão concluída no prazo esperado (Mac desligado, coletor parado) → atrasada, não saudável.
+                $fresh = $s->freshness();
+                if (in_array($fresh, ['atrasado', 'nunca'], true)) {
+                    $at = $s->lastIngestedAt();
+                    $s->update(['health' => 'atrasado', 'last_error_at' => now(), 'last_error' => 'Coletor local sem execução concluída '
+                        .($at ? 'desde '.$at->timezone(config('scout.display_timezone'))->format('d/m H:i') : 'registrada')
+                        .' (esperado a cada '.$s->expected_refresh_hours.' h). Verifique se o Mac Mini está ligado.']);
+                    $this->line("[probe] {$s->key}: ATRASADA (coletor local)");
+                } else {
+                    $this->line("[probe] {$s->key}: coletor local em dia");
+                }
 
                 continue;
             }
             if (! $path) {
                 continue;
             }
-            $headers = $s->key === 'api_futebol' && $s->credential() ? ['Authorization' => 'Bearer '.$s->credential()] : [];
+            $headers = $s->authHeaders();
             try {
                 $body = (new SourceClient($s))->getRaw($path, [], $headers);
                 $this->line("[probe] {$s->key}: OK ".strlen($body).'B '.mb_substr(preg_replace('/\s+/', ' ', strip_tags($body)), 0, 160));

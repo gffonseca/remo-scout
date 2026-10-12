@@ -55,11 +55,11 @@ class ExportController extends Controller
         $cases = $need->shortlist()->with(['player.currentClub', 'player.latestContract', 'player.roleAssessments', 'stage', 'owner'])->get();
         AuditEvent::record('export_shortlist_'.$format, $need);
 
-        $header = ['Ordem', 'Atleta', 'Nome completo', 'Posição', 'Idade', 'Clube', 'Etapa', 'Requisitos obrigatórios', 'Nível no papel desejado', 'Situação contratual', 'Fim de contrato (obs.)', 'Justificativa', 'Responsável', 'ID CBF', 'Exportado em', 'Uso interno — piloto'];
+        $header = ['Ordem', 'Atleta', 'Nome completo', 'Posição', 'Idade', 'Clube', 'Etapa', 'Requisitos obrigatórios', 'Nível observado no papel (geral)', 'Situação contratual', 'Fim de contrato (obs.)', 'Justificativa', 'Responsável', 'ID CBF', 'Exportado em', 'Uso interno — piloto'];
         $rows = $cases->map(fn ($c) => [
             $c->shortlist_rank, $c->player->name, $c->player->full_name, $c->player->primary_position?->value, $c->player->age,
             $c->player->currentClub?->name, $c->stage->name, RequirementCheck::summary($need, $c->player),
-            $need->tactical_role_id ? ($c->player->roleAssessments->where('tactical_role_id', $need->tactical_role_id)->sortByDesc('updated_at')->first()?->level?->getLabel() ?? 'Não avaliado') : '',
+            $need->tactical_role_id ? RequirementCheck::observedLevelLabel($c->player, $need->tactical_role_id) : '',
             $c->player->latestContract?->status?->getLabel(), $c->player->latestContract?->contract_end?->format('d/m/Y'),
             $c->justification, $c->owner?->name, $c->player->cbf_id, now()->timezone(config('scout.display_timezone'))->format('d/m/Y H:i'), '',
         ]);

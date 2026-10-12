@@ -29,6 +29,17 @@ class ViewPlayer extends ViewRecord
     {
         /** @var Player $p */
         $p = $this->getRecord()->fresh(['currentClub', 'externalIds']);
+        if ($provider === 'sofascore' && \App\Models\DataSource::where('key', 'sofascore')->value('transport') === 'coletor_local') {
+            $t = \App\Services\Collector\SofascoreTasks::request($p, auth()->id());
+            match ($t->status) {
+                'concluida' => Notification::make()->success()->title($t->result)->send(),
+                'falhou' => Notification::make()->danger()->title('Sofascore: '.$t->result)->send(),
+                default => Notification::make()->info()->title('Pedido enviado ao coletor do Mac')
+                    ->body('O Sofascore recusa servidor; o Mac Mini busca em até ~15 min (precisa estar ligado). Recarregue o perfil depois.')->send(),
+            };
+
+            return;
+        }
         try {
             $link = $provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p) : \App\Services\PlayerEnrichment::linkSofascore($p);
             if (! in_array($link['status'], ['vinculado', 'ja_vinculado'], true)) {
@@ -77,13 +88,18 @@ class ViewPlayer extends ViewRecord
                     ->schema([
                         \Filament\Forms\Components\Radio::make('candidate')->label('Qual destes é o atleta?')->required()
                             ->options(fn () => \App\Models\IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->orderByDesc('score')
-                                ->get()->mapWithKeys(fn ($c) => [$c->id => '['.$c->provider.'] '.$c->label.' · aderência '.$c->score])),
+                                ->get()->mapWithKeys(fn ($c) => [$c->id => '['.$c->provider.' · '.$c->kindLabel().'] '.$c->label.($c->evidence ? ' — '.$c->evidence : '')])),
                     ])
-                    ->action(function (array $data) use ($p) {
+                    ->action(function (array $data) {
                         $c = \App\Models\IdentityCandidate::findOrFail($data['candidate']);
-                        $res = $c->provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p, $c->external_id) : \App\Services\PlayerEnrichment::linkSofascore($p, $c->external_id);
-                        Notification::make()->title($res['message'])->{$res['status'] === 'vinculado' ? 'success' : 'warning'}()->send();
-                        if ($res['status'] === 'vinculado') {
+                        try {
+                            Notification::make()->success()->title(\App\Services\IdentityReview::confirm($c, auth()->user()))->send();
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->danger()->title($e->getMessage())->send();
+
+                            return;
+                        }
+                        if (in_array($c->provider, ['transfermarkt', 'sofascore'], true) && $c->kind === 'escolher') {
                             $this->runSource($c->provider);
                         }
                     }),
@@ -94,6 +110,9 @@ class ViewPlayer extends ViewRecord
                     ->url(fn () => 'https://www.google.com/search?tbm=nws&q='.urlencode('"'.$p->name.'"'.($p->currentClub ? ' '.$p->currentClub->name : '').' futebol'))
                     ->openUrlInNewTab()
                     ->tooltip('Abre a busca no navegador. Não há síntese automática validada; registre manualmente o que for relevante.'),
+                Action::make('bid')->label('Abrir no BID da CBF')->icon(Heroicon::OutlinedDocumentCheck)
+                    ->url(fn () => \App\Support\Bid::url($p))->openUrlInNewTab()
+                    ->tooltip('O BID exige CAPTCHA: consulte no navegador e registre em Contrato › "Registrar consulta ao BID".'),
                 Action::make('sofascoreSearch')->label('Buscar no Sofascore')->icon(Heroicon::OutlinedMagnifyingGlass)
                     ->url(fn () => $p->sofascore_url ?: 'https://www.sofascore.com/pt/search?q='.urlencode($p->name))->openUrlInNewTab(),
                 Action::make('tmSearch')->label('Buscar no Transfermarkt')->icon(Heroicon::OutlinedMagnifyingGlass)

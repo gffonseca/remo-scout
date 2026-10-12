@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware([AuthenticateCollector::class, 'throttle:240,1'])->prefix('coletor')->group(function () {
     Route::get('plano', [CollectorController::class, 'plan']);
     Route::get('cbf_atletas/pendentes', [CollectorController::class, 'pending']);
+    Route::get('tarefas', [CollectorController::class, 'tasks']);
+    Route::post('tarefas/{task}', [CollectorController::class, 'taskResult'])->whereUuid('task');
     Route::post('{source}/inicio', [CollectorController::class, 'start']);
     Route::post('{source}/lote', [CollectorController::class, 'batch']);
     Route::post('{source}/fim', [CollectorController::class, 'finish']);

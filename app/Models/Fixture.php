@@ -15,7 +15,7 @@ class Fixture extends Model
 
     protected function casts(): array
     {
-        return ['played_on' => 'date', 'fetched_at' => 'datetime'];
+        return ['played_on' => 'date', 'fetched_at' => 'datetime', 'field_quality' => 'array'];
     }
 
     public function competition(): BelongsTo

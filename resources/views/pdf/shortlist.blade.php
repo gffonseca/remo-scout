@@ -16,7 +16,7 @@
     <td>{{ $c->shortlist_rank }}</td><td><b>{{ $p->name }}</b></td>
     <td>{{ $p->primary_position?->value }} · {{ $p->age ?? '?' }}</td><td>{{ $p->currentClub?->name ?? '—' }}</td><td>{{ $c->stage->name }}</td>
     <td>{{ \App\Services\RequirementCheck::summary($need, $p) }}</td>
-    <td>{{ $need->tactical_role_id ? ($p->roleAssessments->where('tactical_role_id', $need->tactical_role_id)->sortByDesc('updated_at')->first()?->level?->getLabel() ?? 'Não avaliado') : '—' }}</td>
+    <td>{{ $need->tactical_role_id ? \App\Services\RequirementCheck::observedLevelLabel($p, $need->tactical_role_id) : '—' }}</td>
     <td>{{ $p->latestContract?->status?->getLabel() ?? 'sem obs.' }}{{ $p->latestContract?->contract_end ? ' até '.$p->latestContract->contract_end->format('m/Y') : '' }}</td>
     <td>@foreach ($reportsByPlayer->get($p->id, collect()) as $r)<div>{{ $r->author->name }}: {{ $r->level->value === 'nao_observado' ? 'n/o' : $r->level->value }} / {{ $r->verdict->getLabel() }}</div>@endforeach</td>
     <td>{{ $c->justification ?? '—' }}</td>

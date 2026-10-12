@@ -14,7 +14,7 @@ class Appearance extends Model
 
     protected function casts(): array
     {
-        return ['started' => 'boolean', 'used' => 'boolean'];
+        return ['started' => 'boolean', 'used' => 'boolean', 'stats' => 'array'];
     }
 
     public function fixture(): BelongsTo

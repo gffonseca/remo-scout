@@ -13,6 +13,7 @@ Uso: python3 remo_scout_coletor.py [--so atletas|intermediarios] [--paginas N] [
 Só biblioteca padrão (Python 3.9+).
 """
 import argparse
+import hashlib
 import html
 import json
 import os
@@ -21,9 +22,10 @@ import socket
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
 CBF_SITE = "https://www.cbf.com.br"
 CBF_API = "https://www.cbf.com.br/api/cbf"
@@ -130,40 +132,67 @@ def competition_id(http, slug, season):
     return m.group(1) if m else None
 
 
+def start(scout, source):
+    """Abre (ou retoma, se houver execução do dia inacabada) e devolve run_id e páginas já recebidas."""
+    r = scout.call("POST", source + "/inicio", {"host": socket.gethostname(), "version": VERSION, "resume": True})
+    if r.get("resumed"):
+        log("%s: retomando execução %s" % (source, r["run_id"]))
+    return r["run_id"], {k: set(v) for k, v in (r.get("received") or {}).items()}
+
+
 def run_athletes(http, scout, plan, season, max_pages):
     cfg = plan.get("cbf_atletas")
     if not cfg:
         log("cbf_atletas desligada no REMO SCOUT; pulando")
         return
-    run = scout.call("POST", "cbf_atletas/inicio", {"host": socket.gethostname(), "version": VERSION})["run_id"]
-    notes = []
+    run, received = start(scout, "cbf_atletas")
+    notes, manifest = [], {}
     errors_before = http.errors
     try:
         for comp in cfg["competitions"]:
-            cid = competition_id(http, comp["slug"], comp.get("season", season))
+            slug = comp["slug"]
+            cid = competition_id(http, slug, comp.get("season", season))
             if not cid:
                 notes.append("%s: competição não encontrada na CBF" % comp["label"])
+                manifest[slug] = {"label": comp["label"], "found": False}
                 continue
-            page, total, sent, failed = 1, 1, 0, []
-            while page <= total and page <= max_pages:
+            done = received.get(slug, set())
+            competition = {"slug": slug, "label": comp["label"], "season": comp.get("season", season), "cbf_competition_id": cid}
+            total, sent, failed = 1, 0, []
+
+            def fetch(page):
+                nonlocal total, sent
                 body = http.get("%s/atletas/campeonato/%s/pagina/%d" % (CBF_API, cid, page))
-                if body is None:  # CBF instável (504): registra e segue para a próxima página
-                    failed.append(page)
-                    page += 1
-                    continue
+                if body is None:  # CBF instável (504)
+                    return False
                 data = json.loads(body)
-                meta = (data.get("meta") or [{}])[0]
-                total = int(meta.get("total") or 1)
+                total = int(((data.get("meta") or [{}])[0]).get("total") or 1)
                 rows = scrub(data.get("atletas") or [])
-                if rows:
-                    scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "lista", "items": rows,
-                                                            "competition": {"slug": comp["slug"], "label": comp["label"], "season": comp.get("season", season), "cbf_competition_id": cid}})
+                if page not in done:  # retomada: página já recebida não é reenviada
+                    scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "lista", "items": rows, "competition": competition,
+                                                            "batch_key": "lista:%s:%d" % (slug, page), "page": page, "total_pages": total})
                     sent += len(rows)
-                page += 1
+                return True
+
+            tried = set()
+            for _ in range(2):  # 2ª passada: páginas que falharam e as que só se conhece o total depois (ex.: falha na página 1)
+                page = 1
+                while page <= total and page <= max_pages:
+                    if (page == 1 or page not in done) and page not in tried:  # a página 1 é sempre lida para saber o total
+                        if fetch(page):
+                            tried.add(page)
+                        elif page not in failed:
+                            failed.append(page)
+                    page += 1
+                failed = [p for p in failed if p not in tried]
+                if not failed:
+                    break
+            manifest[slug] = {"label": comp["label"], "found": True, "total_pages": total, "limit": max_pages}
             if failed:
                 notes.append("%s: páginas sem resposta da CBF: %s" % (comp["label"], ", ".join(map(str, failed))))
-            log("%s (%s): %d atletas enviados, %d páginas%s" % (comp["label"], cid, sent, min(total, max_pages),
-                                                             (" — falharam: %s" % failed) if failed else ""))
+            log("%s (%s): %d atletas enviados, %d páginas%s%s" % (comp["label"], cid, sent, min(total, max_pages),
+                                                               (" — já recebidas: %d" % len(done)) if done else "",
+                                                               (" — falharam: %s" % failed) if failed else ""))
             notes.append("%s: %d atletas" % (comp["label"], sent))
 
         ids = scout.call("GET", "cbf_atletas/pendentes?limit=%d" % int(cfg.get("max_details", 150))).get("ids", []) if not scout.dry else []
@@ -175,17 +204,24 @@ def run_athletes(http, scout, plan, season, max_pages):
                 d.pop("jogos", None)  # súmulas por jogo não são usadas aqui
                 batch.append(d)
             if len(batch) >= 10:
-                scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "detalhe", "items": batch})
+                send_details(scout, run, batch)
                 done += len(batch)
                 batch = []
         if batch:
-            scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "detalhe", "items": batch})
+            send_details(scout, run, batch)
             done += len(batch)
         log("detalhes enviados: %d de %d pedidos" % (done, len(ids)))
         notes.append("detalhes: %d de %d" % (done, len(ids)))
     finally:
-        res = scout.call("POST", "cbf_atletas/fim", {"run_id": run, "requests_made": http.requests, "errors": http.errors - errors_before, "messages": notes[:50]})
+        res = scout.call("POST", "cbf_atletas/fim", {"run_id": run, "requests_made": http.requests, "errors": http.errors - errors_before,
+                                                     "messages": notes[:50], "manifest": manifest})
         log("cbf_atletas: %s" % json.dumps(res, ensure_ascii=False))
+
+
+def send_details(scout, run, batch):
+    ids = sorted(str(d.get("atleta_id") or d.get("id") or "") for d in batch)
+    key = "detalhe:" + hashlib.sha1(",".join(ids).encode()).hexdigest()
+    scout.call("POST", "cbf_atletas/lote", {"run_id": run, "kind": "detalhe", "items": batch, "batch_key": key})
 
 
 ROW = re.compile(r"<tr>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*</tr>", re.S)
@@ -196,7 +232,7 @@ def run_intermediaries(http, scout, plan, max_pages):
     if not cfg:
         log("cbf_intermediarios desligada no REMO SCOUT; pulando")
         return
-    run = scout.call("POST", "cbf_intermediarios/inicio", {"host": socket.gethostname(), "version": VERSION})["run_id"]
+    run, _ = start(scout, "cbf_intermediarios")
     errors_before, sent, page, notes = http.errors, 0, 1, []
     limit = min(int(cfg.get("max_pages", 120)), max_pages)
     try:
@@ -210,7 +246,7 @@ def run_intermediaries(http, scout, plan, max_pages):
             rows = scrub([r for r in rows if r["nome"] and r["nome"].upper() != "NOME"])
             if not rows:
                 break
-            scout.call("POST", "cbf_intermediarios/lote", {"run_id": run, "kind": "intermediarios", "items": rows})
+            scout.call("POST", "cbf_intermediarios/lote", {"run_id": run, "kind": "intermediarios", "items": rows, "batch_key": "intermediarios:%d" % page})
             sent += len(rows)
             if ("page=%d" % (page + 1)) not in body:
                 break
@@ -222,20 +258,73 @@ def run_intermediaries(http, scout, plan, max_pages):
         log("cbf_intermediarios: %s" % json.dumps(res, ensure_ascii=False))
 
 
+SOFA_ALLOWED = re.compile(r"^https://api\.sofascore\.com/api/v1/[A-Za-z0-9/_\-]+$")
+
+
+def fetch_status(url, interval, last):
+    """GET simples devolvendo (status, corpo); respeita o intervalo mínimo entre chamadas."""
+    wait = interval - (time.time() - last[0])
+    if wait > 0:
+        time.sleep(wait)
+    last[0] = time.time()
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json", "Accept-Language": "pt-BR"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.status, r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, None
+    except (urllib.error.URLError, socket.timeout, ConnectionError):
+        return 0, None
+
+
+def run_tasks(scout, max_rounds=12):
+    """Tarefas sob demanda (Sofascore): busca só os endereços que o servidor pediu e devolve; o servidor decide tudo."""
+    res = scout.call("GET", "tarefas")
+    tasks, interval, last, n = res.get("tarefas") or [], max(2.5, int(res.get("interval_ms", 2500)) / 1000.0), [0.0], 0
+    for task in tasks:
+        reqs = task.get("requests") or []
+        for _ in range(max_rounds):
+            reqs = [r for r in reqs if SOFA_ALLOWED.match(r.get("url", ""))]
+            if not reqs:
+                break
+            answers = []
+            for r in reqs:
+                q = r.get("query") or {}
+                url = r["url"] + ("?" + urllib.parse.urlencode(q) if q else "")
+                status, body = fetch_status(url, interval, last)
+                n += 1
+                answers.append({"url": r["url"], "query": q, "status": status, "body": body})
+            out = scout.call("POST", "tarefas/" + task["id"], {"responses": answers})
+            if out.get("status") != "aguardando_coletor":
+                log("tarefa %s: %s — %s" % (task["id"], out.get("status"), out.get("result")))
+                break
+            reqs = out.get("requests") or []
+    if tasks:
+        log("tarefas: %d atendidas, %d chamadas ao Sofascore" % (len(tasks), n))
+
+
 def main():
     ap = argparse.ArgumentParser(description="Coletor local da CBF para o REMO SCOUT")
-    ap.add_argument("--so", choices=["atletas", "intermediarios"])
+    ap.add_argument("--so", choices=["atletas", "intermediarios", "tarefas"])
     ap.add_argument("--paginas", type=int, default=1000, help="limite de páginas por lista (teste)")
     ap.add_argument("--dry-run", action="store_true", help="coleta mas não envia")
     args = ap.parse_args()
     base, token = load_config()
     scout = Scout(base, token, args.dry_run)
+    if args.so == "tarefas":  # modo leve (a cada 15 min): só tarefas sob demanda, sem plano da CBF
+        try:
+            run_tasks(scout)
+            return 0
+        except Exception as e:
+            log("ERRO em tarefas: %s" % e)
+            return 1
     plan = scout.call("GET", "plano")
     http = Http(int(plan.get("interval_ms", 1500)))
     season = str(plan.get("season"))
     log("início — coletor %s, temporada %s" % (VERSION, season))
     ok = True
-    for name, fn in (("atletas", lambda: run_athletes(http, scout, plan, season, args.paginas)),
+    for name, fn in (("tarefas", lambda: run_tasks(scout)),
+                     ("atletas", lambda: run_athletes(http, scout, plan, season, args.paginas)),
                      ("intermediarios", lambda: run_intermediaries(http, scout, plan, args.paginas))):
         if args.so and args.so != name:
             continue

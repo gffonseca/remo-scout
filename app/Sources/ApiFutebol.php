@@ -74,9 +74,13 @@ class ApiFutebol
     }
 
     /** Sincroniza partidas finalizadas ainda não processadas (ou alteradas). Limita chamadas por execução. */
+    /** Prazo interno da execução: bem abaixo do lock por fonte (1700 s) e do timeout do job (1500 s). */
+    public const MAX_RUN_SECONDS = 1200;
+
     public function sync(SyncRun $run, array $competitionIds, int $maxDetails = 300): void
     {
         $budget = $maxDetails;
+        $deadline = microtime(true) + self::MAX_RUN_SECONDS;
         foreach ($competitionIds as $cid) {
             $compName = self::COMPETITIONS[$cid] ?? "API Futebol #{$cid}";
             $competition = Competition::where('name', $compName)->first();
@@ -91,11 +95,14 @@ class ApiFutebol
                 continue;
             }
             $finished = array_filter($list, fn ($m) => ($m['status'] ?? '') === 'finalizado');
-            $known = Fixture::where('provider', self::PROVIDER)->whereIn('external_id', array_map(fn ($m) => (string) $m['partida_id'], $finished))
-                ->whereNotNull('fetched_at')->pluck('external_id')->all();
-            $pending = array_filter($finished, fn ($m) => ! in_array((string) $m['partida_id'], $known, true));
-            $run->note("{$compName} {$season}: ".count($finished).' finalizadas, '.count($pending).' a processar');
+            [$pending, $refresh] = static::selectForFetch($finished);
+            $run->note("{$compName} {$season}: ".count($finished).' finalizadas, '.count($pending).' novas, '.count($refresh).' a reconsultar (parciais/recentes)');
+            $pending = array_merge($pending, $refresh); // novas primeiro; reconsultas usam o saldo restante
             foreach ($pending as $m) {
+                if (microtime(true) > $deadline) {
+                    $run->note('Prazo da execução ('.self::MAX_RUN_SECONDS.' s) atingido; continua na próxima.');
+                    break 2;
+                }
                 if ($budget <= 0) {
                     $run->note('Limite de chamadas desta execução atingido; continua na próxima.');
                     break 2;
@@ -119,9 +126,54 @@ class ApiFutebol
         \App\Services\SeasonStatsAggregator::rebuildProvider(self::PROVIDER);
     }
 
+    /** Reconsulta parciais por até 30 dias e recentes por 3 dias, no máximo a cada 6 h (F08). */
+    public const REFRESH_PARTIAL_DAYS = 30;
+
+    public const REFRESH_RECENT_DAYS = 3;
+
+    public const REFRESH_TTL_HOURS = 6;
+
+    /**
+     * Separa partidas finalizadas em novas (nunca buscadas) e a reconsultar: dado parcial ainda na janela,
+     * ou jogo recente (correções de súmula/escalação costumam chegar depois). Completas antigas não gastam cota.
+     *
+     * @return array{0: list<array>, 1: list<array>}
+     */
+    public static function selectForFetch(array $finished): array
+    {
+        $known = Fixture::where('provider', self::PROVIDER)->whereIn('external_id', array_map(fn ($m) => (string) $m['partida_id'], $finished))
+            ->whereNotNull('fetched_at')->get(['external_id', 'data_quality', 'played_on', 'fetched_at'])->keyBy('external_id');
+        $new = $refresh = [];
+        foreach ($finished as $m) {
+            $f = $known->get((string) $m['partida_id']);
+            if (! $f) {
+                $new[] = $m;
+
+                continue;
+            }
+            $stale = $f->fetched_at->lt(now()->subHours(self::REFRESH_TTL_HOURS));
+            $played = $f->played_on;
+            $partialInWindow = $f->data_quality !== 'completo' && (! $played || $played->gte(now()->subDays(self::REFRESH_PARTIAL_DAYS)));
+            $recent = $played && $played->gte(now()->subDays(self::REFRESH_RECENT_DAYS));
+            if ($stale && ($partialInWindow || $recent)) {
+                $refresh[] = $m;
+            }
+        }
+
+        return [$new, $refresh];
+    }
+
     public function ingestMatch(array $d, ?Competition $competition, string $compName, string $season, SyncRun $run): Fixture
     {
-        return DB::transaction(function () use ($d, $competition, $compName, $season, $run) {
+        $hash = hash('sha256', json_encode($d));
+        $existing = Fixture::where('provider', self::PROVIDER)->where('external_id', (string) $d['partida_id'])->first();
+        if ($existing && $existing->payload_hash === $hash) {
+            $existing->update(['fetched_at' => now()]); // conferido, sem mudança na fonte
+
+            return $existing;
+        }
+
+        return DB::transaction(function () use ($d, $competition, $compName, $season, $run, $hash) {
             $home = ClubResolver::resolve(self::PROVIDER, (string) ($d['time_mandante']['time_id'] ?? ''), $d['time_mandante']['nome_popular'] ?? null, true);
             $away = ClubResolver::resolve(self::PROVIDER, (string) ($d['time_visitante']['time_id'] ?? ''), $d['time_visitante']['nome_popular'] ?? null, true);
             static::crest($home, $d['time_mandante']['escudo'] ?? null);
@@ -136,22 +188,45 @@ class ApiFutebol
                 'home_formation' => $d['escalacoes']['mandante']['esquema_tatico'] ?? null,
                 'away_formation' => $d['escalacoes']['visitante']['esquema_tatico'] ?? null,
                 'source_url' => 'https://api.api-futebol.com.br/v1/partidas/'.$d['partida_id'],
-                'payload_hash' => hash('sha256', json_encode($d)), 'fetched_at' => now(),
+                'payload_hash' => $hash, 'fetched_at' => now(),
             ]);
 
-            // Qualidade: sem substituições registradas ou gols listados ≠ placar → minutos indeterminados (null), nunca 90 presumido.
-            $subsCount = count($d['substituicoes']['mandante'] ?? []) + count($d['substituicoes']['visitante'] ?? []);
+            // F13 — qualidade por campo. Minutos de um lado só são determinados quando: 11 titulares identificados,
+            // substituições registradas com minuto legível, gols listados = placar. Caso contrário: null (nunca 90 presumido).
+            // Prorrogação detectada pelos eventos → duração 120. Gols que não conferem com o placar ficam marcados (total vira "pelo menos").
+            $events = array_merge(...array_map(fn ($x) => is_array($x) ? array_values($x) : [], [
+                $d['substituicoes']['mandante'] ?? [], $d['substituicoes']['visitante'] ?? [], $d['gols']['mandante'] ?? [], $d['gols']['visitante'] ?? [],
+                $d['cartoes']['amarelo']['mandante'] ?? [], $d['cartoes']['amarelo']['visitante'] ?? [], $d['cartoes']['vermelho']['mandante'] ?? [], $d['cartoes']['vermelho']['visitante'] ?? [],
+            ]));
+            $extraTime = collect($events)->contains(fn ($e) => str_contains((string) ($e['periodo_slug'] ?? ''), 'prorrog'));
+            $duration = $extraTime ? 120 : 90;
             $goalsListed = count(array_filter($d['gols']['mandante'] ?? [], fn ($g) => ! empty($g['atleta']))) + count(array_filter($d['gols']['visitante'] ?? [], fn ($g) => ! empty($g['atleta'])));
+            $scoreKnown = isset($d['placar_mandante'], $d['placar_visitante']);
             $scoreSum = (int) ($d['placar_mandante'] ?? 0) + (int) ($d['placar_visitante'] ?? 0);
-            $nullAthletes = 0;
+            $goalsOk = $scoreKnown && $goalsListed === $scoreSum;
+            $fq = ['duracao' => $duration, 'prorrogacao' => $extraTime, 'gols' => ! $scoreKnown ? 'placar_ausente' : ($goalsOk ? 'conferem' : 'divergem'),
+                'gols_listados' => $goalsListed, 'placar_total' => $scoreKnown ? $scoreSum : null];
+            $notes = [];
             foreach (['mandante', 'visitante'] as $sd) {
-                foreach (($d['escalacoes'][$sd]['titulares'] ?? []) as $t) {
-                    $nullAthletes += empty($t['atleta']) ? 1 : 0;
+                $lu = $d['escalacoes'][$sd] ?? null;
+                $starters = $lu['titulares'] ?? [];
+                $identified = count(array_filter($starters, fn ($t) => ! empty($t['atleta']['atleta_id'])));
+                $lineup = ! $lu || $starters === [] ? 'ausente' : ($identified === 11 ? 'completa' : 'incompleta');
+                $subs = $d['substituicoes'][$sd] ?? [];
+                $badMinute = count(array_filter($subs, fn ($x) => static::absMinute($x['minuto'] ?? null, $x['periodo_slug'] ?? null) === null));
+                $subsState = $subs === [] ? 'ausentes' : ($badMinute ? 'minuto_ilegivel' : 'registradas');
+                $minutesOk = $lineup === 'completa' && $subsState === 'registradas' && $goalsOk;
+                $fq[$sd] = ['escalacao' => $lineup, 'titulares_identificados' => $identified, 'substituicoes' => $subsState, 'minutos' => $minutesOk ? 'determinados' : 'indeterminados'];
+                if (! $minutesOk) {
+                    $notes[] = "{$sd}: escalação {$lineup} ({$identified}/11), substituições {$subsState}";
                 }
             }
-            $complete = $subsCount > 0 && $goalsListed === $scoreSum && $nullAthletes === 0;
-            $fixture->update(['data_quality' => $complete ? 'completo' : 'parcial', 'quality_note' => $complete ? null
-                : "Fonte incompleta: substituições={$subsCount}, gols listados={$goalsListed}/{$scoreSum}, titulares sem identificação={$nullAthletes}"]);
+            if (! $goalsOk) {
+                $notes[] = "gols listados {$goalsListed}/".($scoreKnown ? $scoreSum : '?');
+            }
+            $complete = $fq['mandante']['minutos'] === 'determinados' && $fq['visitante']['minutos'] === 'determinados';
+            $fixture->update(['data_quality' => $complete ? 'completo' : 'parcial', 'field_quality' => $fq,
+                'quality_note' => $notes ? 'Fonte incompleta — '.implode('; ', $notes).'. Minutos indeterminados não viram 90 nem zero.' : null]);
 
             foreach (['mandante' => $home, 'visitante' => $away] as $side => $club) {
                 $lineup = $d['escalacoes'][$side] ?? null;
@@ -167,7 +242,7 @@ class ApiFutebol
                         }
                         $rows[$aid] = [
                             'name' => $p['atleta']['nome_popular'] ?? 'Sem nome', 'started' => $starter, 'used' => $starter,
-                            'in' => $starter ? 0 : null, 'out' => $starter ? 90 : null,
+                            'in' => $starter ? 0 : null, 'out' => $starter ? $duration : null,
                             'position' => is_array($p['posicao'] ?? null) && isset($p['posicao']['nome']) ? $p['posicao']['nome'] : null,
                             'shirt' => $p['camisa'] ?? null, 'goals' => 0, 'pen' => 0, 'og' => 0, 'y' => 0, 'r' => 0,
                         ];
@@ -177,13 +252,13 @@ class ApiFutebol
                     $min = self::absMinute($s['minuto'] ?? null, $s['periodo_slug'] ?? null);
                     $in = (string) ($s['entrou']['atleta_id'] ?? '');
                     $out = (string) ($s['saiu']['atleta_id'] ?? '');
+                    if (isset($rows[$in])) {
+                        $rows[$in]['used'] = true; // entrou, mesmo que o minuto seja ilegível (aí os minutos do lado ficam indeterminados)
+                        $rows[$in]['in'] = $min;
+                        $rows[$in]['out'] ??= $min === null ? null : $duration;
+                    }
                     if ($min === null) {
                         continue;
-                    }
-                    if (isset($rows[$in])) {
-                        $rows[$in]['used'] = true;
-                        $rows[$in]['in'] = $min;
-                        $rows[$in]['out'] ??= 90;
                     }
                     if (isset($rows[$out])) {
                         $rows[$out]['out'] = $min;
@@ -209,22 +284,39 @@ class ApiFutebol
                             if ($k === 'r') {
                                 $min = self::absMinute($c['minuto'] ?? null, $c['periodo_slug'] ?? null);
                                 if ($min !== null && $rows[$aid]['used']) {
-                                    $rows[$aid]['out'] = min($rows[$aid]['out'] ?? 90, $min);
+                                    $rows[$aid]['out'] = min($rows[$aid]['out'] ?? $duration, $min);
                                 }
                             }
                         }
                     }
                 }
+                $seen = [];
                 foreach ($rows as $aid => $r) {
                     $player = $this->resolvePlayer($aid, $r['name'], $club, $run);
-                    $minutes = ! $complete ? ($r['used'] ? null : 0)
-                        : ($r['used'] && $r['in'] !== null ? max(0, min(90, (int) ($r['out'] ?? 90)) - $r['in']) : ($r['used'] ? null : 0));
+                    $seen[] = $player->id;
+                    $sideOk = $fq[$side]['minutos'] === 'determinados';
+                    // reserva sem entrada registrada: só é "não entrou" (zero confirmado) se as substituições do lado vieram;
+                    // sem substituições, a participação é desconhecida (null), nunca zero
+                    $benchKnown = $fq[$side]['substituicoes'] === 'registradas';
+                    if (! $r['used'] && ! $benchKnown) {
+                        $r['used'] = null;
+                    }
+                    $minutes = $r['used'] === false ? 0
+                        : ($r['used'] && $sideOk && $r['in'] !== null ? max(0, min($duration, (int) ($r['out'] ?? $duration)) - $r['in']) : null);
                     Appearance::updateOrCreate(['fixture_id' => $fixture->id, 'player_id' => $player->id], [
                         'club_id' => $club?->id, 'provider' => self::PROVIDER, 'started' => $r['started'], 'used' => $r['used'],
                         'minute_in' => $r['used'] ? $r['in'] : null, 'minute_out' => $r['used'] ? $r['out'] : null, 'minutes' => $minutes,
                         'position_label' => $r['position'], 'shirt' => $r['shirt'], 'goals' => $r['goals'], 'penalty_goals' => $r['pen'],
                         'own_goals' => $r['og'], 'yellow_cards' => $r['y'], 'red_cards' => $r['r'],
                     ]);
+                }
+                // Reconciliação: quem saiu da escalação corrigida deste lado deixa de constar na partida.
+                // Só para o lado cuja escalação veio na resposta (escalação ausente não apaga nada).
+                // Escalação vazia ou sem atletas identificados também não apaga (é falha da fonte, não correção).
+                if ($seen !== []) {
+                    Appearance::where('fixture_id', $fixture->id)->where('provider', self::PROVIDER)
+                        ->when($club, fn ($q) => $q->where('club_id', $club->id), fn ($q) => $q->whereNull('club_id'))
+                        ->whereNotIn('player_id', $seen)->delete();
                 }
             }
 
@@ -267,18 +359,32 @@ class ApiFutebol
         return $n;
     }
 
-    /** "26:44" no 2º tempo → 71. Acréscimo (>45 no período) é limitado ao fim regulamentar. Prorrogação → 90. */
+    /**
+     * Minuto absoluto a partir do relógio do período: "26:44" no 2º tempo → 71.
+     * Acréscimo é limitado ao fim do período. Prorrogação: 1º tempo → 90–105, 2º → 105–120.
+     * Período desconhecido (ou disputa de pênaltis) → null: quem chama trata como indeterminado.
+     */
     public static function absMinute(?string $clock, ?string $periodSlug): ?int
     {
         if (! $clock || ! preg_match('/^(\d{1,3}):\d{2}$/', trim($clock), $m)) {
             return null;
         }
+        $slug = (string) $periodSlug;
+        if (str_contains($slug, 'prorrog')) {
+            $min = min(15, (int) $m[1]);
+
+            return match (true) {
+                str_contains($slug, 'primeiro') || str_contains($slug, '1') => 90 + $min,
+                str_contains($slug, 'segundo') || str_contains($slug, '2') => 105 + $min,
+                default => null,
+            };
+        }
         $min = min(45, (int) $m[1]);
 
-        return match ($periodSlug) {
+        return match ($slug) {
             'primeiro-tempo' => $min,
             'segundo-tempo' => 45 + $min,
-            default => str_contains((string) $periodSlug, 'prorrog') ? 90 : null,
+            default => null,
         };
     }
 
@@ -288,19 +394,24 @@ class ApiFutebol
         if ($ext) {
             return $ext->player;
         }
-        // tenta casar com atleta do mesmo clube (nome igual/compatível) que ainda não tenha id deste provedor
-        $candidates = $club ? Player::where('current_club_id', $club->id)
-            ->whereDoesntHave('externalIds', fn ($q) => $q->where('provider', self::PROVIDER))->get(['id', 'name']) : collect();
-        $hits = $candidates->filter(fn ($p) => NameMatcher::score($p->name, $name) >= 95);
-        if ($hits->count() === 1) {
-            $player = Player::find($hits->first()->id);
-            $run->updated++;
-        } else {
-            $player = Player::create(['name' => $name, 'current_club_id' => $club?->id, 'data_origin' => 'provedor',
-                'notes' => 'Criado a partir de escalação (API Futebol). Completar identidade.']);
-            $run->created++;
+        // F14: a escalação só traz nome; sem nascimento não há vínculo automático com o cadastro do scout.
+        // As atuações ficam num cadastro provisório. Se houver um atleta do scout no mesmo clube com nome
+        // compatível, abre-se a revisão "mesclar" em "Identidades a revisar".
+        $player = Player::create(['name' => $name, 'current_club_id' => $club?->id, 'data_origin' => 'provedor',
+            'notes' => 'Cadastro provisório criado a partir de escalação (API Futebol). Completar identidade ou mesclar.']);
+        $run->created++;
+        PlayerExternalId::create(['player_id' => $player->id, 'provider' => self::PROVIDER, 'external_id' => $aid,
+            'verified' => false, 'link_method' => 'cadastro_provisorio']);
+        $hits = $club ? Player::where('current_club_id', $club->id)->where('id', '!=', $player->id)
+            ->where('data_origin', '!=', 'provedor')->get(['id', 'name', 'full_name'])
+            ->filter(fn ($p) => max(NameMatcher::score($p->name, $name), NameMatcher::score($p->full_name, $name)) >= 88) : collect();
+        foreach ($hits->take(3) as $h) {
+            \App\Models\IdentityCandidate::updateOrCreate(['player_id' => $h->id, 'provider' => self::PROVIDER, 'external_id' => $aid], [
+                'kind' => 'mesclar', 'status' => 'pendente', 'shadow_player_id' => $player->id, 'score' => NameMatcher::score($h->name, $name),
+                'label' => "{$name} — ".($club?->name ?? 'sem clube').' (escalação API Futebol)',
+                'evidence' => 'Mesmo clube e nome compatível; a fonte não informa nascimento. Confirmar move as atuações para o cadastro do scout.',
+            ]);
         }
-        PlayerExternalId::create(['player_id' => $player->id, 'provider' => self::PROVIDER, 'external_id' => $aid, 'verified' => false]);
 
         return $player;
     }

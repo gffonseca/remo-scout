@@ -51,7 +51,8 @@ class PlayerEnrichment
             return ['r' => $r, 'score' => max(0, min(130, $total)), 'club_ok' => $clubScore >= 50];
         })->sortByDesc('score')->values();
 
-        return static::decide($p, Transfermarkt::PROVIDER, $scored, fn ($r) => $r['name'].' — '.($r['club']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?').' · '.($r['age'] ?? '?').' anos', fn ($r) => (string) $r['id']);
+        return static::decide($p, Transfermarkt::PROVIDER, $scored, fn ($r) => $r['name'].' — '.($r['club']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?').' · '.($r['age'] ?? '?').' anos', fn ($r) => (string) $r['id'],
+            fn ($r) => $tm->profile((string) $r['id'])['dateOfBirth'] ?? null);
     }
 
     /** @return array{status:string,message:string} */
@@ -75,39 +76,53 @@ class PlayerEnrichment
             return ['r' => $r, 'score' => max(0, min(130, $total)), 'club_ok' => $clubScore >= 50];
         })->sortByDesc('score')->values();
 
-        return static::decide($p, Sofascore::PROVIDER, $scored, fn ($r) => ($r['name'] ?? '?').' — '.($r['team']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?'), fn ($r) => (string) $r['id']);
+        return static::decide($p, Sofascore::PROVIDER, $scored, fn ($r) => ($r['name'] ?? '?').' — '.($r['team']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?'), fn ($r) => (string) $r['id'],
+            fn ($r) => isset($r['dateOfBirthTimestamp']) ? \Illuminate\Support\Carbon::createFromTimestampUTC((int) $r['dateOfBirthTimestamp'])->toDateString() : null);
     }
 
-    private static function decide(Player $p, string $provider, $scored, callable $label, callable $idOf): array
+    /**
+     * F14: vínculo automático só com nome compatível E data de nascimento igual à do cadastro.
+     * Sem nascimento no cadastro (ou na fonte), ou com divergência, os candidatos vão para "Identidades a revisar".
+     */
+    private static function decide(Player $p, string $provider, $scored, callable $label, callable $idOf, ?callable $dobOf = null): array
     {
         if ($scored->isEmpty()) {
             return ['status' => 'sem_resultado', 'message' => 'Nenhum resultado na fonte para "'.$p->name.'".'];
         }
         $top = $scored->first();
         $second = $scored->get(1);
-        $strong = ($top['score'] >= 100 && $top['club_ok'] && (! $second || $top['score'] - $second['score'] >= 15))
-            // resultado único, nome compatível e sem clube local para contradizer (idade, quando conhecida, já penaliza no score)
-            || (! $second && $top['score'] >= 88 && ! $p->current_club_id);
-        if ($strong) {
-            return static::attach($p, $provider, $idOf($top['r']), 'Vínculo automático (nome + clube)');
+        $distinct = ! $second || $top['score'] - $second['score'] >= 15;
+        $evidence = null;
+        if ($top['score'] >= 88 && $distinct && $p->birth_date && $dobOf) {
+            $dob = $dobOf($top['r']);
+            $dob = $dob ? substr((string) $dob, 0, 10) : null;
+            if ($dob === $p->birth_date->toDateString()) {
+                return static::attach($p, $provider, $idOf($top['r']), 'Vínculo automático (nome + nascimento '.$p->birth_date->format('d/m/Y').')', 'nome_nascimento');
+            }
+            $evidence = $dob ? 'Nascimento na fonte '.\Illuminate\Support\Carbon::parse($dob)->format('d/m/Y').' ≠ cadastro '.$p->birth_date->format('d/m/Y') : 'Fonte não informa nascimento';
+        } elseif (! $p->birth_date) {
+            $evidence = 'Cadastro sem data de nascimento: vínculo só por revisão humana.';
         }
         foreach ($scored->take(6) as $c) {
             IdentityCandidate::updateOrCreate(
                 ['player_id' => $p->id, 'provider' => $provider, 'external_id' => $idOf($c['r'])],
-                ['label' => mb_substr($label($c['r']), 0, 250), 'details' => $c['r'], 'score' => $c['score'], 'status' => 'pendente'],
+                ['label' => mb_substr($label($c['r']), 0, 250), 'details' => $c['r'], 'score' => $c['score'], 'status' => 'pendente', 'kind' => 'escolher',
+                    'evidence' => $c === $top ? $evidence : null],
             );
         }
 
-        return ['status' => 'revisar', 'message' => 'Correspondência ambígua: '.min(6, $scored->count()).' candidato(s) aguardando escolha.'];
+        return ['status' => 'revisar', 'message' => min(6, $scored->count()).' candidato(s) em "Identidades a revisar"'.($evidence ? " ({$evidence})" : '').'.'];
     }
 
-    private static function attach(Player $p, string $provider, string $externalId, string $how): array
+    private static function attach(Player $p, string $provider, string $externalId, string $how, string $method = 'manual'): array
     {
         $existing = PlayerExternalId::where('provider', $provider)->where('external_id', $externalId)->first();
         if ($existing && $existing->player_id !== $p->id) {
             return ['status' => 'conflito', 'message' => "Este id já está vinculado a outro atleta ({$existing->player?->name}). Verifique possível duplicata."];
         }
-        PlayerExternalId::updateOrCreate(['provider' => $provider, 'external_id' => $externalId], ['player_id' => $p->id, 'verified' => str_contains($how, 'manual'), 'verified_by' => str_contains($how, 'manual') ? auth()->id() : null]);
+        // Só chega aqui com escolha humana (manual) ou nome + nascimento: ambos são vínculos confirmados.
+        PlayerExternalId::updateOrCreate(['provider' => $provider, 'external_id' => $externalId],
+            ['player_id' => $p->id, 'verified' => true, 'verified_by' => $method === 'manual' ? auth()->id() : null, 'link_method' => $method, 'evidence' => $how]);
         IdentityCandidate::where('player_id', $p->id)->where('provider', $provider)->update(['status' => 'descartado']);
         IdentityCandidate::where('player_id', $p->id)->where('provider', $provider)->where('external_id', $externalId)->update(['status' => 'vinculado']);
 
@@ -161,9 +176,9 @@ class PlayerEnrichment
                 $p->photo_source = Transfermarkt::PROVIDER;
                 $changes++;
             }
-            if (array_intersect($cit, Transfermarkt::EU) && $p->eu_passport === null) {
-                $p->eu_passport = true;
-                $changes++;
+            // F15: cidadania informada pela fonte vira cidadania declarada — nunca passaporte confirmado.
+            foreach ($cit as $c) {
+                $changes += $p->addCitizenship(Transfermarkt::country($c), Transfermarkt::PROVIDER) ? 1 : 0;
             }
             if (! empty($prof['agent']['name']) && ! $p->agent_id) {
                 $agent = Agent::query()->whereRaw('lower(name) = ?', [mb_strtolower($prof['agent']['name'])])->first()
@@ -182,7 +197,7 @@ class PlayerEnrichment
                 $club->update(['crest_url' => 'https://tmssl.akamaized.net/images/wappen/head/'.$prof['club']['id'].'.png', 'crest_source' => Transfermarkt::PROVIDER]);
             }
             if ($club && $p->current_club_id && $club->id !== $p->current_club_id) {
-                $reviews += static::review($p, 'current_club_id', $p->currentClub?->name, $club->name.' (#'.$club->id.')', Transfermarkt::PROVIDER);
+                $reviews += static::review($p, 'current_club_id', $p->current_club_id, $club->id, Transfermarkt::PROVIDER);
             } elseif ($club && ! $p->current_club_id) {
                 $p->update(['current_club_id' => $club->id]);
                 $changes++;
@@ -233,6 +248,8 @@ class PlayerEnrichment
                 }
                 try {
                     $st = $sf->seasonStats($id, (int) $ut['uniqueTournament']['id'], (int) $season['id']);
+                } catch (\App\Sources\CollectorPending $e) {
+                    throw $e; // pedido ao coletor do Mac: a tarefa continua na próxima rodada
                 } catch (SourceException $e) {
                     continue;
                 }
@@ -277,40 +294,89 @@ class PlayerEnrichment
 
             return [1, 0];
         }
-        $cmp = $field === 'birth_date' ? substr((string) $current, 0, 10) : (string) $current;
-        if (mb_strtolower($cmp) !== mb_strtolower((string) $value)) {
-            return [0, static::review($p, $field, $cmp, (string) $value, $provider)];
+        if (! \App\Support\RawValue::same($current, $value)
+            && ! (is_string($current) && is_string($value) && mb_strtolower(trim($current)) === mb_strtolower(trim($value)))) {
+            return [0, static::review($p, $field, $current, $value, $provider)];
         }
 
         return [0, 0];
     }
 
-    private static function review(Player $p, string $field, ?string $current, string $proposed, string $provider): int
+    /** Rótulo legível de um valor bruto (UUID de clube vira nome; data vira dd/mm/aaaa). */
+    public static function label(string $field, mixed $raw): ?string
     {
-        $r = EnrichmentReview::firstOrCreate(
-            ['player_id' => $p->id, 'provider' => $provider, 'field' => $field, 'proposed_value' => $proposed, 'status' => 'pendente'],
-            ['current_value' => $current],
-        );
+        if ($raw === null || $raw === '') {
+            return null;
+        }
 
-        return $r->wasRecentlyCreated ? 1 : 0;
+        return match (true) {
+            in_array($field, ['current_club_id', 'rights_holder_club_id'], true) => (\App\Models\Club::find($raw)?->name ?? 'clube inexistente').' (#'.$raw.')',
+            $field === 'agent_id' => \App\Models\Agent::find($raw)?->name ?? 'empresário inexistente',
+            (bool) preg_match('/^\d{4}-\d{2}-\d{2}/', (string) $raw) => \Illuminate\Support\Carbon::parse($raw)->format('d/m/Y'),
+            default => is_array($raw) ? implode(', ', $raw) : (string) $raw,
+        };
     }
 
-    /** Aplica revisão aceita. */
-    public static function accept(EnrichmentReview $r, ?int $userId): void
+    private static function review(Player $p, string $field, mixed $currentRaw, mixed $proposedRaw, string $provider): int
     {
-        $p = $r->player;
-        $value = $r->proposed_value;
-        if ($r->field === 'current_club_id') {
-            preg_match('/#([0-9a-f\-]{36})\)$/', $value, $m);
-            $value = $m[1] ?? null;
+        $currentRaw = $currentRaw instanceof \DateTimeInterface ? $currentRaw->format('Y-m-d') : $currentRaw;
+        $proposedRaw = $proposedRaw instanceof \DateTimeInterface ? $proposedRaw->format('Y-m-d') : $proposedRaw;
+        $pending = EnrichmentReview::where('player_id', $p->id)->where('provider', $provider)->where('field', $field)->where('status', 'pendente')->get()
+            ->first(fn ($r) => \App\Support\RawValue::same($r->proposed_raw, $proposedRaw));
+        if ($pending) {
+            return 0;
         }
-        if ($value !== null) {
-            $p->{$r->field} = $value;
+        EnrichmentReview::create([
+            'player_id' => $p->id, 'provider' => $provider, 'field' => $field, 'status' => 'pendente',
+            'current_raw' => $currentRaw, 'proposed_raw' => $proposedRaw,
+            'current_value' => static::label($field, $currentRaw), 'proposed_value' => static::label($field, $proposedRaw),
+        ]);
+
+        return 1;
+    }
+
+    /**
+     * Aplica revisão (F16). Só marca "aceito" depois de confirmar que o valor gravado é o proposto.
+     * Se o cadastro mudou desde que a revisão foi aberta, ou o valor proposto é inválido, vira "conflito".
+     *
+     * @return array{status:string, message:string}
+     */
+    public static function accept(EnrichmentReview $r, ?int $userId): array
+    {
+        return DB::transaction(function () use ($r, $userId) {
+            $r = EnrichmentReview::whereKey($r->id)->lockForUpdate()->firstOrFail();
+            if ($r->status !== 'pendente') {
+                return ['status' => $r->status, 'message' => 'Revisão já decidida ('.$r->status.').'];
+            }
+            $p = Player::whereKey($r->player_id)->lockForUpdate()->firstOrFail();
+            $field = $r->field;
+            $proposed = $r->proposed_raw;
+            $conflict = function (string $why) use ($r, $userId) {
+                $r->update(['status' => 'conflito', 'decision_note' => $why, 'reviewed_by' => $userId, 'reviewed_at' => now()]);
+
+                return ['status' => 'conflito', 'message' => $why];
+            };
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('players', $field)) {
+                return $conflict("Campo {$field} não existe no cadastro.");
+            }
+            if (! \App\Support\RawValue::same($p->getRawOriginal($field), $r->current_raw)) {
+                return $conflict('O cadastro mudou depois que a revisão foi aberta (agora: '.(static::label($field, $p->getRawOriginal($field)) ?? 'vazio').'). Reavalie.');
+            }
+            if (in_array($field, ['current_club_id', 'rights_holder_club_id'], true) && ! \App\Models\Club::whereKey($proposed)->exists()) {
+                return $conflict('Clube proposto não existe mais.');
+            }
+            $p->{$field} = $proposed;
             $src = $p->field_sources ?? [];
-            $src[$r->field] = ['source' => $r->provider, 'at' => now()->toDateString(), 'reviewed_by' => $userId];
+            $src[$field] = ['source' => $r->provider, 'at' => now()->toDateString(), 'reviewed_by' => $userId];
             $p->field_sources = $src;
             $p->save();
-        }
-        $r->update(['status' => 'aceito', 'reviewed_by' => $userId, 'reviewed_at' => now()]);
+            $applied = DB::table('players')->where('id', $p->id)->value($field);
+            if (! \App\Support\RawValue::same($applied, $proposed)) {
+                throw new \RuntimeException("Aplicação de {$field} não confirmada; nada foi alterado.");
+            }
+            $r->update(['status' => 'aceito', 'reviewed_by' => $userId, 'reviewed_at' => now(), 'decision_note' => null]);
+
+            return ['status' => 'aceito', 'message' => 'Aplicado: '.static::label($field, $proposed)];
+        });
     }
 }

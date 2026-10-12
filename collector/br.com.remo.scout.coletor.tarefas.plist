@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>br.com.remo.scout.coletor.tarefas</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>__HOME__/remo-scout-coletor/remo_scout_coletor.py</string>
+        <string>--so</string>
+        <string>tarefas</string>
+    </array>
+    <!-- A cada 15 min: só tarefas sob demanda (Sofascore). Sem tarefa = 1 chamada ao CIFUT e fim. -->
+    <key>StartInterval</key><integer>900</integer>
+    <key>StandardOutPath</key><string>__HOME__/remo-scout-coletor/tarefas.log</string>
+    <key>StandardErrorPath</key><string>__HOME__/remo-scout-coletor/tarefas.log</string>
+    <key>LowPriorityIO</key><true/>
+    <key>Nice</key><integer>10</integer>
+</dict>
+</plist>

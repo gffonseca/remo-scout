@@ -39,6 +39,23 @@ class SyncRun extends Model
         $this->messages = $m;
     }
 
+    /**
+     * Fecha execuções da fonte que ficaram "em execução" além do razoável (worker morto, timeout, deploy no meio).
+     * Chamado no início de cada nova execução da mesma fonte. Nunca apaga: marca "falhou" com a explicação.
+     */
+    public static function closeStale(string $dataSourceId, int $olderThanMinutes): int
+    {
+        $n = 0;
+        foreach (static::where('data_source_id', $dataSourceId)->where('status', 'em_execucao')
+            ->where('started_at', '<', now()->subMinutes($olderThanMinutes))->get() as $run) {
+            $run->note("Interrompida: sem conclusão após {$olderThanMinutes} min (worker reiniciado, timeout ou deploy).");
+            $run->finish('falhou');
+            $n++;
+        }
+
+        return $n;
+    }
+
     public function finish(?string $status = null): void
     {
         $this->status = $status ?? ($this->errors > 0 ? ($this->created + $this->updated > 0 ? 'parcial' : 'falhou') : 'concluido');

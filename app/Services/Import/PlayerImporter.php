@@ -8,10 +8,12 @@ use App\Enums\Position;
 use App\Models\Club;
 use App\Models\ContractObservation;
 use App\Models\ImportBatch;
+use App\Models\ImportChange;
 use App\Models\MarketObservation;
 use App\Models\Player;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Support\MoneyParser;
 use Illuminate\Support\Str;
 
 /**
@@ -153,19 +155,36 @@ class PlayerImporter
                 $data['__agent'] = ['name' => Str::limit($v, 150, ''), 'phone' => trim((string) $get('agent_phone')) ?: null, 'email' => filter_var(trim((string) $get('agent_email')), FILTER_VALIDATE_EMAIL) ?: null];
             }
             if ($allowFinancial) {
-                $smin = static::parseMoney($get('salary_min'));
-                $smax = static::parseMoney($get('salary_max'));
-                if ($smin !== null || $smax !== null) {
-                    if ($smin !== null && $smax !== null && $smax < $smin) {
-                        [$smin, $smax] = [$smax, $smin];
+                // Dinheiro (F02): só entra o que foi lido sem ambiguidade; o resto fica na prévia para revisão.
+                $money = function (string $field, string $label) use ($get, &$msgs): ?array {
+                    $r = MoneyParser::parse($get($field));
+                    if ($r['status'] === 'vazio') {
+                        return null;
+                    }
+                    $msgs[] = $label.': '.MoneyParser::describe($r);
+
+                    return $r['status'] === 'ok' ? $r : null;
+                };
+                $smin = $money('salary_min', 'salário mín.');
+                $smax = $money('salary_max', 'salário máx.');
+                if ($smin && $smax && $smin['currency'] !== $smax['currency']) {
+                    $msgs[] = 'faixa salarial com moedas diferentes não importada';
+                    $smin = $smax = null;
+                }
+                if ($smin || $smax) {
+                    [$lo, $hi] = [$smin['value'] ?? null, $smax['value'] ?? null];
+                    if ($lo !== null && $hi !== null && $hi < $lo) {
+                        [$lo, $hi] = [$hi, $lo];
                         $msgs[] = 'faixa salarial invertida corrigida';
                     }
-                    $data['salary_min'] = $smin;
-                    $data['salary_max'] = $smax;
+                    $data['salary_min'] = $lo;
+                    $data['salary_max'] = $hi;
+                    $data['salary_currency'] = ($smin ?? $smax)['currency'];
                     $data['salary_observed_on'] = now()->toDateString();
                 }
-                if (($ap = static::parseMoney($get('asking_price'))) !== null) {
-                    $data['asking_price'] = $ap;
+                if ($ap = $money('asking_price', 'pedida')) {
+                    $data['asking_price'] = $ap['value'];
+                    $data['asking_price_currency'] = $ap['currency'];
                 }
             }
             $ms = Str::of((string) $get('market_status'))->lower()->ascii()->toString();
@@ -202,8 +221,11 @@ class PlayerImporter
             if ($cEnd || $cStatus) {
                 $data['__contract'] = ['contract_end' => $cEnd?->toDateString(), 'status' => $cStatus ?? 'vigente'];
             }
-            if ($allowFinancial && ($mv = static::parseMoney($get('market_value'))) !== null) {
-                $data['__market_value'] = $mv;
+            if ($allowFinancial && ($mvr = MoneyParser::parse($get('market_value')))['status'] !== 'vazio') {
+                $msgs[] = 'valor de mercado: '.MoneyParser::describe($mvr);
+                if ($mvr['status'] === 'ok') {
+                    $data['__market_value'] = ['amount' => $mvr['value'], 'currency' => $mvr['currency']];
+                }
             }
 
             // Correspondência com cadastro existente
@@ -238,62 +260,88 @@ class PlayerImporter
         return DB::transaction(function () use ($plan, $filename, $mapping, $userId) {
             $batch = ImportBatch::create([
                 'user_id' => $userId, 'original_filename' => $filename, 'mapping' => $mapping,
-                'status' => 'preview', 'rows_total' => count($plan),
+                'status' => 'preview', 'rows_total' => count($plan), 'has_change_log' => true,
             ]);
-            $created = $updated = $skipped = $failed = 0;
-            $errors = [];
-            foreach ($plan as $item) {
-                if ($item['action'] === 'erro' || $item['action'] === 'ignorar') {
-                    $item['action'] === 'erro' ? $failed++ : $skipped++;
-                    $errors[] = ['row' => $item['row'], 'name' => $item['data']['name'] ?? null, 'message' => ($item['action'] === 'erro' ? 'Erro: ' : 'Ignorado: ').$item['message']];
+            $log = fn (string $type, string $id, string $action, ?string $field = null, mixed $old = null, mixed $new = null) => ImportChange::create([
+                'import_batch_id' => $batch->id, 'entity_type' => $type, 'entity_id' => $id, 'action' => $action,
+                'field' => $field, 'old_value' => $old, 'new_value' => $new,
+            ]);
+            Player::$importBatchContext = $batch->id;
+            try {
+                $created = $updated = $skipped = $failed = 0;
+                $errors = [];
+                foreach ($plan as $item) {
+                    if ($item['action'] === 'erro' || $item['action'] === 'ignorar') {
+                        $item['action'] === 'erro' ? $failed++ : $skipped++;
+                        $errors[] = ['row' => $item['row'], 'name' => $item['data']['name'] ?? null, 'message' => ($item['action'] === 'erro' ? 'Erro: ' : 'Ignorado: ').$item['message']];
 
-                    continue;
-                }
-                $d = $item['data'];
-                $club = isset($d['__club']) ? Club::findOrCreateByName($d['__club']) : null;
-                $attrs = collect($d)->reject(fn ($v, $k) => str_starts_with($k, '__'))->all();
-                if ($club) {
-                    $attrs['current_club_id'] = $club->id;
-                }
-                if (isset($d['__agent'])) {
-                    $agent = \App\Models\Agent::query()->whereRaw('lower(name) = ?', [mb_strtolower($d['__agent']['name'])])->first()
-                        ?? \App\Models\Agent::create(array_filter($d['__agent']) + ['created_by' => $userId]);
-                    $attrs['agent_id'] = $agent->id;
-                }
-
-                if ($item['action'] === 'atualizar') {
-                    $player = Player::find($item['match_id']);
-                    $fill = [];
-                    foreach ($attrs as $k => $v) {
-                        $cur = $player->getRawOriginal($k);
-                        if ($cur === null || $cur === '' || ($k === 'preferred_foot' && $cur === 'nao_informado') || ($k === 'market_status' && $cur === 'desconhecido') || ($k === 'is_priority' && ! $cur)) {
-                            $fill[$k] = $v;
+                        continue;
+                    }
+                    $d = $item['data'];
+                    $club = null;
+                    if (isset($d['__club'])) {
+                        // Usa apelidos/variações já cadastrados antes de criar clube novo
+                        $club = \App\Support\ClubResolver::byName($d['__club']);
+                        if (! $club) {
+                            $club = Club::create(['name' => Str::limit(trim($d['__club']), 120, ''), 'country' => 'Brasil']);
+                            \App\Support\ClubResolver::flush();
+                            $log('club', $club->id, 'created', null, null, ['name' => $club->name]);
                         }
                     }
-                    $player->fill($fill)->save();
-                    $updated++;
-                } else {
-                    $player = Player::create($attrs + ['data_origin' => 'importacao', 'import_batch_id' => $batch->id, 'created_by' => $userId]);
-                    $created++;
-                }
+                    $attrs = collect($d)->reject(fn ($v, $k) => str_starts_with($k, '__'))->all();
+                    if ($club) {
+                        $attrs['current_club_id'] = $club->id;
+                    }
+                    if (isset($d['__agent'])) {
+                        $agent = \App\Models\Agent::query()->whereRaw('lower(name) = ?', [mb_strtolower($d['__agent']['name'])])->first();
+                        if (! $agent) {
+                            $agent = \App\Models\Agent::create(array_filter($d['__agent']) + ['created_by' => $userId, 'import_batch_id' => $batch->id]);
+                            $log('agent', $agent->id, 'created', null, null, ['name' => $agent->name]);
+                        }
+                        $attrs['agent_id'] = $agent->id;
+                    }
 
-                if (isset($d['__contract'])) {
-                    ContractObservation::create($d['__contract'] + [
-                        'player_id' => $player->id, 'club_id' => $club?->id, 'confirmation' => 'nao_verificado',
-                        'source_label' => 'Planilha: '.$filename, 'observed_on' => now()->toDateString(),
-                        'import_batch_id' => $batch->id, 'author_id' => $userId,
-                    ]);
+                    if ($item['action'] === 'atualizar') {
+                        $player = Player::find($item['match_id']);
+                        $fill = $before = [];
+                        foreach ($attrs as $k => $v) {
+                            $cur = $player->getRawOriginal($k);
+                            if ($cur === null || $cur === '' || ($k === 'preferred_foot' && $cur === 'nao_informado') || ($k === 'market_status' && $cur === 'desconhecido') || ($k === 'is_priority' && ! $cur)) {
+                                $fill[$k] = $v;
+                                $before[$k] = $cur;
+                            }
+                        }
+                        $player->fill($fill)->save();
+                        foreach (array_keys($fill) as $k) {
+                            $log('player', $player->id, 'updated', $k, $before[$k], $player->getRawOriginal($k));
+                        }
+                        $updated++;
+                    } else {
+                        $player = Player::create($attrs + ['data_origin' => 'importacao', 'import_batch_id' => $batch->id, 'created_by' => $userId]);
+                        $log('player', $player->id, 'created', null, null, collect(array_keys($attrs))->mapWithKeys(fn ($k) => [$k => $player->getRawOriginal($k)])->all());
+                        $created++;
+                    }
+
+                    if (isset($d['__contract'])) {
+                        ContractObservation::create($d['__contract'] + [
+                            'player_id' => $player->id, 'club_id' => $club?->id, 'confirmation' => 'nao_verificado',
+                            'source_label' => 'Planilha: '.$filename, 'observed_on' => now()->toDateString(),
+                            'import_batch_id' => $batch->id, 'author_id' => $userId,
+                        ]);
+                    }
+                    if (isset($d['__market_value'])) {
+                        MarketObservation::create([
+                            'player_id' => $player->id, 'kind' => 'valor_mercado', 'amount' => $d['__market_value']['amount'], 'currency' => $d['__market_value']['currency'],
+                            'confirmation' => 'nao_verificado', 'source_label' => 'Planilha: '.$filename, 'observed_on' => now()->toDateString(),
+                            'import_batch_id' => $batch->id, 'author_id' => $userId,
+                        ]);
+                    }
+                    if ($item['message'] !== '') {
+                        $errors[] = ['row' => $item['row'], 'name' => $d['name'], 'message' => 'Aviso: '.$item['message']];
+                    }
                 }
-                if (isset($d['__market_value'])) {
-                    MarketObservation::create([
-                        'player_id' => $player->id, 'kind' => 'valor_mercado', 'amount' => $d['__market_value'], 'currency' => 'BRL',
-                        'confirmation' => 'nao_verificado', 'source_label' => 'Planilha: '.$filename, 'observed_on' => now()->toDateString(),
-                        'import_batch_id' => $batch->id, 'author_id' => $userId,
-                    ]);
-                }
-                if ($item['message'] !== '') {
-                    $errors[] = ['row' => $item['row'], 'name' => $d['name'], 'message' => 'Aviso: '.$item['message']];
-                }
+            } finally {
+                Player::$importBatchContext = null;
             }
             $batch->update([
                 'rows_created' => $created, 'rows_updated' => $updated, 'rows_skipped' => $skipped, 'rows_failed' => $failed,
@@ -304,27 +352,132 @@ class PlayerImporter
         });
     }
 
-    /** @return array{removed:int, kept:int} */
+    /**
+     * Reverte um lote uma única vez (F05):
+     * - campos preenchidos em atleta existente voltam ao valor anterior, se ninguém os alterou depois;
+     * - atletas/empresários/clubes criados pelo lote saem, se não foram editados nem usados depois;
+     * - observações (contrato, mercado, salário derivado) do lote saem;
+     * - tudo o que não pôde ser desfeito vira conflito explícito no relatório, sem sobrescrever trabalho posterior.
+     *
+     * @return array{removed:int, removed_other:int, kept:int, restored:int, conflicts:list<array{entity:string, id:string, label:string, field:?string, reason:string}>}
+     */
     public static function revert(ImportBatch $batch, ?int $userId): array
     {
         return DB::transaction(function () use ($batch, $userId) {
-            ContractObservation::where('import_batch_id', $batch->id)->delete();
-            MarketObservation::where('import_batch_id', $batch->id)->delete();
-            $removed = $kept = 0;
-            foreach (Player::where('import_batch_id', $batch->id)->get() as $p) {
-                $hasWork = $p->scoutingReports()->exists() || $p->roleAssessments()->exists()
-                    || $p->specialtyAssessments()->exists() || $p->prospectCases()->exists() || $p->videoReferences()->exists();
-                if ($hasWork) {
+            $batch = ImportBatch::whereKey($batch->id)->lockForUpdate()->firstOrFail();
+            if ($batch->reverted_at) {
+                throw new \RuntimeException('Este lote já foi revertido em '.$batch->reverted_at->format('d/m/Y H:i').'.');
+            }
+            $removed = $kept = $restored = $removedOther = 0;
+            $conflicts = [];
+            $conflict = function (string $entity, string $id, string $label, ?string $field, string $reason) use (&$conflicts) {
+                $conflicts[] = compact('entity', 'id', 'label', 'field', 'reason');
+            };
+
+            // Observações do lote: saem, salvo se alguém as editou/confirmou depois (aí ficam como conflito,
+            // e o atleta delas também fica — apagá-lo levaria a observação junto, em cascata).
+            $keptObsPlayers = [];
+            foreach ([ContractObservation::class => 'contract_observation', MarketObservation::class => 'market_observation'] as $cls => $type) {
+                foreach ($cls::where('import_batch_id', $batch->id)->get() as $o) {
+                    if ($o->updated_at && $o->created_at && $o->updated_at->gt($o->created_at->copy()->addSeconds(2))) {
+                        $conflict($type, $o->id, $o->player?->name ?? '—', null, 'observação editada depois da importação; mantida');
+                        $keptObsPlayers[] = $o->player_id;
+                    } else {
+                        $o->delete();
+                    }
+                }
+            }
+
+            // 1) campos alterados em atletas que já existiam
+            foreach ($batch->changes()->where('entity_type', 'player')->where('action', 'updated')->get() as $ch) {
+                $raw = DB::table('players')->where('id', $ch->entity_id)->first();
+                if (! $raw) {
+                    $conflict('player', $ch->entity_id, '(excluído)', $ch->field, 'atleta não existe mais');
+
+                    continue;
+                }
+                if (static::same($raw->{$ch->field} ?? null, $ch->new_value)) {
+                    DB::table('players')->where('id', $ch->entity_id)->update([$ch->field => $ch->old_value, 'updated_at' => now()]);
+                    $restored++;
+                } else {
+                    $conflict('player', $ch->entity_id, $raw->name, $ch->field, 'campo alterado depois da importação; mantido o valor atual');
+                }
+            }
+
+            // 2) atletas criados pelo lote
+            $createdLog = $batch->changes()->where('entity_type', 'player')->where('action', 'created')->get()->keyBy('entity_id');
+            $createdIds = $batch->has_change_log ? $createdLog->keys() : Player::where('import_batch_id', $batch->id)->pluck('id');
+            foreach (Player::withTrashed()->whereIn('id', $createdIds)->get() as $p) {
+                // qualquer registro que aponte para o atleta (exceto observações deste lote) = trabalho posterior
+                $usedBy = static::referencedBy('players', $p->id, ['contract_observations' => $batch->id, 'market_observations' => $batch->id]);
+                $snap = $createdLog->get($p->id)?->new_value ?? [];
+                $edited = collect($snap)->filter(fn ($v, $f) => ! static::same($p->getRawOriginal($f), $v))->keys();
+                $touchedLater = $batch->completed_at && $p->updated_at && $p->updated_at->gt($batch->completed_at->copy()->addSeconds(2));
+                if (in_array($p->id, $keptObsPlayers, true)) {
+                    $usedBy[] = 'observação do lote mantida';
+                }
+                if ($usedBy !== [] || $edited->isNotEmpty() || $touchedLater) {
                     $kept++;
+                    $conflict('player', $p->id, $p->name, null, match (true) {
+                        $usedBy !== [] => 'já referenciado por: '.implode(', ', $usedBy),
+                        $edited->isNotEmpty() => 'editado depois da importação: '.$edited->implode(', '),
+                        default => 'cadastro alterado depois da importação',
+                    });
                 } else {
                     $p->forceDelete();
                     $removed++;
                 }
             }
-            $batch->update(['status' => 'revertido', 'reverted_at' => now(), 'reverted_by' => $userId]);
 
-            return ['removed' => $removed, 'kept' => $kept];
+            // 3) empresários e clubes criados pelo lote, se não usados por ninguém
+            foreach ($batch->changes()->where('action', 'created')->whereIn('entity_type', ['agent', 'club'])->get() as $ch) {
+                $model = $ch->entity_type === 'agent' ? \App\Models\Agent::find($ch->entity_id) : Club::find($ch->entity_id);
+                if (! $model) {
+                    continue;
+                }
+                $usedBy = static::referencedBy($ch->entity_type === 'agent' ? 'agents' : 'clubs', $model->id);
+                if ($usedBy !== []) {
+                    $conflict($ch->entity_type, $model->id, $model->name, null, 'em uso por: '.implode(', ', $usedBy).'; mantido');
+                } else {
+                    $model->delete();
+                    $removedOther++;
+                }
+            }
+
+            $report = ['removed' => $removed, 'removed_other' => $removedOther, 'kept' => $kept, 'restored' => $restored, 'conflicts' => $conflicts];
+            $batch->update(['status' => 'revertido', 'reverted_at' => now(), 'reverted_by' => $userId, 'revert_report' => $report]);
+            \App\Models\AuditEvent::record('import_revert', $batch, ['restored' => $restored, 'removed' => $removed, 'conflicts' => count($conflicts)]);
+
+            return $report;
         });
+    }
+
+    /**
+     * Tabelas que ainda referenciam o registro, descobertas pelas chaves estrangeiras do próprio banco
+     * (cobre tabelas futuras sem manutenção manual). $ignoreBatch: tabela => lote cujas linhas não contam.
+     *
+     * @return list<string>
+     */
+    private static function referencedBy(string $table, string $id, array $ignoreBatch = []): array
+    {
+        $fks = [$table => \App\Support\ForeignKeys::referencing($table)];
+        $hits = [];
+        foreach ($fks[$table] as $fk) {
+            $q = DB::table($fk->tbl)->where($fk->col, $id);
+            if (isset($ignoreBatch[$fk->tbl])) {
+                $q->where(fn ($w) => $w->whereNull('import_batch_id')->orWhere('import_batch_id', '!=', $ignoreBatch[$fk->tbl]));
+            }
+            if ($q->exists()) {
+                $hits[] = $fk->tbl;
+            }
+        }
+
+        return array_values(array_unique($hits));
+    }
+
+    private static function same(mixed $current, mixed $recorded): bool
+    {
+        return \App\Support\RawValue::same($current, $recorded);
     }
 
     public static function parseDate(mixed $v): ?Carbon
@@ -395,32 +548,11 @@ class PlayerImporter
         };
     }
 
-    /** "R$ 1.250.000,00" | "1,2 mi" | 1250000 → decimal; ambíguo → null. */
+    /** Valor monetário inequívoco (pt-BR) ou null. Detalhes e motivo em MoneyParser::parse(). */
     public static function parseMoney(mixed $v): ?float
     {
-        if (is_int($v) || is_float($v)) {
-            return $v >= 0 ? (float) $v : null;
-        }
-        $s = Str::of((string) $v)->lower()->ascii()->trim()->toString();
-        if ($s === '') {
-            return null;
-        }
-        $mult = 1;
-        if (preg_match('/\b(mil|k)\b/', $s)) {
-            $mult = 1_000;
-        } elseif (preg_match('/\b(mi|mi\.|milhao|milhoes|mm)\b/', $s)) {
-            $mult = 1_000_000;
-        }
-        $num = preg_replace('/[^0-9,\.]/', '', $s);
-        if ($num === '') {
-            return null;
-        }
-        if (str_contains($num, ',')) {
-            $num = str_replace(['.', ','], ['', '.'], $num);
-        } elseif (substr_count($num, '.') > 1) {
-            $num = str_replace('.', '', $num);
-        }
+        $r = MoneyParser::parse($v);
 
-        return is_numeric($num) ? round((float) $num * $mult, 2) : null;
+        return $r['status'] === 'ok' ? $r['value'] : null;
     }
 }

@@ -14,7 +14,7 @@
     <tr><td><b>Clube atual:</b> {{ $player->currentClub?->name ?? 'não informado' }}</td>
         <td><b>Altura:</b> {{ $player->height_cm ? $player->height_cm.' cm' : 'não informada' }}</td>
         <td><b>ID CBF:</b> {{ $player->cbf_id ?? 'não informado' }}</td></tr>
-    <tr><td><b>Nacionalidade:</b> {{ $player->nationality ?? 'não informada' }}{{ $player->eu_passport ? ' · passaporte comunitário' : '' }}</td>
+    <tr><td><b>Nacionalidade:</b> {{ $player->nationality ?? 'não informada' }}{{ $player->eu_passport ? ' · passaporte comunitário (documento conferido)' : '' }}{{ filled($player->citizenships) ? ' · cidadanias declaradas: '.collect($player->citizenships)->pluck('country')->implode(', ') : '' }}</td>
         <td><b>Empresário:</b> {{ $player->agent?->label() ?? ($player->agent_name ?: 'não informado') }}@if ($player->agent && ($player->agent->phone || $player->agent->email))<br><span class="muted">{{ collect([$player->agent->phone, $player->agent->email])->filter()->implode(' · ') }}</span>@endif</td>
         <td><b>Origem do cadastro:</b> {{ $player->data_origin->getLabel() }}</td></tr>
     <tr><td><b>Situação de mercado:</b> {{ $player->market_status->getLabel() }}</td>
@@ -25,7 +25,7 @@
 <h2>Papéis táticos</h2>
 @if ($player->roleAssessments->isEmpty())<p class="muted">Não avaliado (sem classificação registrada).</p>@else
 <table><tr><th>Papel</th><th>Nível</th><th>Tipo</th><th>Confiança</th><th>Período</th><th>Evidência</th><th>Autor/data</th></tr>
-@foreach ($player->roleAssessments as $a)<tr><td>{{ $a->tacticalRole->name }}<br><span class="muted">{{ $a->tacticalRole->position_group }} · v{{ $a->role_version }}</span></td><td>{{ $a->level->getLabel() }}</td><td>{{ $a->kind->getLabel() }}</td><td>{{ $a->confidence->getLabel() }}</td><td>{{ $a->period_label ?? '—' }}</td><td>{{ $a->evidence }}</td><td>{{ $a->author?->name }}<br>{{ $a->updated_at->format('d/m/Y') }}</td></tr>@endforeach
+@foreach ($player->roleAssessments as $a)<tr><td>{{ $a->tacticalRole->name }}<br><span class="muted">{{ $a->tacticalRole->position_group }} · v{{ $a->role_version }}</span></td><td>{{ $a->level->getLabel() }}</td><td>{{ $a->kind->getLabel() }}<br><span class="muted">{{ \App\Enums\GamePhase::label($a->phase) }}</span></td><td>{{ $a->confidence->getLabel() }}</td><td>{{ $a->period_label ?? '—' }}</td><td>{{ $a->evidence }}</td><td>{{ $a->author?->name }}<br>{{ $a->referenceDate()->format('d/m/Y') }}@if ($a->isExpired()) <span class="muted">(vencida)</span>@endif</td></tr>@endforeach
 </table>@endif
 
 <h2>Especialidades</h2>

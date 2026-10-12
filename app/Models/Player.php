@@ -46,6 +46,8 @@ class Player extends Model
             'data_origin' => DataOrigin::class,
             'languages' => 'array',
             'eu_passport' => 'boolean',
+            'citizenships' => 'array',
+            'eu_passport_confirmed_at' => 'datetime',
             'is_priority' => 'boolean',
             'market_status' => MarketStatus::class,
             'salary_min' => 'decimal:2',
@@ -75,6 +77,22 @@ class Player extends Model
         return \App\Support\Media::url($this->photo_path) ?? $this->photo_url;
     }
 
+    /** Acrescenta cidadania declarada por uma fonte (sem duplicar país). Não confirma documento. */
+    public function addCitizenship(?string $country, string $source): bool
+    {
+        if (blank($country)) {
+            return false;
+        }
+        $list = $this->citizenships ?? [];
+        if (collect($list)->contains(fn ($c) => mb_strtolower($c['country'] ?? '') === mb_strtolower($country))) {
+            return false;
+        }
+        $list[] = ['country' => $country, 'source' => $source, 'at' => now()->toDateString()];
+        $this->citizenships = $list;
+
+        return true;
+    }
+
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
@@ -99,8 +117,27 @@ class Player extends Model
         return $this->salary_currency.' '.$range.' ('.$this->salary_periodicity.', '.mb_strtolower($this->salary_confirmation->getLabel()).')';
     }
 
+    /** Lote de importação em andamento: observações derivadas (salário/pedida) ficam ligadas a ele e saem na reversão. */
+    public static ?string $importBatchContext = null;
+
     protected static function booted(): void
     {
+        // F15: passaporte comunitário "Sim" exige documento conferido (evidência + responsável + data).
+        static::saving(function (self $p) {
+            if ($p->isDirty('eu_passport') || $p->isDirty('eu_passport_evidence')) {
+                if ($p->eu_passport === true && blank($p->eu_passport_evidence)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['eu_passport' => 'Passaporte comunitário só pode ser "Sim" com o documento conferido descrito na evidência.']);
+                }
+                if ($p->eu_passport === true) { // nova evidência = nova conferência: registra quem e quando
+                    $p->eu_passport_confirmed_by = auth()->id();
+                    $p->eu_passport_confirmed_at = now();
+                } else {
+                    $p->eu_passport_confirmed_by = null;
+                    $p->eu_passport_confirmed_at = null;
+                }
+            }
+        });
+
         // Mantém histórico: cada mudança na faixa salarial ou na pedida gera observação de mercado datada.
         static::saved(function (self $p) {
             if ($p->wasChanged(['salary_min', 'salary_max']) || ($p->wasRecentlyCreated && ($p->salary_min !== null || $p->salary_max !== null))) {
@@ -109,6 +146,7 @@ class Player extends Model
                     'currency' => $p->salary_currency, 'periodicity' => $p->salary_periodicity,
                     'confirmation' => $p->salary_confirmation?->value ?? 'nao_verificado', 'source_label' => 'Faixa salarial no cadastro do atleta',
                     'observed_on' => $p->salary_observed_on ?? now()->toDateString(), 'author_id' => auth()->id(),
+                    'import_batch_id' => static::$importBatchContext,
                 ]);
             }
             if ($p->asking_price !== null && ($p->wasChanged('asking_price') || $p->wasRecentlyCreated)) {
@@ -116,6 +154,7 @@ class Player extends Model
                     'player_id' => $p->id, 'kind' => 'pedida_transferencia', 'amount' => $p->asking_price, 'currency' => $p->asking_price_currency,
                     'periodicity' => 'unico', 'confirmation' => 'nao_verificado', 'source_label' => 'Pedida no cadastro do atleta',
                     'observed_on' => now()->toDateString(), 'author_id' => auth()->id(),
+                    'import_batch_id' => static::$importBatchContext,
                 ]);
             }
         });
@@ -196,6 +235,13 @@ class Player extends Model
     public function importBatch(): BelongsTo
     {
         return $this->belongsTo(ImportBatch::class);
+    }
+
+    /** Cadastro provisório criado automaticamente a partir de escalação/partida (ainda não é atleta do scout). */
+    public function scopeProvisional(Builder $q): Builder
+    {
+        return $q->where('data_origin', 'provedor')
+            ->whereHas('externalIds', fn ($x) => $x->where('link_method', 'cadastro_provisorio'));
     }
 
     public function scopeWithPosition(Builder $q, string $code): Builder

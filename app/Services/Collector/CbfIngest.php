@@ -5,6 +5,7 @@ namespace App\Services\Collector;
 use App\Models\Agent;
 use App\Models\CbfAthlete;
 use App\Models\CbfIntermediary;
+use App\Models\IdentityCandidate;
 use App\Models\Club;
 use App\Models\Player;
 use App\Models\PlayerSeasonStat;
@@ -108,6 +109,12 @@ class CbfIngest
 
         $p = $a->player;
         $changes = $reviews = 0;
+        if ($p && ! static::confirmByBirth($a, $p, $birth)) {
+            $run->received++;
+            $run->save();
+
+            return ['status' => 'provavel']; // nada copiado para o cadastro antes de confirmar a identidade
+        }
         if ($p) {
             foreach (['birth_date' => $birth?->toDateString(), 'full_name' => static::titleCase($a->name), 'current_club_id' => $a->club_id] as $field => $value) {
                 if (in_array($field, ['current_club_id', 'full_name'], true) && filled($p->getRawOriginal($field))) {
@@ -184,28 +191,62 @@ class CbfIngest
         return $n;
     }
 
-    /** Vínculo só inequívoco: mesmo ID CBF; ou um único atleta do scout no mesmo clube com nome compatível. */
+    /**
+     * F14. Mesmo ID CBF no cadastro = vínculo confirmado (ID oficial).
+     * Único atleta do scout no mesmo clube com nome compatível = vínculo PROVÁVEL: nada é copiado para o
+     * cadastro até a data de nascimento conferir (no detalhe) ou alguém confirmar em "Identidades a revisar".
+     */
     public static function link(CbfAthlete $a): bool
     {
         $p = Player::where('cbf_id', $a->cbf_id)->first();
-        if (! $p && $a->club_id) {
-            $hits = Player::whereNull('cbf_id')->where('current_club_id', $a->club_id)->get()
-                ->filter(fn (Player $x) => max(NameMatcher::score($x->name, $a->nickname), NameMatcher::score($x->name, $a->name), NameMatcher::score($x->full_name, $a->name)) >= 92);
-            if ($hits->count() === 1) {
-                $p = $hits->first();
-                $p->cbf_id = $a->cbf_id;
-                $src = $p->field_sources ?? [];
-                $src['cbf_id'] = ['source' => self::PROVIDER, 'at' => now()->toDateString()];
-                $p->field_sources = $src;
-                $p->save();
+        if ($p) {
+            if (CbfAthlete::where('player_id', $p->id)->where('id', '!=', $a->id)->exists()) {
+                return false;
             }
+            $a->update(['player_id' => $p->id, 'link_status' => 'confirmado']);
+
+            return true;
         }
-        if (! $p || CbfAthlete::where('player_id', $p->id)->where('id', '!=', $a->id)->exists()) {
+        if (! $a->club_id) {
             return false;
         }
-        $a->update(['player_id' => $p->id]);
+        $hits = Player::whereNull('cbf_id')->where('current_club_id', $a->club_id)->get()
+            ->filter(fn (Player $x) => max(NameMatcher::score($x->name, $a->nickname), NameMatcher::score($x->name, $a->name), NameMatcher::score($x->full_name, $a->name)) >= 92);
+        if ($hits->count() !== 1 || CbfAthlete::where('player_id', $hits->first()->id)->where('id', '!=', $a->id)->exists()) {
+            return false;
+        }
+        $p = $hits->first();
+        $a->update(['player_id' => $p->id, 'link_status' => 'provavel']);
+        IdentityCandidate::updateOrCreate(['player_id' => $p->id, 'provider' => self::PROVIDER, 'external_id' => $a->cbf_id], [
+            'kind' => 'confirmar', 'status' => 'pendente', 'score' => 0,
+            'label' => trim(($a->nickname ? $a->nickname.' — ' : '').$a->name.' · '.($a->club_name ?? 'sem clube').' · CBF #'.$a->cbf_id),
+            'evidence' => 'Mesmo clube de inscrição e nome compatível. Nascimento ainda não conferido.',
+        ]);
 
         return true;
+    }
+
+    /** Vínculo provável vira confirmado quando o nascimento da CBF bate com o do cadastro. */
+    private static function confirmByBirth(CbfAthlete $a, Player $p, ?Carbon $birth): bool
+    {
+        if ($a->link_status !== 'provavel') {
+            return true;
+        }
+        $cand = IdentityCandidate::where('player_id', $p->id)->where('provider', self::PROVIDER)->where('external_id', $a->cbf_id)->first();
+        if ($birth && $p->birth_date && $p->birth_date->toDateString() === $birth->toDateString()) {
+            $a->update(['link_status' => 'confirmado']);
+            $src = $p->field_sources ?? [];
+            $src['cbf_id'] = ['source' => self::PROVIDER, 'at' => now()->toDateString(), 'method' => 'nome_clube_nascimento'];
+            $p->forceFill(['cbf_id' => $a->cbf_id, 'field_sources' => $src])->save();
+            $cand?->update(['status' => 'vinculado', 'decided_at' => now(), 'evidence' => 'Confirmado automaticamente: nascimento CBF = cadastro ('.$birth->format('d/m/Y').').']);
+
+            return true;
+        }
+        $cand?->update(['evidence' => 'Mesmo clube e nome compatível. Nascimento CBF: '.($birth?->format('d/m/Y') ?? 'não informado')
+            .' · cadastro: '.($p->birth_date?->format('d/m/Y') ?? 'sem data').'. Confirme olhando a foto/clube.',
+            'details' => ['cbf_birth_date' => $birth?->toDateString(), 'club' => $a->club_name]]);
+
+        return false;
     }
 
     private static function club(array $r): ?Club

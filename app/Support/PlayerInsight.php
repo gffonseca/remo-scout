@@ -7,35 +7,70 @@ use App\Models\Player;
 
 /**
  * Indicadores de síntese do atleta (substituem "capacidade/potencial" de jogos por evidência real):
- * - nível atual = melhor nível observado em papel (classificação consolidada); fallback: último relatório submetido;
- * - potencial = melhor nível em avaliações do tipo "potencial";
+ * - nível atual = melhor nível observado (avaliação mais recente por papel+fase); fallback: último relatório OBSERVADO;
+ * - potencial = idem para avaliações/relatórios do tipo "potencial" (nunca se mistura com o atual);
  * - recomendação = parecer predominante nos relatórios submetidos;
- * - conhecimento = cobertura de evidências (relatórios, vídeos, dados básicos).
+ * - conhecimento = cobertura de evidências (observadores distintos, vídeos, dados básicos).
  * Nada é calculado a partir de ausência de dado: sem evidência → "não observado"/"sem observação".
  */
 class PlayerInsight
 {
+    /**
+     * Melhor nível entre as avaliações MAIS RECENTES de cada papel+fase do tipo pedido (F10).
+     * Uma avaliação antiga mais alta não supera a reavaliação mais recente do mesmo papel/fase.
+     */
+    /**
+     * Melhor nível entre as avaliações MAIS RECENTES de cada papel+fase do tipo pedido (F10).
+     * Uma avaliação antiga mais alta não supera a reavaliação mais recente do mesmo papel/fase.
+     * Para "observado", só avaliações dentro da validade contam (vencida = não sabemos o nível atual).
+     */
     public static function bestLevel($assessments, string $kind): ?Level
     {
-        return collect($assessments)->filter(fn ($a) => $a->kind?->value === $kind && $a->level?->rank())
-            ->sortByDesc(fn ($a) => $a->level->rank())->first()?->level;
+        return static::bestAssessment($assessments, $kind)?->level;
     }
 
+    public static function bestAssessment($assessments, string $kind): ?\App\Models\PlayerRoleAssessment
+    {
+        return collect($assessments)->filter(fn ($a) => $a->kind?->value === $kind)
+            ->sortByDesc(fn ($a) => [($a->observed_on ?? $a->created_at)?->timestamp ?? 0, $a->created_at?->timestamp ?? 0, (string) $a->id])
+            ->unique(fn ($a) => $a->tactical_role_id.'|'.($a->phase?->value ?? 'geral'))
+            ->filter(fn ($a) => $a->level?->rank() && ($kind !== 'observado' || ! $a->isExpired()))
+            ->sortByDesc(fn ($a) => $a->level->rank())->first();
+    }
+
+    public static function bestObservedAssessment(Player $p): ?\App\Models\PlayerRoleAssessment
+    {
+        return static::bestAssessment($p->roleAssessments, 'observado');
+    }
+
+    /**
+     * Nível atual = somente evidência observada e vigente: avaliação de papel do tipo "observado" ou, na falta dela,
+     * o relatório submetido mais recente do tipo "observado" dentro da validade. Potencial nunca vira nível atual.
+     */
     public static function currentLevel(Player $p): ?Level
     {
+        $cutoff = now()->subMonths((int) config('scout.assessment_valid_months', 12));
+
         return static::bestLevel($p->roleAssessments, 'observado')
-            ?? collect($p->submittedReports ?? [])->first(fn ($r) => $r->level?->rank())?->level;
+            ?? collect($p->submittedReports ?? [])
+                ->filter(fn ($r) => ($r->assessment_type?->value ?? $r->assessment_type) === 'observado' && $r->level?->rank()
+                    && ($r->match_date ?? $r->submitted_at)?->gte($cutoff))
+                ->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->first()?->level;
     }
 
     public static function potentialLevel(Player $p): ?Level
     {
-        return static::bestLevel($p->roleAssessments, 'potencial');
+        return static::bestLevel($p->roleAssessments, 'potencial')
+            ?? collect($p->submittedReports ?? [])
+                ->filter(fn ($r) => ($r->assessment_type?->value ?? $r->assessment_type) === 'potencial' && $r->level?->rank())
+                ->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->first()?->level;
     }
 
     /** @return array{label:string,color:string} */
     public static function recommendation(Player $p): array
     {
-        $reports = collect($p->submittedReports ?? []);
+        // Um voto por observador: vale o relatório submetido mais recente de cada autor.
+        $reports = collect($p->submittedReports ?? [])->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->unique('author_id');
         if ($reports->isEmpty()) {
             return ['label' => 'Sem parecer', 'color' => 'gray'];
         }
@@ -50,7 +85,8 @@ class PlayerInsight
     /** @return array{label:string,color:string,score:int} */
     public static function knowledge(Player $p): array
     {
-        $reports = collect($p->submittedReports ?? [])->count();
+        // Conhecimento cresce com observadores distintos, não com repetição do mesmo autor.
+        $reports = collect($p->submittedReports ?? [])->pluck('author_id')->unique()->count();
         $videos = (int) ($p->video_references_count ?? $p->videoReferences()->count());
         $basics = (int) ($p->birth_date !== null) + (int) ($p->primary_position !== null) + (int) ($p->current_club_id !== null);
         $score = min($reports, 3) * 2 + min($videos, 2) + $basics; // 0..11
@@ -69,4 +105,25 @@ class PlayerInsight
         'VOL' => [50, 96], 'MC' => [50, 78], 'MEI' => [50, 58], 'MD' => [84, 66], 'ME' => [16, 66],
         'PD' => [84, 40], 'PE' => [16, 40], 'SA' => [50, 38], 'CA' => [50, 20],
     ];
+
+    /**
+     * Retrato de elenco (Dados Futebol) do atleta ligado por ID confirmado: confirma o clube, aponta outro clube ou saída.
+     * Só informa; não altera o cadastro.
+     */
+    public static function squadNote(\App\Models\Player $p): ?string
+    {
+        $e = \App\Models\ClubSquadEntry::with('club')->where('player_id', $p->id)->orderByRaw('left_at is not null')->latest('last_seen_at')->first();
+        if (! $e) {
+            return null;
+        }
+        $when = $e->last_seen_at->timezone(config('scout.display_timezone'))->format('d/m/Y');
+        if (! $e->isCurrent()) {
+            return "Dados Futebol: saiu do elenco do {$e->club->name} (último retrato em que constava: {$when}).";
+        }
+        $shirt = $e->shirt_number ? ", camisa {$e->shirt_number}" : '';
+
+        return $e->club_id === $p->current_club_id
+            ? "Dados Futebol confirma no elenco{$shirt} ({$when})."
+            : "Atenção: Dados Futebol o lista no elenco do {$e->club->name}{$shirt} ({$when}). Cadastro não alterado.";
+    }
 }

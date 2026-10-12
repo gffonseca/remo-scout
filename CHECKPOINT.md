@@ -1,6 +1,6 @@
 # CHECKPOINT — REMO SCOUT
 
-Atualize a cada sessão. Última atualização: 11/10/2026 (sessão de construção inicial).
+Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 2 do refinamento concluído na branch `refino`).
 
 ## Decisões vigentes (ver docs/PROMPT-v2.md §2)
 - Usuários: Gustavo (admin/piloto), Rafael (coordenador), 2 analistas (a contratar), Executivo de Futebol (leitor; financeiro por permissão).
@@ -43,3 +43,26 @@ Atualize a cada sessão. Última atualização: 11/10/2026 (sessão de construç
 - 12/10/2026: radar ampliado (aprovado): + Copa do Nordeste (1260624), Copa Verde (`copa-verde/masculino`, 1260621), Copa Sul-Sudeste (1260625), Brasileiro Sub-20 (1260620), Sub-20 B (1260626), Copa do Brasil Sub-20 (1260649). Fora: Sub-17/15/13 (menores) e feminino. Aspirantes e Nordeste eliminatórias/pré-copa sem edição 2026 na CBF.
 - 12/10/2026: sistema renomeado para **CIFUT Remo** (repo segue remo-scout). Escudo do Remo (SVG da API Futebol, hospedado em public/images/remo-escudo.svg) na barra superior, login, favicon; PDFs com o novo nome. APP_NAME não alterado (mudaria o cookie de sessão).
 - Coletor 1.0.2: ritmo mínimo 2,5 s entre requisições (CBF passou a responder 429 a 1,5 s); 429 respeita Retry-After (ou 60 s) e desacelera a execução. Rodada diária estimada ~90 min.
+
+## 12/10/2026 — auditoria validada e Bloco 1 do refinamento (branch `refino`, não publicado)
+- Auditoria (docs/auditoria/) validada: F01–F22 procedem; novos F23 (workflows do esqueleto) e F24 (worker morria a cada 1 h — hotfix 00d6fe9 publicado com autorização).
+- Decisões do Q&A em docs/auditoria/DECISOES-REFINAMENTO.md (deploy só no fim; fases com posse/sem posse/bola parada no Bloco 1; IA de notícias = Claude API; Sofascore só via coletor local; restauração no Mac Mini).
+- Bloco 1 (F01–F08, F10, F23) concluído na branch `refino` com revisão independente; entrega e plano de deploy/rollback em docs/auditoria/BLOCO-1-ENTREGA.md. CI próprio verde (PHP 8.3 + PostgreSQL 16).
+- Próximo: Bloco 2 (F09, F12–F17, F20).
+
+## 12/10/2026 — Bloco 2 do refinamento (branch `refino`, não publicado)
+- F09, F12–F17 e F20 concluídos com revisão independente: 1 grave, 7 médios e 7 baixos, todos corrigidos. Detalhes, migrações e plano de deploy em docs/auditoria/BLOCO-2-ENTREGA.md; matriz de fontes em docs/auditoria/MATRIZ-INTEGRACOES.md.
+- Fontes novas:
+  - **API-Football Pro**, assinado pelo Gustavo e válido até 12/11/2026. Chave no Railway web+worker. Estatística individual de Série A/B; escalação de Série C/Nordeste; nascimento para vínculo automático.
+  - **Dados Futebol Pro:** elenco atual.
+  - **football-data.co.uk:** força dos clubes da Série A.
+  - **BID CBF:** consulta assistida, porque há CAPTCHA.
+  - **Sofascore:** sob demanda via coletor do Mac (tarefas a cada 15 min).
+  - Sportmonks não autorizada (Free sem Brasil). kariofreire descartado.
+- Coletor 1.1.0 (manifesto, idempotência, retomada, tarefas): atualizar o Mac Mini só no deploy.
+- Pendências do Gustavo:
+  - autorizar o deploy dos Blocos 1+2;
+  - trocar as chaves coladas no chat;
+  - decidir a renovação da API-Football até 12/11.
+- Pendência do Rafael: conferir a cobertura da API Futebol e da CBF (botão na tela de fontes).
+- Próximo: Bloco 3 (fluxo de mercado e layout) e Bloco 4 (notícias via Claude API, operação, ensaio de restauração no Mac Mini, piloto).

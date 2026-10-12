@@ -48,6 +48,15 @@ class ImportBatchResource extends Resource
             TextEntry::make('rows_updated')->label('Atualizados'),
             TextEntry::make('rows_skipped')->label('Ignorados/falhas')->state(fn (ImportBatch $b) => $b->rows_skipped + $b->rows_failed),
             TextEntry::make('reverted_at')->label('Revertido em')->dateTime('d/m/Y H:i')->placeholder('—'),
+            TextEntry::make('revert_summary')->label('Resultado da reversão')->columnSpan(3)->placeholder('—')
+                ->state(fn (ImportBatch $b) => $b->revert_report ? "{$b->revert_report['restored']} campo(s) restaurado(s), {$b->revert_report['removed']} atleta(s) e ".($b->revert_report['removed_other'] ?? 0).' clube(s)/empresário(s) removido(s), '.count($b->revert_report['conflicts']).' conflito(s)' : null),
+            RepeatableEntry::make('revert_report.conflicts')->label('Conflitos da reversão (mantidos)')->columnSpanFull()->columns(4)
+                ->visible(fn (ImportBatch $b) => filled($b->revert_report['conflicts'] ?? null))->schema([
+                    TextEntry::make('entity')->label('Tipo'),
+                    TextEntry::make('label')->label('Registro'),
+                    TextEntry::make('field')->label('Campo')->placeholder('—'),
+                    TextEntry::make('reason')->label('Motivo'),
+                ]),
             RepeatableEntry::make('errors')->label('Ocorrências')->columnSpanFull()->columns(3)->schema([
                 TextEntry::make('row')->label('Linha'),
                 TextEntry::make('name')->label('Atleta')->placeholder('—'),
@@ -73,11 +82,25 @@ class ImportBatchResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 Action::make('revert')->label('Reverter')->icon(Heroicon::OutlinedArrowUturnLeft)->color('danger')
-                    ->authorize('revert')->requiresConfirmation()
-                    ->modalDescription('Remove atletas criados por este lote que ainda não receberam relatórios, avaliações ou prospecção. Os demais ficam e são listados.')
+                    ->authorize('revert')->requiresConfirmation()->visible(fn (ImportBatch $record) => ! $record->reverted_at)
+                    ->modalDescription(fn (ImportBatch $record) => $record->has_change_log
+                        ? 'Desfaz o lote uma única vez: restaura campos preenchidos em atletas existentes, remove o que o lote criou e as observações dele. O que tiver sido editado ou usado depois é mantido e listado como conflito.'
+                        : 'Lote anterior à trilha de alterações: remove atletas criados que ainda não receberam trabalho e as observações do lote. Campos preenchidos em atletas existentes NÃO podem ser restaurados.')
                     ->action(function (ImportBatch $record) {
-                        $r = PlayerImporter::revert($record, auth()->id());
-                        Notification::make()->success()->title("Revertido: {$r['removed']} removido(s); {$r['kept']} mantido(s) por já terem trabalho associado.")->send();
+                        try {
+                            $r = PlayerImporter::revert($record, auth()->id());
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->danger()->title($e->getMessage())->send();
+
+                            return;
+                        }
+                        $n = Notification::make()->title("Revertido: {$r['restored']} campo(s) restaurado(s), {$r['removed']} atleta(s) e {$r['removed_other']} clube(s)/empresário(s) removido(s).");
+                        $r['conflicts'] === []
+                            ? $n->success()
+                            : $n->warning()->body(count($r['conflicts']).' conflito(s) mantido(s): '.collect($r['conflicts'])->take(5)
+                                ->map(fn ($c) => $c['label'].($c['field'] ? " ({$c['field']})" : '').' — '.$c['reason'])->implode('; ')
+                                .(count($r['conflicts']) > 5 ? '…' : '').' Lista completa no relatório do lote.')->persistent();
+                        $n->send();
                     }),
             ]);
     }

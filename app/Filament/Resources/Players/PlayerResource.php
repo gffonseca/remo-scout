@@ -139,7 +139,11 @@ class PlayerResource extends Resource
                 TextInput::make('agent_name')->label('Empresário (texto livre, se sem cadastro)'),
                 Select::make('market_status')->label('Situação de mercado')->options(MarketStatus::class)->default('desconhecido')->required(),
                 TextInput::make('economic_rights_note')->label('Direitos econômicos (observado)')->placeholder('ex.: 70% clube X / 30% atleta')->columnSpan(2),
-                Select::make('eu_passport')->label('Passaporte comunitário')->options([1 => 'Sim', 0 => 'Não'])->placeholder('Não informado'),
+                Select::make('eu_passport')->label('Passaporte comunitário (documento)')->options([1 => 'Sim — documento conferido', 0 => 'Não possui'])->placeholder('Não informado')->live()
+                    ->helperText('Cidadania declarada por fonte não é passaporte. "Sim" exige descrever o documento conferido.'),
+                Textarea::make('eu_passport_evidence')->label('Documento conferido')->rows(2)
+                    ->visible(fn ($get) => (string) $get('eu_passport') === '1')->required(fn ($get) => (string) $get('eu_passport') === '1')
+                    ->placeholder('ex.: cópia do passaporte italiano nº final 123, validade 2031, recebida do empresário em 10/10/2026'),
                 TagsInput::make('languages')->label('Idiomas')->placeholder('ex.: português, espanhol'),
                 \Filament\Forms\Components\Toggle::make('is_priority')->label('Lista prioritária')->inline(false),
                 TextInput::make('priority_note')->label('Nota da prioridade'),
@@ -193,7 +197,8 @@ class PlayerResource extends Resource
                 TextEntry::make('positions')->label('Outras posições')->badge()->placeholder('—'),
                 TextEntry::make('preferred_foot')->label('Pé')->badge(),
                 TextEntry::make('height_cm')->label('Altura')->suffix(' cm')->placeholder('não informada'),
-                TextEntry::make('currentClub.name')->label('Clube atual')->placeholder('não informado'),
+                TextEntry::make('currentClub.name')->label('Clube atual')->placeholder('não informado')
+                    ->helperText(fn (Player $record) => \App\Support\PlayerInsight::squadNote($record)),
                 TextEntry::make('latestContract.status')->label('Situação contratual')->badge()->placeholder('sem observação'),
                 TextEntry::make('latestContract.contract_end')->label('Fim de contrato (observado)')->date('d/m/Y')->placeholder('não informado')
                     ->helperText(fn (Player $r) => $r->latestContract ? $r->latestContract->confirmation->getLabel().' · '.$r->latestContract->observed_on->format('d/m/Y') : null),
@@ -218,7 +223,10 @@ class PlayerResource extends Resource
                 TextEntry::make('asking_price')->label('Pedida')->placeholder('não informada')
                     ->formatStateUsing(fn ($state, Player $r) => $r->asking_price_currency.' '.number_format((float) $state, 0, ',', '.'))
                     ->visible(fn () => auth()->user()->canViewFinancial()),
-                TextEntry::make('eu_passport')->label('Passaporte comunitário')->formatStateUsing(fn ($state) => $state ? 'Sim' : 'Não')->placeholder('não informado'),
+                TextEntry::make('eu_passport')->label('Passaporte comunitário')->formatStateUsing(fn ($state) => $state ? 'Sim (documento conferido)' : 'Não possui')->placeholder('não informado')
+                    ->helperText(fn ($record) => $record->eu_passport ? $record->eu_passport_evidence.' — '.($record->eu_passport_confirmed_at?->format('d/m/Y') ?? '') : null),
+                TextEntry::make('citizenships')->label('Cidadanias declaradas (fontes)')->placeholder('—')
+                    ->state(fn ($record) => collect($record->citizenships ?? [])->map(fn ($c) => $c['country'].' · '.$c['source'].($c['at'] ? ' '.$c['at'] : ''))->all())->listWithLineBreaks(),
                 TextEntry::make('languages')->label('Idiomas')->badge()->placeholder('não informado'),
                 TextEntry::make('priority_note')->label('Lista prioritária')->visible(fn (Player $r) => $r->is_priority)->placeholder('sim'),
                 TextEntry::make('notes')->label('Notas')->columnSpanFull()->placeholder('—'),
@@ -262,7 +270,7 @@ class PlayerResource extends Resource
                 TextColumn::make('nationality')->label('Nação')->placeholder('—')->toggleable(isToggledHiddenByDefault: true)->limit(12),
                 TextColumn::make('primary_position')->label('Posição')->sortable()
                     ->formatStateUsing(fn ($state, Player $r) => collect([$state instanceof Position ? $state->value : $state])->merge($r->positions ?? [])->unique()->implode(', '))
-                    ->description(fn (Player $r) => $r->roleAssessments->sortByDesc(fn ($a) => $a->level?->rank() ?? 0)->first()?->tacticalRole?->name)
+                    ->description(fn (Player $r) => \App\Support\PlayerInsight::bestObservedAssessment($r)?->tacticalRole?->name)
                     ->placeholder('n/i'),
                 TextColumn::make('birth_date')->label('Idade')->sortable()->alignEnd()
                     ->formatStateUsing(fn ($state) => $state?->age)->placeholder('—'),
@@ -360,8 +368,8 @@ class PlayerResource extends Resource
                 SelectFilter::make('role')->label('Papel avaliado')->multiple()->searchable()
                     ->options(fn () => TacticalRole::query()->where('status', '!=', 'arquivado')->orderBy('position_group')->orderBy('name')->get()->mapWithKeys(fn ($r) => [$r->id => $r->label()]))
                     ->query(fn (Builder $query, array $data) => $query->when($data['values'] ?? [], fn ($q, $ids) => $q->whereHas('roleAssessments', fn ($a) => $a->whereIn('tactical_role_id', $ids)->where('level', '!=', 'nao_observado')))),
-                Filter::make('role_level')->label('Nível mínimo no papel')
-                    ->schema([Select::make('level')->label('Nível mínimo (em qualquer papel avaliado)')->options(['A' => 'A', 'B' => 'B ou melhor', 'C' => 'C ou melhor', 'D' => 'D ou melhor'])])
+                Filter::make('role_level')->label('Nível mínimo observado no papel')
+                    ->schema([Select::make('level')->label('Nível observado mínimo (avaliação vigente, qualquer papel; potencial não conta)')->options(['A' => 'A', 'B' => 'B ou melhor', 'C' => 'C ou melhor', 'D' => 'D ou melhor'])])
                     ->query(function (Builder $query, array $data) {
                         $lvl = $data['level'] ?? null;
                         if (! $lvl) {
@@ -369,12 +377,16 @@ class PlayerResource extends Resource
                         }
                         $ok = array_slice(['A', 'B', 'C', 'D'], 0, array_search($lvl, ['A', 'B', 'C', 'D']) + 1);
 
-                        return $query->whereHas('roleAssessments', fn ($a) => $a->whereIn('level', $ok));
+                        return $query->whereHas('roleAssessments', fn ($a) => $a->currentObserved()->whereIn('level', $ok));
                     }),
                 SelectFilter::make('specialty')->label('Especialidade')->multiple()
                     ->options(fn () => Specialty::query()->where('status', '!=', 'arquivado')->orderBy('name')->pluck('name', 'id'))
                     ->query(fn (Builder $query, array $data) => $query->when($data['values'] ?? [], fn ($q, $ids) => $q->whereHas('specialtyAssessments', fn ($a) => $a->whereIn('specialty_id', $ids)->where('level', '!=', 'nao_observado')))),
                 SelectFilter::make('data_origin')->label('Origem')->options(DataOrigin::class),
+                \Filament\Tables\Filters\TernaryFilter::make('provisional')->label('Provisórios de partidas')
+                    ->placeholder('Mostrar todos')->trueLabel('Só provisórios')->falseLabel('Ocultar')->default(false)
+                    ->queries(true: fn (Builder $q) => $q->provisional(), false: fn (Builder $q) => $q->whereNot(fn ($w) => $w->provisional()),
+                        blank: fn (Builder $q) => $q),
                 Filter::make('no_reports')->label('Sem relatório submetido')->toggle()
                     ->query(fn (Builder $query) => $query->whereDoesntHave('scoutingReports', fn ($r) => $r->where('status', 'submetido'))),
                 TrashedFilter::make(),

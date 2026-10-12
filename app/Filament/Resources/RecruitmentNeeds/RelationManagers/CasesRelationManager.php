@@ -6,7 +6,10 @@ use App\Filament\Resources\Players\PlayerResource;
 use App\Models\Player;
 use App\Models\ProspectCase;
 use App\Models\ProspectStage;
+use App\Enums\RequirementStatus;
 use App\Services\RequirementCheck;
+use App\Services\RequirementConfirmation;
+use Filament\Forms\Components\FileUpload;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -46,11 +49,11 @@ class CasesRelationManager extends RelationManager
                 TextColumn::make('stage.name')->label('Etapa')->badge()->color(fn (ProspectCase $c) => $c->stage->color),
                 TextColumn::make('requirements')->label('Requisitos obrigatórios')
                     ->state(fn (ProspectCase $c) => RequirementCheck::summary($need, $c->player))
-                    ->badge()->color(fn ($state) => str_starts_with($state, 'Reprova') ? 'danger' : (str_starts_with($state, 'Pendente') ? 'warning' : 'success'))
+                    ->badge()->color(fn ($state) => RequirementCheck::color($state))
                     ->tooltip(fn (ProspectCase $c) => RequirementCheck::details($need, $c->player)),
-                TextColumn::make('role_level')->label('Nível no papel')
+                TextColumn::make('role_level')->label('Nível observado no papel')
                     ->state(fn (ProspectCase $c) => $need->tactical_role_id
-                        ? ($c->player->roleAssessments->where('tactical_role_id', $need->tactical_role_id)->sortByDesc('updated_at')->first()?->level?->getLabel() ?? 'Não avaliado')
+                        ? (RequirementCheck::observedLevelLabel($c->player, $need->tactical_role_id))
                         : '—'),
                 TextColumn::make('player.latestContract.status')->label('Contrato')->badge()->placeholder('sem obs.'),
                 TextColumn::make('priority')->label('Prioridade')->badge(),
@@ -79,6 +82,35 @@ class CasesRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
+                Action::make('requirements')->label('Requisitos')->icon(Heroicon::OutlinedClipboardDocumentCheck)->iconButton()
+                    ->tooltip('Registrar evidência / confirmar requisito obrigatório')
+                    ->visible(fn () => auth()->user()->canEdit() && filled($need->mandatory_requirements))
+                    ->modalDescription(fn () => auth()->user()->isCoordinator()
+                        ? 'Você pode confirmar (Atende / Não atende / Não se aplica) com evidência e link ou anexo.'
+                        : 'Registre a evidência; a confirmação é feita por coordenador ou admin.')
+                    ->schema([
+                        Select::make('requirement')->label('Requisito obrigatório')->required()
+                            ->options(fn () => collect($need->mandatory_requirements ?? [])->filter()->mapWithKeys(fn ($t) => [$t => $t])),
+                        Select::make('status')->label('Situação')->required()->default(RequirementStatus::Pendente->value)
+                            ->options(fn () => auth()->user()->isCoordinator()
+                                ? collect(RequirementStatus::cases())->mapWithKeys(fn ($s) => [$s->value => $s->getLabel()])
+                                : [RequirementStatus::Pendente->value => 'Pendente (evidência para revisão)']),
+                        Textarea::make('evidence')->label('Evidência')->rows(3)->required()
+                            ->helperText('O que foi verificado, com quem, quando. Ex.: "Empresário confirmou por telefone em 12/10 que o atleta está livre a partir de jan/2027".'),
+                        TextInput::make('evidence_url')->label('Link da evidência')->url()->maxLength(1000),
+                        FileUpload::make('evidence_path')->label('Anexo')->disk('media')->directory('evidencias')->visibility('private')->maxSize(10240),
+                    ])
+                    ->action(function (ProspectCase $c, array $data) use ($need) {
+                        try {
+                            RequirementConfirmation::record(auth()->user(), $need, $c->player, $data['requirement'], RequirementStatus::from($data['status']),
+                                $data['evidence'], $data['evidence_url'] ?? null, $data['evidence_path'] ?? null);
+                            Notification::make()->success()->title('Requisito atualizado')->send();
+                        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                            Notification::make()->danger()->title($e->getMessage())->send();
+                        } catch (\Illuminate\Validation\ValidationException $e) {
+                            Notification::make()->danger()->title(collect($e->errors())->flatten()->first())->send();
+                        }
+                    }),
                 Action::make('move')->label('Mover')->icon(Heroicon::OutlinedArrowsRightLeft)->iconButton()
                     ->visible(fn () => auth()->user()->canEdit())
                     ->fillForm(fn (ProspectCase $c) => ['stage_id' => $c->prospect_stage_id, 'next_action' => $c->next_action, 'due_on' => $c->due_on])

@@ -2,7 +2,11 @@
 FROM dunglas/frankenphp:1-php8.3
 
 RUN install-php-extensions pdo_pgsql pgsql intl zip gd bcmath opcache pcntl \
- && apt-get update && apt-get install -y --no-install-recommends poppler-utils unzip git \
+ && apt-get update && apt-get install -y --no-install-recommends poppler-utils unzip git ca-certificates curl gnupg \
+ && install -d /usr/share/postgresql-common/pgdg \
+ && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+ && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo $VERSION_CODENAME)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+ && apt-get update && apt-get install -y --no-install-recommends postgresql-client-18 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
