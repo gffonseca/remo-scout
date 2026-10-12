@@ -2,7 +2,7 @@
 <html lang="pt-BR"><head><meta charset="utf-8"><title>Dossiê — {{ $player->name }}</title>@include('pdf._style')</head>
 <body>
 @php($tz = config('scout.display_timezone'))
-<header class="top"><strong>REMO SCOUT — piloto</strong> · Departamento de Análise de Mercado · <strong>USO INTERNO — PILOTO</strong></header>
+<header class="top"><strong>CIFUT Remo</strong> · Departamento de Análise de Mercado · <strong>USO INTERNO — PILOTO</strong></header>
 <footer class="bot">Gerado em {{ now()->timezone($tz)->format('d/m/Y H:i') }} por {{ $user->name }}. Documento interno de apoio à decisão: não é avaliação médica, jurídica ou financeira. Dados manuais/observados indicam fonte e data; "não informado" ≠ zero.</footer>
 
 <h1>{{ $player->name }}</h1>

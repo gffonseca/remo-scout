@@ -2,7 +2,7 @@
 <html lang="pt-BR"><head><meta charset="utf-8"><title>Shortlist — {{ $need->title }}</title>@include('pdf._style')</head>
 <body>
 @php($tz = config('scout.display_timezone'))
-<header class="top"><strong>REMO SCOUT — piloto</strong> · Shortlist · <strong>USO INTERNO — PILOTO</strong></header>
+<header class="top"><strong>CIFUT Remo</strong> · Shortlist · <strong>USO INTERNO — PILOTO</strong></header>
 <footer class="bot">Gerado em {{ now()->timezone($tz)->format('d/m/Y H:i') }} por {{ $user->name }}. Ordem definida pelo departamento; não é ranking automático nem garantia de desempenho.</footer>
 <h1>{{ $need->title }}</h1>
 <div class="muted">{{ $need->position->getLabel() }} · {{ $need->tacticalRole?->name ?? 'papel não definido' }} · Prioridade {{ $need->priority->getLabel() }} · {{ $need->horizon->getLabel() }} {{ $need->window_label }}</div>

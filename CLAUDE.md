@@ -1,4 +1,4 @@
-# REMO SCOUT — instruções para agentes
+# CIFUT Remo (repo remo-scout) — instruções para agentes
 
 Sistema interno de prospecção do Departamento de Análise de Mercado do Clube do Remo (piloto).
 Especificação: `docs/PROMPT-v2.md`. Estado e decisões: `CHECKPOINT.md` (atualize a cada sessão).

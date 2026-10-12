@@ -87,7 +87,7 @@ class CollectorController extends Controller
     {
         abort_unless(in_array($key, self::SOURCES, true), 404);
         $ds = DataSource::byKey($key);
-        abort_unless($ds->enabled, 423, 'Fonte desligada no REMO SCOUT (kill switch).');
+        abort_unless($ds->enabled, 423, 'Fonte desligada no CIFUT Remo (kill switch).');
 
         return $ds;
     }

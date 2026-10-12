@@ -38,7 +38,10 @@ class AdminPanelProvider extends PanelProvider
                 AppAuthentication::make()->recoverable(),
             ], isRequired: true)
             ->multiFactorAuthenticationRequiredMiddlewareName(\App\Http\Middleware\RequireMfaForAdmins::class)
-            ->brandName('REMO SCOUT — piloto')
+            ->brandName('CIFUT Remo')
+            ->brandLogo(fn () => view('scout.brand'))
+            ->brandLogoHeight('2.4rem')
+            ->favicon(asset('images/remo-escudo.svg'))
             ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
                 'primary' => Color::hex('#79B9F2'),
@@ -67,7 +70,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([])
             ->renderHook(PanelsRenderHook::HEAD_END, fn () => Blade::render('<style>{!! file_get_contents(resource_path("css/scout.css")) !!}</style>'))
-            ->renderHook(PanelsRenderHook::TOPBAR_START, fn () => view('scout.topbar-context'))
+            ->renderHook(PanelsRenderHook::TOPBAR_LOGO_AFTER, fn () => view('scout.topbar-context'))
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
