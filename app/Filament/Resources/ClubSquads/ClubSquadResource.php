@@ -42,7 +42,7 @@ class ClubSquadResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->defaultSort('name')
+        return $table->persistFiltersInSession()->persistSortInSession()->defaultSort('name')
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['club', 'player']))
             ->description('Fonte: Dados Futebol, atualizado semanalmente (Remo e clubes dos atletas prioritários). Posição como veio da fonte, pouco confiável. Sem data de nascimento: vínculo com o scout só por revisão.')
             ->columns([

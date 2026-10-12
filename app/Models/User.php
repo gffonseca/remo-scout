@@ -31,6 +31,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'role' => UserRole::class,
             'is_active' => 'boolean',
             'can_view_financial' => 'boolean',
+            'ui_preferences' => 'array',
             'app_authentication_secret' => 'encrypted',
             'app_authentication_recovery_codes' => 'encrypted:array',
         ];

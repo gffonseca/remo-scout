@@ -45,7 +45,7 @@ class CbfAthleteResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->defaultSort('name')
+        return $table->persistFiltersInSession()->persistSortInSession()->defaultSort('name')
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['club', 'player']))
             ->description('Registro público da CBF, atualizado diariamente pelo coletor local. Ninguém entra no scout sem que vocês cadastrem.')
             ->columns([
@@ -72,7 +72,7 @@ class CbfAthleteResource extends Resource
             ->filters([
                 SelectFilter::make('competition')->label('Competição')->options(collect(config('scout.collector_competitions'))->mapWithKeys(fn ($l) => [$l => $l]))
                     ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
-                        ? $query->whereRaw("exists (select 1 from jsonb_each(competitions) e where e.value ? ?)", [$data['value']]) : $query),
+                        ? $query->whereRaw('exists (select 1 from jsonb_each(competitions) e where e.value ? ?)', [$data['value']]) : $query),
                 SelectFilter::make('club_state')->label('UF do clube')->multiple()
                     ->options(fn () => CbfAthlete::query()->whereNotNull('club_state')->distinct()->orderBy('club_state')->pluck('club_state', 'club_state')),
                 SelectFilter::make('club_id')->label('Clube')->relationship('club', 'name')->searchable()->preload(),

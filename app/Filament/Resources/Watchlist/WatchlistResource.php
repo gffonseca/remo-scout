@@ -80,7 +80,7 @@ class WatchlistResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->defaultSort('next_review_on')
+        return $table->persistFiltersInSession()->persistSortInSession()->defaultSort('next_review_on')
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['player.currentClub', 'owner', 'alerts' => fn ($a) => $a->limit(1)]))
             ->columns([
                 TextColumn::make('player.name')->label('Atleta')->weight('bold')->searchable()
