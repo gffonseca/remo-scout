@@ -16,6 +16,8 @@ use Database\Seeders\DataSourcesSeeder;
 /** F08 — partida parcial/recente é reconsultada e eventos corrigidos são reconciliados sem duplicar. */
 class FixtureRefreshTest extends ScoutTestCase
 {
+    use CompleteLineups;
+
     private ApiFutebol $api;
 
     private SyncRun $run;
@@ -61,7 +63,7 @@ class FixtureRefreshTest extends ScoutTestCase
         $this->assertNull($this->app('Fulano')->minutes);
 
         // 2) resposta completa: substituição chega → minutos calculados
-        $complete = $this->payload(['substituicoes' => ['mandante' => [['saiu' => ['atleta_id' => 10], 'entrou' => ['atleta_id' => 11], 'minuto' => '20:00', 'periodo_slug' => 'segundo-tempo']]]]);
+        $complete = $this->completeLineups($this->payload(['substituicoes' => ['_fill' => true, 'mandante' => [['saiu' => ['atleta_id' => 10], 'entrou' => ['atleta_id' => 11], 'minuto' => '20:00', 'periodo_slug' => 'segundo-tempo']]]]));
         $f = $this->api->ingestMatch($complete, null, 'Teste', '2026', $this->run);
         $this->assertSame('completo', $f->data_quality);
         $this->assertSame(65, $this->app('Fulano')->minutes);
@@ -69,7 +71,8 @@ class FixtureRefreshTest extends ScoutTestCase
 
         // 3) correção da fonte: gol era de outro atleta e "Errado" não jogou
         $corrected = $complete;
-        $corrected['escalacoes']['mandante']['titulares'] = [['atleta' => ['atleta_id' => 10, 'nome_popular' => 'Fulano']]];
+        $corrected['escalacoes']['mandante']['titulares'] = array_values(array_filter($complete['escalacoes']['mandante']['titulares'], fn ($t) => $t['atleta']['atleta_id'] !== 12));
+        $corrected['escalacoes']['mandante']['titulares'][] = ['atleta' => ['atleta_id' => 9099, 'nome_popular' => 'Substituto do Errado']];
         $corrected['gols']['mandante'] = [['atleta' => ['atleta_id' => 11], 'minuto' => '30:00', 'periodo_slug' => 'segundo-tempo']];
         $this->api->ingestMatch($corrected, null, 'Teste', '2026', $this->run);
         SeasonStatsAggregator::rebuildProvider(ApiFutebol::PROVIDER);
@@ -80,7 +83,8 @@ class FixtureRefreshTest extends ScoutTestCase
         $this->assertNull($this->app('Errado')); // saiu da escalação corrigida
         $this->assertSame(1, Appearance::where('player_id', Player::where('name', 'Fulano')->value('id'))->count());
         $this->assertFalse(PlayerSeasonStat::where('player_id', Player::where('name', 'Errado')->value('id'))->exists()); // agregado obsoleto removido
-        $this->assertSame(4, Player::count()); // ninguém duplicado (Errado continua cadastrado, sem a partida)
+        $this->assertSame(1, Player::where('name', 'Errado')->count()); // ninguém duplicado (Errado continua cadastrado, sem a partida)
+        $this->assertSame(1, Player::where('name', 'Fulano')->count());
     }
 
     public function test_missing_lineup_in_a_later_response_does_not_erase_that_side(): void

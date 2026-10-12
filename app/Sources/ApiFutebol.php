@@ -191,19 +191,42 @@ class ApiFutebol
                 'payload_hash' => $hash, 'fetched_at' => now(),
             ]);
 
-            // Qualidade: sem substituições registradas ou gols listados ≠ placar → minutos indeterminados (null), nunca 90 presumido.
-            $subsCount = count($d['substituicoes']['mandante'] ?? []) + count($d['substituicoes']['visitante'] ?? []);
+            // F13 — qualidade por campo. Minutos de um lado só são determinados quando: 11 titulares identificados,
+            // substituições registradas com minuto legível, gols listados = placar. Caso contrário: null (nunca 90 presumido).
+            // Prorrogação detectada pelos eventos → duração 120. Gols que não conferem com o placar ficam marcados (total vira "pelo menos").
+            $events = array_merge(...array_map(fn ($x) => is_array($x) ? array_values($x) : [], [
+                $d['substituicoes']['mandante'] ?? [], $d['substituicoes']['visitante'] ?? [], $d['gols']['mandante'] ?? [], $d['gols']['visitante'] ?? [],
+                $d['cartoes']['amarelo']['mandante'] ?? [], $d['cartoes']['amarelo']['visitante'] ?? [], $d['cartoes']['vermelho']['mandante'] ?? [], $d['cartoes']['vermelho']['visitante'] ?? [],
+            ]));
+            $extraTime = collect($events)->contains(fn ($e) => str_contains((string) ($e['periodo_slug'] ?? ''), 'prorrog'));
+            $duration = $extraTime ? 120 : 90;
             $goalsListed = count(array_filter($d['gols']['mandante'] ?? [], fn ($g) => ! empty($g['atleta']))) + count(array_filter($d['gols']['visitante'] ?? [], fn ($g) => ! empty($g['atleta'])));
+            $scoreKnown = isset($d['placar_mandante'], $d['placar_visitante']);
             $scoreSum = (int) ($d['placar_mandante'] ?? 0) + (int) ($d['placar_visitante'] ?? 0);
-            $nullAthletes = 0;
+            $goalsOk = $scoreKnown && $goalsListed === $scoreSum;
+            $fq = ['duracao' => $duration, 'prorrogacao' => $extraTime, 'gols' => ! $scoreKnown ? 'placar_ausente' : ($goalsOk ? 'conferem' : 'divergem'),
+                'gols_listados' => $goalsListed, 'placar_total' => $scoreKnown ? $scoreSum : null];
+            $notes = [];
             foreach (['mandante', 'visitante'] as $sd) {
-                foreach (($d['escalacoes'][$sd]['titulares'] ?? []) as $t) {
-                    $nullAthletes += empty($t['atleta']) ? 1 : 0;
+                $lu = $d['escalacoes'][$sd] ?? null;
+                $starters = $lu['titulares'] ?? [];
+                $identified = count(array_filter($starters, fn ($t) => ! empty($t['atleta']['atleta_id'])));
+                $lineup = ! $lu || $starters === [] ? 'ausente' : ($identified === 11 ? 'completa' : 'incompleta');
+                $subs = $d['substituicoes'][$sd] ?? [];
+                $badMinute = count(array_filter($subs, fn ($x) => static::absMinute($x['minuto'] ?? null, $x['periodo_slug'] ?? null) === null));
+                $subsState = $subs === [] ? 'ausentes' : ($badMinute ? 'minuto_ilegivel' : 'registradas');
+                $minutesOk = $lineup === 'completa' && $subsState === 'registradas' && $goalsOk;
+                $fq[$sd] = ['escalacao' => $lineup, 'titulares_identificados' => $identified, 'substituicoes' => $subsState, 'minutos' => $minutesOk ? 'determinados' : 'indeterminados'];
+                if (! $minutesOk) {
+                    $notes[] = "{$sd}: escalação {$lineup} ({$identified}/11), substituições {$subsState}";
                 }
             }
-            $complete = $subsCount > 0 && $goalsListed === $scoreSum && $nullAthletes === 0;
-            $fixture->update(['data_quality' => $complete ? 'completo' : 'parcial', 'quality_note' => $complete ? null
-                : "Fonte incompleta: substituições={$subsCount}, gols listados={$goalsListed}/{$scoreSum}, titulares sem identificação={$nullAthletes}"]);
+            if (! $goalsOk) {
+                $notes[] = "gols listados {$goalsListed}/".($scoreKnown ? $scoreSum : '?');
+            }
+            $complete = $fq['mandante']['minutos'] === 'determinados' && $fq['visitante']['minutos'] === 'determinados';
+            $fixture->update(['data_quality' => $complete ? 'completo' : 'parcial', 'field_quality' => $fq,
+                'quality_note' => $notes ? 'Fonte incompleta — '.implode('; ', $notes).'. Minutos indeterminados não viram 90 nem zero.' : null]);
 
             foreach (['mandante' => $home, 'visitante' => $away] as $side => $club) {
                 $lineup = $d['escalacoes'][$side] ?? null;
@@ -219,7 +242,7 @@ class ApiFutebol
                         }
                         $rows[$aid] = [
                             'name' => $p['atleta']['nome_popular'] ?? 'Sem nome', 'started' => $starter, 'used' => $starter,
-                            'in' => $starter ? 0 : null, 'out' => $starter ? 90 : null,
+                            'in' => $starter ? 0 : null, 'out' => $starter ? $duration : null,
                             'position' => is_array($p['posicao'] ?? null) && isset($p['posicao']['nome']) ? $p['posicao']['nome'] : null,
                             'shirt' => $p['camisa'] ?? null, 'goals' => 0, 'pen' => 0, 'og' => 0, 'y' => 0, 'r' => 0,
                         ];
@@ -229,13 +252,13 @@ class ApiFutebol
                     $min = self::absMinute($s['minuto'] ?? null, $s['periodo_slug'] ?? null);
                     $in = (string) ($s['entrou']['atleta_id'] ?? '');
                     $out = (string) ($s['saiu']['atleta_id'] ?? '');
+                    if (isset($rows[$in])) {
+                        $rows[$in]['used'] = true; // entrou, mesmo que o minuto seja ilegível (aí os minutos do lado ficam indeterminados)
+                        $rows[$in]['in'] = $min;
+                        $rows[$in]['out'] ??= $min === null ? null : $duration;
+                    }
                     if ($min === null) {
                         continue;
-                    }
-                    if (isset($rows[$in])) {
-                        $rows[$in]['used'] = true;
-                        $rows[$in]['in'] = $min;
-                        $rows[$in]['out'] ??= 90;
                     }
                     if (isset($rows[$out])) {
                         $rows[$out]['out'] = $min;
@@ -261,7 +284,7 @@ class ApiFutebol
                             if ($k === 'r') {
                                 $min = self::absMinute($c['minuto'] ?? null, $c['periodo_slug'] ?? null);
                                 if ($min !== null && $rows[$aid]['used']) {
-                                    $rows[$aid]['out'] = min($rows[$aid]['out'] ?? 90, $min);
+                                    $rows[$aid]['out'] = min($rows[$aid]['out'] ?? $duration, $min);
                                 }
                             }
                         }
@@ -271,8 +294,9 @@ class ApiFutebol
                 foreach ($rows as $aid => $r) {
                     $player = $this->resolvePlayer($aid, $r['name'], $club, $run);
                     $seen[] = $player->id;
-                    $minutes = ! $complete ? ($r['used'] ? null : 0)
-                        : ($r['used'] && $r['in'] !== null ? max(0, min(90, (int) ($r['out'] ?? 90)) - $r['in']) : ($r['used'] ? null : 0));
+                    $sideOk = $fq[$side]['minutos'] === 'determinados';
+                    $minutes = ! $r['used'] ? 0 // banco sem entrar: zero confirmado pela escalação
+                        : ($sideOk && $r['in'] !== null ? max(0, min($duration, (int) ($r['out'] ?? $duration)) - $r['in']) : null);
                     Appearance::updateOrCreate(['fixture_id' => $fixture->id, 'player_id' => $player->id], [
                         'club_id' => $club?->id, 'provider' => self::PROVIDER, 'started' => $r['started'], 'used' => $r['used'],
                         'minute_in' => $r['used'] ? $r['in'] : null, 'minute_out' => $r['used'] ? $r['out'] : null, 'minutes' => $minutes,
@@ -329,18 +353,32 @@ class ApiFutebol
         return $n;
     }
 
-    /** "26:44" no 2º tempo → 71. Acréscimo (>45 no período) é limitado ao fim regulamentar. Prorrogação → 90. */
+    /**
+     * Minuto absoluto a partir do relógio do período: "26:44" no 2º tempo → 71.
+     * Acréscimo é limitado ao fim do período. Prorrogação: 1º tempo → 90–105, 2º → 105–120.
+     * Período desconhecido (ou disputa de pênaltis) → null: quem chama trata como indeterminado.
+     */
     public static function absMinute(?string $clock, ?string $periodSlug): ?int
     {
         if (! $clock || ! preg_match('/^(\d{1,3}):\d{2}$/', trim($clock), $m)) {
             return null;
         }
+        $slug = (string) $periodSlug;
+        if (str_contains($slug, 'prorrog')) {
+            $min = min(15, (int) $m[1]);
+
+            return match (true) {
+                str_contains($slug, 'primeiro') || str_contains($slug, '1') => 90 + $min,
+                str_contains($slug, 'segundo') || str_contains($slug, '2') => 105 + $min,
+                default => null,
+            };
+        }
         $min = min(45, (int) $m[1]);
 
-        return match ($periodSlug) {
+        return match ($slug) {
             'primeiro-tempo' => $min,
             'segundo-tempo' => 45 + $min,
-            default => str_contains((string) $periodSlug, 'prorrog') ? 90 : null,
+            default => null,
         };
     }
 

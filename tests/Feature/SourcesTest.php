@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Http;
 
 class SourcesTest extends ScoutTestCase
 {
+    use CompleteLineups;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -88,6 +90,8 @@ class SourcesTest extends ScoutTestCase
             'cartoes' => ['amarelo' => ['mandante' => [], 'visitante' => []], 'vermelho' => ['mandante' => [], 'visitante' => []]],
             'substituicoes' => ['mandante' => [['saiu' => ['atleta_id' => 10], 'entrou' => ['atleta_id' => 11], 'minuto' => '20:00', 'periodo_slug' => 'segundo-tempo']], 'visitante' => []],
         ];
+        $base['substituicoes']['_fill'] = true;
+        $base = $this->completeLineups($base);
         $api = new ApiFutebol(SourceClient::for('api_futebol'));
         $f = $api->ingestMatch($base, null, 'Teste', '2026', $run);
         $this->assertSame('completo', $f->data_quality);
@@ -102,7 +106,7 @@ class SourcesTest extends ScoutTestCase
         $f2 = $api->ingestMatch($partial, null, 'Teste', '2026', $run);
         $this->assertSame('parcial', $f2->data_quality);
         $this->assertNull($f2->appearances()->where('started', true)->first()->minutes); // indeterminado, não 90
-        $this->assertSame(3, Player::count()); // reaproveita ids do provedor
+        $this->assertSame(24, Player::count()); // reaproveita ids do provedor (22 titulares + 2 reservas usados)
     }
 
     public function test_source_client_kill_switch_quota_and_block(): void

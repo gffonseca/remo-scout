@@ -6,10 +6,7 @@
     $p->loadMissing(['currentClub', 'rightsHolderClub', 'latestContract', 'agent', 'roleAssessments.tacticalRole', 'specialtyAssessments.specialty',
         'videoReferences', 'prospectCases.stage', 'prospectCases.need', 'rosterSpells.club',
         'submittedReports' => fn ($q) => $q->visibleTo($user)->with(['author', 'tacticalRole'])]);
-    $recent = ['2026', '2025', '26/27', '25/26', '2025/2026', '2026/2027'];
-    $stats = $p->seasonStats()->get()->filter(fn ($s) => in_array($s->season, $recent, true) && (($s->appearances ?? 0) > 0 || ($s->minutes ?? 0) > 0))
-        ->sortBy([['season', 'desc'], ['minutes', 'desc']])->groupBy('provider');
-    $providerLabel = ['api_futebol' => 'API Futebol (escalações)', 'sumula_fpf' => 'Súmulas FPF', 'sumula_cbf' => 'Súmulas CBF', 'transfermarkt' => 'Transfermarkt · não oficial', 'sofascore' => 'Sofascore · não oficial'];
+    $statGroups = \App\Support\PlayerStatsView::for($p);
     $lastGames = $p->appearances()->with(['fixture.homeClub', 'fixture.awayClub'])->get()->sortByDesc(fn ($a) => $a->fixture?->played_on)->take(6);
     $cur = PI::currentLevel($p); $pot = PI::potentialLevel($p);
     $rec = PI::recommendation($p); $know = PI::knowledge($p);
@@ -87,27 +84,20 @@
 
         {{-- Estatísticas e características --}}
         <div class="sc-panel">
-            <h4>Estatísticas (temporadas recentes)</h4>
-            @forelse ($stats as $prov => $rows)
-                <div class="sc-muted" style="margin:.35rem 0 .2rem;font-weight:700">{{ $providerLabel[$prov] ?? $prov }}</div>
-                <table class="sc-stats">
-                    <thead><tr><th>Competição</th><th>Temp.</th><th title="Jogos">J</th><th title="Titular">Tit</th><th title="Minutos">Min</th><th title="Gols">G</th><th title="Assistências">A</th><th title="Gols por 90 min">G/90</th><th title="Cartões amarelos/vermelhos">Cart.</th>@if ($prov === 'sofascore')<th title="Nota Sofascore (proprietária)">Nota</th>@endif</tr></thead>
-                    <tbody>
-                    @foreach ($rows->take(6) as $r)
-                        <tr>
-                            <td>{{ \Illuminate\Support\Str::limit($r->competition_name, 28) }}</td><td>{{ $r->season }}</td>
-                            <td>{{ $r->appearances ?? '—' }}</td><td>{{ $r->starts ?? '—' }}</td><td>{{ $r->minutes ?? 'indet.' }}</td>
-                            <td>{{ $r->goals ?? '—' }}</td><td>{{ $r->assists ?? '—' }}</td>
-                            <td>{{ \App\Models\PlayerSeasonStat::per90($r->goals, $r->minutes) !== null ? number_format(\App\Models\PlayerSeasonStat::per90($r->goals, $r->minutes), 2, ',', '') : '—' }}</td>
-                            <td>{{ ($r->yellow_cards ?? '—').'/'.($r->red_cards ?? '—') }}</td>
-                            @if ($prov === 'sofascore')<td>{{ $r->rating !== null ? number_format((float) $r->rating, 2, ',', '') : '—' }}</td>@endif
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
+            <h4>Estatísticas por fonte</h4>
+            <p class="sc-muted" style="margin:0 0 .3rem">Fontes não são somadas. "indet." = minutos desconhecidos (não é zero); "≥" = total mínimo (fonte incompleta); G/90 só com minutos completos.</p>
+            @forelse ($statGroups['recent'] as $prov => $rows)
+                @include('scout.partials.stats-table', ['prov' => $prov, 'rows' => $rows])
             @empty
-                <p class="sc-muted" style="margin-bottom:.6rem">Sem estatísticas recentes. Use "Fontes externas" (Transfermarkt/Sofascore) ou aguarde a sincronização diária de partidas (API Futebol/súmulas).</p>
+                <p class="sc-muted" style="margin-bottom:.6rem">Sem estatísticas desta temporada nem da anterior. Use "Fontes externas" ou aguarde a sincronização diária de partidas.</p>
             @endforelse
+            @if ($statGroups['older']->isNotEmpty())
+                <details style="margin-top:.4rem"><summary class="sc-muted" style="cursor:pointer">Temporadas anteriores ({{ $statGroups['older']->flatten()->count() }} linhas)</summary>
+                    @foreach ($statGroups['older'] as $prov => $rows)
+                        @include('scout.partials.stats-table', ['prov' => $prov, 'rows' => $rows])
+                    @endforeach
+                </details>
+            @endif
             @if ($lastGames->isNotEmpty())
                 <h4 style="margin-top:.8rem">Últimas partidas registradas</h4>
                 @foreach ($lastGames as $a)

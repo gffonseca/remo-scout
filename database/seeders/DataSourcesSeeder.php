@@ -11,6 +11,7 @@ class DataSourcesSeeder extends Seeder
     /** Cota mensal do contrato e horas máximas esperadas entre ingestões (diagnóstico "atrasada"). */
     private const LIMITS = [
         'api_futebol' => ['expected_refresh_hours' => 30],
+        'api_football' => ['expected_refresh_hours' => 30],
         'dados_futebol' => ['monthly_quota' => 30000, 'expected_refresh_hours' => 192], // elencos: semanal
         'cbf_atletas' => ['expected_refresh_hours' => 30], // coletor do Mac diário às 06:20
     ];
@@ -27,7 +28,7 @@ class DataSourcesSeeder extends Seeder
             ['cbf_atletas', 'CBF — atletas por campeonato', 'nao_oficial', true, false, null, 'https://www.cbf.com.br', 3000, 500, $na.' A API interna expõe CPF: o campo é descartado na entrada e nunca gravado.'],
             ['cbf_intermediarios', 'CBF — intermediários cadastrados', 'documento_publico', true, false, null, 'https://intermediario.cbf.com.br', 3000, 300, 'Registro público de intermediários; alimenta o cadastro de empresários.'],
             ['cbf_parceiros', 'CBF — API de parceiros', 'oficial_credenciado', false, true, 'CBF_PARTNER_CREDENTIAL', 'https://campeonatos.cbf.com.br', 1000, null, 'Exige credencial oficial solicitada pelo clube.'],
-            ['api_football', 'API-Football', 'api_comercial', false, true, 'API_FOOTBALL_KEY', 'https://v3.football.api-sports.io', 300, 75000, 'Chave Free recebida em 12/10/2026 (100/dia, só temporadas 2022–2024). Cobertura medida: estatística individual por jogo só Série A, B e Copa do Brasil (Série C só até 2024); Série C/D, Copa Verde, Nordeste, Norte e Paraense têm escalação e eventos. Temporada atual exige plano pago (Pro US$ 19/mês, sem renovação automática): decisão do Gustavo.'],
+            ['api_football', 'API-Football', 'api_comercial', false, true, 'API_FOOTBALL_KEY', 'https://v3.football.api-sports.io', 300, 75000, 'Plano Pro assinado em 12/10/2026 (7.500/dia; pré-pago até 12/11/2026, sem renovação automática). Cobertura 2026 medida em 6 jogos por competição: estatística individual Série A 6/6, Série B 6/6, Copa do Brasil 3/6 (fases finais); escalação Série C 5/6 e Nordeste 6/6; Série D, Paraense e Copa Norte praticamente sem escalação; Copa Verde sem jogos de 2026.'],
             ['dados_futebol', 'Dados Futebol', 'api_comercial', true, true, 'DADOS_FUTEBOL_KEY', 'https://api.dadosfutebol.com.br', 1000, 1000, 'Plano Pro (1.000/dia, 30.000/mês). Útil para elenco atual (clube, camisa), artilharia e estatística coletiva. Estatística é só por time e com cobertura irregular; posição e idade dos atletas não são confiáveis. Não serve para avaliação individual.'],
             ['sportmonks', 'Sportmonks', 'api_comercial', false, true, 'SPORTMONKS_TOKEN', 'https://api.sportmonks.com/v3/football', 500, null, 'Chave recebida em 12/10/2026, plano Free: só Dinamarca e Escócia, nenhuma liga brasileira. Brasil exige plano pago (decisão do Gustavo).'],
             ['soccersapi', 'SoccersAPI', 'api_comercial', false, true, 'SOCCERSAPI_TOKEN', 'https://api.soccersapi.com/v2.2', 500, null, 'Aguardando chave.'],
