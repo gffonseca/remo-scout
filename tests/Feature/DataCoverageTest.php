@@ -198,4 +198,18 @@ class DataCoverageTest extends ScoutTestCase
         $this->get(route('player.photo', $evil))->assertNotFound();
         $this->assertStringContainsString('/foto/atleta/', $p->photoUrl());
     }
+
+    public function test_source_placeholder_image_is_generic_not_a_photo(): void
+    {
+        $this->assertSame('36b77a4cbb148a934845ea569155cd023083fd77', PlayerPhotos::GENERIC_SHA1[0]);
+        Storage::fake('media');
+        $p = Player::create(['name' => 'Silhueta', 'photo_url' => 'https://media.api-sports.io/football/players/2.png']);
+        $path = 'players/cache/'.sha1($p->photo_url);
+        $img = imagecreatetruecolor(60, 60);
+        ob_start();
+        imagepng($img);
+        Storage::disk('media')->put($path, ob_get_clean());
+        $this->actingAs($this->user('leitor'));
+        $this->get(route('player.photo', $p))->assertOk(); // imagem comum em cache é servida; a silhueta-padrão (hash acima) vira 404 → iniciais
+    }
 }

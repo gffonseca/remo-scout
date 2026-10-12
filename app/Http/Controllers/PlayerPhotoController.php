@@ -37,7 +37,7 @@ class PlayerPhotoController extends Controller
             }
         }
         $bin = $disk->get($path);
-        abort_if($bin === null, 404);
+        abort_if($bin === null || in_array(sha1($bin), PlayerPhotos::GENERIC_SHA1, true), 404); // silhueta-padrão da fonte → iniciais
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bin) ?: 'image/jpeg';
         abort_unless(str_starts_with($mime, 'image/'), 404);
 
