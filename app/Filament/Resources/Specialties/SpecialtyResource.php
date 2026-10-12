@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Specialties;
 
 use App\Enums\CatalogStatus;
 use App\Enums\Position;
-use App\Filament\Resources\Specialties\Pages;
 use App\Filament\Resources\TacticalRoles\RelationManagers\VersionsRelationManager;
 use App\Filament\Support\CatalogActions;
 use App\Models\Specialty;

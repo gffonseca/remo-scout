@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use UnitEnum;
 
@@ -37,7 +38,7 @@ class Comparador extends Page
 
     public static function getNavigationBadge(): ?string
     {
-        $n = auth()->check() ? \Illuminate\Support\Facades\DB::table('compare_pins')->where('user_id', auth()->id())->count() : 0;
+        $n = auth()->check() ? DB::table('compare_pins')->where('user_id', auth()->id())->count() : 0;
 
         return $n ? (string) $n : null;
     }

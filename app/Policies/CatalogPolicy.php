@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Models\NeedRoleRequirement;
+use App\Models\TacticalRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,7 +23,7 @@ class CatalogPolicy extends BasePolicy
     public function delete(User $user, Model $model): bool
     {
         return $user->is_active && $user->isAdmin() && ! $model->assessments()->exists()
-            && ! ($model instanceof \App\Models\TacticalRole && \App\Models\NeedRoleRequirement::where('tactical_role_id', $model->id)->exists());
+            && ! ($model instanceof TacticalRole && NeedRoleRequirement::where('tactical_role_id', $model->id)->exists());
     }
 
     public function deleteAny(User $user): bool

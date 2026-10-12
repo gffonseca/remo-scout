@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum Foot: string implements HasLabel, HasColor
+enum Foot: string implements HasColor, HasLabel
 {
     case Direito = 'direito';
     case Esquerdo = 'esquerdo';

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Appearance;
 use App\Models\AuditEvent;
 use App\Models\CbfAthlete;
 use App\Models\EnrichmentReview;
@@ -151,12 +152,12 @@ class IdentityReview
     /** Move as atuações do provedor para um provisório ligado ao ID externo e refaz os agregados dos dois. */
     private static function detachAppearances(Player $p, string $provider, string $externalId): int
     {
-        if ($provider === 'cbf' || ! \App\Models\Appearance::where('player_id', $p->id)->where('provider', $provider)->exists()) {
+        if ($provider === 'cbf' || ! Appearance::where('player_id', $p->id)->where('provider', $provider)->exists()) {
             return 0;
         }
         $shadow = Player::create(['name' => $p->name.' (outro atleta — '.$provider.' #'.$externalId.')', 'data_origin' => 'provedor',
             'notes' => "Atuações separadas de {$p->name} ao descartar o vínculo {$provider} #{$externalId} em ".now()->format('d/m/Y').'.']);
-        $n = \App\Models\Appearance::where('player_id', $p->id)->where('provider', $provider)->update(['player_id' => $shadow->id]);
+        $n = Appearance::where('player_id', $p->id)->where('provider', $provider)->update(['player_id' => $shadow->id]);
         PlayerExternalId::where('provider', $provider)->where('external_id', $externalId)->delete();
         PlayerExternalId::create(['player_id' => $shadow->id, 'provider' => $provider, 'external_id' => $externalId, 'verified' => false, 'link_method' => 'cadastro_provisorio']);
         SeasonStatsAggregator::rebuildProvider($provider, [$p->id, $shadow->id]);

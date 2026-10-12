@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum Confidence: string implements HasLabel, HasColor
+enum Confidence: string implements HasColor, HasLabel
 {
     case Baixa = 'baixa';
     case Media = 'media';

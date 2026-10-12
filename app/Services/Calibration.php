@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\GamePhase;
+use App\Models\Player;
 use App\Models\PlayerRoleAssessment;
 use Illuminate\Support\Collection;
 
@@ -13,7 +15,7 @@ class Calibration
 {
     public const WINDOW_DAYS = 45;
 
-    /** @return Collection<int, array{player:\App\Models\Player, role:string, phase:string, gap:int, items:Collection}> */
+    /** @return Collection<int, array{player:Player, role:string, phase:string, gap:int, items:Collection}> */
     public static function divergences(int $days = self::WINDOW_DAYS): Collection
     {
         $rows = PlayerRoleAssessment::with(['player', 'tacticalRole', 'author'])
@@ -35,7 +37,7 @@ class Calibration
                 }
                 $first = $latest->first();
 
-                return ['player' => $first->player, 'role' => $first->tacticalRole?->name, 'phase' => \App\Enums\GamePhase::label($first->phase),
+                return ['player' => $first->player, 'role' => $first->tacticalRole?->name, 'phase' => GamePhase::label($first->phase),
                     'gap' => $ranks->max() - $ranks->min(), 'items' => $latest];
             })
             ->filter()->sortByDesc('gap')->values();

@@ -2,23 +2,52 @@
 
 namespace App\Filament\Resources\Players\Pages;
 
+use App\Filament\Pages\Comparador;
 use App\Filament\Resources\Players\PlayerResource;
 use App\Filament\Resources\ScoutingReports\ScoutingReportResource;
+use App\Filament\Resources\Watchlist\WatchlistResource;
+use App\Models\DataSource;
+use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\ProspectCase;
 use App\Models\RecruitmentNeed;
+use App\Models\WatchlistItem;
+use App\Services\Collector\SofascoreTasks;
+use App\Services\Comparator;
+use App\Services\IdentityReview;
+use App\Services\PlayerEnrichment;
+use App\Sources\SourceException;
+use App\Support\Bid;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ViewPlayer extends ViewRecord
 {
     protected static string $resource = PlayerResource::class;
+
+    /** Perfil em abas (estilo FM): visão geral + cada registro do atleta numa aba com contagem. */
+    public function hasCombinedRelationManagerTabsWithContent(): bool
+    {
+        return true;
+    }
+
+    public function getContentTabLabel(): ?string
+    {
+        return 'Perfil';
+    }
+
+    public function getContentTabIcon(): string|\BackedEnum|Htmlable|null
+    {
+        return Heroicon::OutlinedUser;
+    }
 
     public function getTitle(): string
     {
@@ -29,8 +58,8 @@ class ViewPlayer extends ViewRecord
     {
         /** @var Player $p */
         $p = $this->getRecord()->fresh(['currentClub', 'externalIds']);
-        if ($provider === 'sofascore' && \App\Models\DataSource::where('key', 'sofascore')->value('transport') === 'coletor_local') {
-            $t = \App\Services\Collector\SofascoreTasks::request($p, auth()->id());
+        if ($provider === 'sofascore' && DataSource::where('key', 'sofascore')->value('transport') === 'coletor_local') {
+            $t = SofascoreTasks::request($p, auth()->id());
             match ($t->status) {
                 'concluida' => Notification::make()->success()->title($t->result)->send(),
                 'falhou' => Notification::make()->danger()->title('Sofascore: '.$t->result)->send(),
@@ -41,17 +70,17 @@ class ViewPlayer extends ViewRecord
             return;
         }
         try {
-            $link = $provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p) : \App\Services\PlayerEnrichment::linkSofascore($p);
+            $link = $provider === 'transfermarkt' ? PlayerEnrichment::linkTransfermarkt($p) : PlayerEnrichment::linkSofascore($p);
             if (! in_array($link['status'], ['vinculado', 'ja_vinculado'], true)) {
                 Notification::make()->warning()->title($link['message'])
                     ->body($link['status'] === 'revisar' ? 'Use "Escolher correspondência pendente" em Fontes externas.' : null)->send();
 
                 return;
             }
-            $res = $provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::enrichTransfermarkt($p->fresh()) : \App\Services\PlayerEnrichment::enrichSofascore($p->fresh());
+            $res = $provider === 'transfermarkt' ? PlayerEnrichment::enrichTransfermarkt($p->fresh()) : PlayerEnrichment::enrichSofascore($p->fresh());
             Notification::make()->success()->title($res['message'])->body('Fonte não oficial — dados marcados com a origem; divergências vão para Revisões de dados.')->send();
             $this->redirect(PlayerResource::getUrl('view', ['record' => $p]));
-        } catch (\App\Sources\SourceException $e) {
+        } catch (SourceException $e) {
             Notification::make()->danger()->title('Fonte indisponível')->body($e->getMessage())->send();
         }
     }
@@ -84,16 +113,16 @@ class ViewPlayer extends ViewRecord
                 Action::make('sfSync')->label('Sofascore: vincular e atualizar estatísticas')->icon(Heroicon::OutlinedArrowPath)
                     ->action(fn () => $this->runSource('sofascore')),
                 Action::make('candidates')->label('Escolher correspondência pendente')->icon(Heroicon::OutlinedUserCircle)
-                    ->visible(fn () => \App\Models\IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->exists())
+                    ->visible(fn () => IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->exists())
                     ->schema([
-                        \Filament\Forms\Components\Radio::make('candidate')->label('Qual destes é o atleta?')->required()
-                            ->options(fn () => \App\Models\IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->orderByDesc('score')
+                        Radio::make('candidate')->label('Qual destes é o atleta?')->required()
+                            ->options(fn () => IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->orderByDesc('score')
                                 ->get()->mapWithKeys(fn ($c) => [$c->id => '['.$c->provider.' · '.$c->kindLabel().'] '.$c->label.($c->evidence ? ' — '.$c->evidence : '')])),
                     ])
                     ->action(function (array $data) {
-                        $c = \App\Models\IdentityCandidate::findOrFail($data['candidate']);
+                        $c = IdentityCandidate::findOrFail($data['candidate']);
                         try {
-                            Notification::make()->success()->title(\App\Services\IdentityReview::confirm($c, auth()->user()))->send();
+                            Notification::make()->success()->title(IdentityReview::confirm($c, auth()->user()))->send();
                         } catch (\RuntimeException $e) {
                             Notification::make()->danger()->title($e->getMessage())->send();
 
@@ -111,7 +140,7 @@ class ViewPlayer extends ViewRecord
                     ->openUrlInNewTab()
                     ->tooltip('Abre a busca no navegador. Não há síntese automática validada; registre manualmente o que for relevante.'),
                 Action::make('bid')->label('Abrir no BID da CBF')->icon(Heroicon::OutlinedDocumentCheck)
-                    ->url(fn () => \App\Support\Bid::url($p))->openUrlInNewTab()
+                    ->url(fn () => Bid::url($p))->openUrlInNewTab()
                     ->tooltip('O BID exige CAPTCHA: consulte no navegador e registre em Contrato › "Registrar consulta ao BID".'),
                 Action::make('sofascoreSearch')->label('Buscar no Sofascore')->icon(Heroicon::OutlinedMagnifyingGlass)
                     ->url(fn () => $p->sofascore_url ?: 'https://www.sofascore.com/pt/search?q='.urlencode($p->name))->openUrlInNewTab(),
@@ -121,20 +150,20 @@ class ViewPlayer extends ViewRecord
                     ->url(fn () => $p->ogol_url ?: 'https://www.ogol.com.br/pesquisa?search_txt='.urlencode($p->name))->openUrlInNewTab(),
             ])->label('Pesquisar fora')->icon(Heroicon::OutlinedGlobeAlt)->button()->color('gray'),
             Action::make('watch')->icon(Heroicon::OutlinedEye)->color('gray')
-                ->label(fn () => \App\Models\WatchlistItem::where('player_id', $p->id)->where('status', 'ativo')->exists() ? 'Na watchlist' : 'Monitorar')
-                ->disabled(fn () => \App\Models\WatchlistItem::where('player_id', $p->id)->where('status', 'ativo')->exists())
+                ->label(fn () => WatchlistItem::where('player_id', $p->id)->where('status', 'ativo')->exists() ? 'Na watchlist' : 'Monitorar')
+                ->disabled(fn () => WatchlistItem::where('player_id', $p->id)->where('status', 'ativo')->exists())
                 ->visible(fn () => auth()->user()->canEdit())
-                ->schema(fn () => \App\Filament\Resources\Watchlist\WatchlistResource::formFields(false))
+                ->schema(fn () => WatchlistResource::formFields(false))
                 ->action(function (array $data) use ($p) {
-                    \App\Models\WatchlistItem::create($data + ['player_id' => $p->id, 'created_by' => auth()->id(), 'status' => 'ativo', 'last_seen_club_id' => $p->current_club_id]);
+                    WatchlistItem::create($data + ['player_id' => $p->id, 'created_by' => auth()->id(), 'status' => 'ativo', 'last_seen_club_id' => $p->current_club_id]);
                     Notification::make()->success()->title('Atleta na watchlist')->send();
                 }),
             Action::make('pin')->icon(Heroicon::OutlinedScale)->color('gray')
-                ->label(fn () => \App\Services\Comparator::isPinned(auth()->user(), $p) ? 'Retirar do comparador' : 'Fixar no comparador')
+                ->label(fn () => Comparator::isPinned(auth()->user(), $p) ? 'Retirar do comparador' : 'Fixar no comparador')
                 ->action(function () use ($p) {
-                    $r = \App\Services\Comparator::toggle(auth()->user(), $p);
+                    $r = Comparator::toggle(auth()->user(), $p);
                     Notification::make()->title($r['message'])->{$r['ok'] ? 'success' : 'warning'}()
-                        ->actions([Action::make('open')->label('Abrir comparador')->url(\App\Filament\Pages\Comparador::getUrl())])->send();
+                        ->actions([Action::make('open')->label('Abrir comparador')->url(Comparador::getUrl())])->send();
                 }),
             EditAction::make()->label('Editar'),
         ];

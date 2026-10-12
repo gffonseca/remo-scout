@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\GamePhase;
+use App\Filament\Resources\TacticalRoles\TacticalRoleResource;
 use App\Models\Specialty;
 use App\Models\TacticalRole;
 use App\Models\User;
@@ -22,7 +24,7 @@ class CatalogApproval
         $gaps = [];
         $guide = $item->level_guide ?? [];
         if ($item instanceof TacticalRole) {
-            $phases = array_values(array_intersect($item->phases ?? [], array_keys(\App\Filament\Resources\TacticalRoles\TacticalRoleResource::PHASES)));
+            $phases = array_values(array_intersect($item->phases ?? [], array_keys(TacticalRoleResource::PHASES)));
             if ($phases === []) {
                 $gaps[] = 'nenhuma fase do jogo marcada';
             }
@@ -32,7 +34,7 @@ class CatalogApproval
             foreach ($phases as $ph) {
                 foreach (['A', 'B', 'C', 'D'] as $lv) {
                     if (mb_strlen(trim((string) ($guide[$ph][$lv] ?? ''))) < self::MIN_CHARS) {
-                        $gaps[] = 'critério '.$lv.' em '.\App\Enums\GamePhase::label(\App\Enums\GamePhase::tryFrom($ph));
+                        $gaps[] = 'critério '.$lv.' em '.GamePhase::label(GamePhase::tryFrom($ph));
                     }
                 }
             }

@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum Horizon: string implements HasLabel, HasColor
+enum Horizon: string implements HasColor, HasLabel
 {
     case Imediato = 'imediato';
     case ProximaJanela = 'proxima_janela';

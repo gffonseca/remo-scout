@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum Confirmation: string implements HasLabel, HasColor
+enum Confirmation: string implements HasColor, HasLabel
 {
     case Confirmado = 'confirmado';
     case Estimado = 'estimado';

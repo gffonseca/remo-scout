@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Media;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,10 +26,10 @@ class Club extends Model
 
     public function crestUrl(): ?string
     {
-        return \App\Support\Media::url($this->crest_path) ?? $this->crest_url;
+        return Media::url($this->crest_path) ?? $this->crest_url;
     }
 
-    public function externalIds(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function externalIds(): HasMany
     {
         return $this->hasMany(ClubExternalId::class);
     }

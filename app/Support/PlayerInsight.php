@@ -3,7 +3,10 @@
 namespace App\Support;
 
 use App\Enums\Level;
+use App\Enums\Verdict;
+use App\Models\ClubSquadEntry;
 use App\Models\Player;
+use App\Models\PlayerRoleAssessment;
 
 /**
  * Indicadores de síntese do atleta (substituem "capacidade/potencial" de jogos por evidência real):
@@ -29,7 +32,7 @@ class PlayerInsight
         return static::bestAssessment($assessments, $kind)?->level;
     }
 
-    public static function bestAssessment($assessments, string $kind): ?\App\Models\PlayerRoleAssessment
+    public static function bestAssessment($assessments, string $kind): ?PlayerRoleAssessment
     {
         return collect($assessments)->filter(fn ($a) => $a->kind?->value === $kind)
             ->sortByDesc(fn ($a) => [($a->observed_on ?? $a->created_at)?->timestamp ?? 0, $a->created_at?->timestamp ?? 0, (string) $a->id])
@@ -38,7 +41,7 @@ class PlayerInsight
             ->sortByDesc(fn ($a) => $a->level->rank())->first();
     }
 
-    public static function bestObservedAssessment(Player $p): ?\App\Models\PlayerRoleAssessment
+    public static function bestObservedAssessment(Player $p): ?PlayerRoleAssessment
     {
         return static::bestAssessment($p->roleAssessments, 'observado');
     }
@@ -76,7 +79,7 @@ class PlayerInsight
         }
         $counts = $reports->countBy(fn ($r) => $r->verdict->value)->sortDesc();
         $top = $counts->keys()->first();
-        $verdict = \App\Enums\Verdict::from($top);
+        $verdict = Verdict::from($top);
         $split = $counts->count() > 1 ? ' ('.$counts->first().'/'.$reports->count().')' : '';
 
         return ['label' => $verdict->getLabel().$split, 'color' => $verdict->getColor()];
@@ -110,9 +113,9 @@ class PlayerInsight
      * Retrato de elenco (Dados Futebol) do atleta ligado por ID confirmado: confirma o clube, aponta outro clube ou saída.
      * Só informa; não altera o cadastro.
      */
-    public static function squadNote(\App\Models\Player $p): ?string
+    public static function squadNote(Player $p): ?string
     {
-        $e = \App\Models\ClubSquadEntry::with('club')->where('player_id', $p->id)->orderByRaw('left_at is not null')->latest('last_seen_at')->first();
+        $e = ClubSquadEntry::with('club')->where('player_id', $p->id)->orderByRaw('left_at is not null')->latest('last_seen_at')->first();
         if (! $e) {
             return null;
         }

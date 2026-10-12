@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\TacticalRoles\RelationManagers;
 
-use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;

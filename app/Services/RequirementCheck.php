@@ -10,6 +10,7 @@ use App\Models\NeedRequirementCheck;
 use App\Models\Player;
 use App\Models\PlayerRoleAssessment;
 use App\Models\RecruitmentNeed;
+use App\Support\BudgetFit;
 use Illuminate\Support\Collection;
 
 /**
@@ -70,13 +71,13 @@ class RequirementCheck
         }
 
         // orçamento (4 estados): dentro = atende; intersecta/desconhecido = pendente (negociar/levantar); acima = não atende
-        foreach ($withBudget ? ['Orçamento salarial' => \App\Support\BudgetFit::salary($need, $player), 'Orçamento de transferência' => \App\Support\BudgetFit::transfer($need, $player)] : [] as $label => $fit) {
+        foreach ($withBudget ? ['Orçamento salarial' => BudgetFit::salary($need, $player), 'Orçamento de transferência' => BudgetFit::transfer($need, $player)] : [] as $label => $fit) {
             if ($fit) {
                 $add($label, match ($fit['state']) {
                     'dentro' => RequirementStatus::Atende,
                     'acima' => RequirementStatus::NaoAtende,
                     default => RequirementStatus::Pendente,
-                }, \App\Support\BudgetFit::LABELS[$fit['state']].' — '.$fit['detail'], 'budget', $fit['state']);
+                }, BudgetFit::LABELS[$fit['state']].' — '.$fit['detail'], 'budget', $fit['state']);
             }
         }
 

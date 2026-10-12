@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CollectorBatch;
 use App\Models\CollectorTask;
-use App\Services\Collector\SofascoreTasks;
 use App\Models\DataSource;
 use App\Models\SyncRun;
-use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Support\Facades\DB;
 use App\Services\Collector\CbfIngest;
+use App\Services\Collector\SofascoreTasks;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * API do coletor local. O coletor só busca páginas públicas e repassa; toda regra (lista branca,
@@ -72,7 +73,7 @@ class CollectorController extends Controller
         }
         $last = CollectorBatch::where('sync_run_id', $run->id)->max('created_at');
 
-        return $last && \Illuminate\Support\Carbon::parse($last)->lt(now()->subMinutes(10)) ? $run : null;
+        return $last && Carbon::parse($last)->lt(now()->subMinutes(10)) ? $run : null;
     }
 
     /** Páginas de lista já recebidas nesta execução, por competição. @return array<string, list<int>> */

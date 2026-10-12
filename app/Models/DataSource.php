@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class DataSource extends Model
 {
@@ -106,11 +108,11 @@ class DataSource extends Model
     }
 
     /** Última ingestão concluída ou parcial (o teste diário de saúde não conta como dado atualizado). */
-    public function lastIngestedAt(): ?\Carbon\CarbonInterface
+    public function lastIngestedAt(): ?CarbonInterface
     {
         $at = $this->runs()->reorder()->whereIn('status', ['concluido', 'parcial'])->max('finished_at');
 
-        return $at ? \Illuminate\Support\Carbon::parse($at) : null;
+        return $at ? Carbon::parse($at) : null;
     }
 
     /**

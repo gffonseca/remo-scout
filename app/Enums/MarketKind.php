@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum MarketKind: string implements HasLabel, HasColor
+enum MarketKind: string implements HasColor, HasLabel
 {
     case ValorMercado = 'valor_mercado';
     case PedidaTransferencia = 'pedida_transferencia';

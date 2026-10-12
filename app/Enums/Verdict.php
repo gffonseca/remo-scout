@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum Verdict: string implements HasLabel, HasColor
+enum Verdict: string implements HasColor, HasLabel
 {
     case Avancar = 'avancar';
     case Monitorar = 'monitorar';

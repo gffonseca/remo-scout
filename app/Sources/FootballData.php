@@ -6,6 +6,7 @@ use App\Models\OddsMatch;
 use App\Models\SyncRun;
 use App\Support\ClubResolver;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -126,7 +127,7 @@ class FootballData
     /**
      * Força por clube e temporada: pontos reais por jogo × pontos esperados pelo mercado (3·p(vitória) + p(empate)).
      *
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
     public static function clubStrength(string $season)
     {

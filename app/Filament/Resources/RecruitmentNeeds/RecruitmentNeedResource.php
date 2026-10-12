@@ -9,20 +9,19 @@ use App\Enums\Level;
 use App\Enums\NeedStatus;
 use App\Enums\Position;
 use App\Enums\Priority;
-use App\Filament\Resources\RecruitmentNeeds\Pages;
-use App\Filament\Resources\RecruitmentNeeds\RelationManagers;
 use App\Models\RecruitmentNeed;
 use App\Models\TacticalRole;
 use App\Models\User;
+use App\Services\RequirementCheck;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -119,8 +118,8 @@ class RecruitmentNeedResource extends Resource
                 TextEntry::make('tacticalRole.name')->label('Papel desejado')->placeholder('não definido'),
                 TextEntry::make('specialties.name')->label('Especialidades')->badge()->placeholder('—'),
                 TextEntry::make('role_requirements_list')->label('Requisitos de papel/fase')->columnSpan(2)->listWithLineBreaks()->placeholder('nenhum')
-                    ->state(fn (RecruitmentNeed $record) => \App\Services\RequirementCheck::roleRequirements($record)
-                        ->map(fn ($r) => $r['role_name'].' · '.\App\Enums\GamePhase::label($r['phase']).' ≥ '.$r['min_level']->value.($r['is_mandatory'] ? '' : ' (desejável)'))->all()),
+                    ->state(fn (RecruitmentNeed $record) => RequirementCheck::roleRequirements($record)
+                        ->map(fn ($r) => $r['role_name'].' · '.GamePhase::label($r['phase']).' ≥ '.$r['min_level']->value.($r['is_mandatory'] ? '' : ' (desejável)'))->all()),
                 TextEntry::make('age_range')->label('Idade')->state(fn (RecruitmentNeed $r) => $r->age_min || $r->age_max ? ($r->age_min ?? '…').'–'.($r->age_max ?? '…') : 'indiferente'),
                 TextEntry::make('preferred_foot')->label('Pé')->placeholder('indiferente'),
                 TextEntry::make('priority')->label('Prioridade')->badge(),

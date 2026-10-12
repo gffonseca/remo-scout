@@ -4,7 +4,6 @@ namespace App\Filament\Resources\TacticalRoles;
 
 use App\Enums\CatalogStatus;
 use App\Enums\Position;
-use App\Filament\Resources\TacticalRoles\Pages;
 use App\Filament\Resources\TacticalRoles\RelationManagers\VersionsRelationManager;
 use App\Filament\Support\CatalogActions;
 use App\Models\TacticalRole;
@@ -19,7 +18,9 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -72,8 +73,8 @@ class TacticalRoleResource extends Resource
             ]),
             Section::make('Critérios observáveis por nível (A–D), por fase')->columns(2)
                 ->description('Para cada fase marcada: o que se vê em campo em cada nível. O formulário de avaliação mostra este texto ao escolher o nível. Nenhum nível global substitui a avaliação por papel e fase.')
-                ->schema(collect(self::PHASES)->map(fn ($label, $key) => \Filament\Schemas\Components\Fieldset::make($label)
-                    ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => in_array($key, $get('phases') ?? [], true))
+                ->schema(collect(self::PHASES)->map(fn ($label, $key) => Fieldset::make($label)
+                    ->visible(fn (Get $get) => in_array($key, $get('phases') ?? [], true))
                     ->columns(1)->columnSpanFull()
                     ->schema(collect(['A', 'B', 'C', 'D'])->map(fn ($lv) => Textarea::make("level_guide.{$key}.{$lv}")->label("Nível {$lv}")->rows(2)
                         ->placeholder($lv === 'A' ? 'ex.: executa o papel com frequência e qualidade em nível de Série A' : null))->all()))->values()->all()),

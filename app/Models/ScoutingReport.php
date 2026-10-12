@@ -7,6 +7,7 @@ use App\Enums\Confidence;
 use App\Enums\Level;
 use App\Enums\ReportSource;
 use App\Enums\ReportStatus;
+use App\Enums\UserRole;
 use App\Enums\Verdict;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
@@ -76,7 +77,7 @@ class ScoutingReport extends Model
         if ($user->role->isCoordinatorOrAbove()) {
             return $q->where(fn ($w) => $w->where('status', ReportStatus::Submetido)->orWhere('author_id', $user->id));
         }
-        if ($user->role === \App\Enums\UserRole::Leitor) {
+        if ($user->role === UserRole::Leitor) {
             return $q->where('status', ReportStatus::Submetido);
         }
 

@@ -6,9 +6,11 @@ use App\Models\Appearance;
 use App\Models\Club;
 use App\Models\Competition;
 use App\Models\Fixture;
+use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerExternalId;
 use App\Models\SyncRun;
+use App\Services\SeasonStatsAggregator;
 use App\Support\ClubResolver;
 use App\Support\NameMatcher;
 use Carbon\Carbon;
@@ -123,7 +125,7 @@ class ApiFutebol
                 $run->save();
             }
         }
-        \App\Services\SeasonStatsAggregator::rebuildProvider(self::PROVIDER);
+        SeasonStatsAggregator::rebuildProvider(self::PROVIDER);
     }
 
     /** Reconsulta parciais por até 30 dias e recentes por 3 dias, no máximo a cada 6 h (F08). */
@@ -406,7 +408,7 @@ class ApiFutebol
             ->where('data_origin', '!=', 'provedor')->get(['id', 'name', 'full_name'])
             ->filter(fn ($p) => max(NameMatcher::score($p->name, $name), NameMatcher::score($p->full_name, $name)) >= 88) : collect();
         foreach ($hits->take(3) as $h) {
-            \App\Models\IdentityCandidate::updateOrCreate(['player_id' => $h->id, 'provider' => self::PROVIDER, 'external_id' => $aid], [
+            IdentityCandidate::updateOrCreate(['player_id' => $h->id, 'provider' => self::PROVIDER, 'external_id' => $aid], [
                 'kind' => 'mesclar', 'status' => 'pendente', 'shadow_player_id' => $player->id, 'score' => NameMatcher::score($h->name, $name),
                 'label' => "{$name} — ".($club?->name ?? 'sem clube').' (escalação API Futebol)',
                 'evidence' => 'Mesmo clube e nome compatível; a fonte não informa nascimento. Confirmar move as atuações para o cadastro do scout.',

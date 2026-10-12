@@ -10,6 +10,7 @@ use App\Sources\DadosFutebol;
 use App\Sources\SourceException;
 use App\Support\SourceRunLock;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 /** Retrato do elenco atual (Dados Futebol) dos clubes que importam: Remo + clubes dos atletas prioritários. */
 class SyncDadosFutebol extends Command
@@ -56,7 +57,7 @@ class SyncDadosFutebol extends Command
         $this->info("Dados Futebol: {$run->status} · requisições {$run->requests_made} · atletas no retrato {$run->received} · erros {$run->errors}");
     }
 
-    /** @return \Illuminate\Support\Collection<int, Club> */
+    /** @return Collection<int, Club> */
     private function clubs()
     {
         if ($id = $this->option('club')) {

@@ -10,6 +10,7 @@ use App\Models\WatchlistItem;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Alertas da watchlist, só no sistema (sino), deduplicados por item + chave (o mesmo fato nunca alerta duas vezes).
@@ -70,7 +71,7 @@ class WatchlistAlerts
             return 0; // já alertado
         }
         try {
-            \Illuminate\Support\Facades\DB::transaction(fn () => WatchlistAlert::create(['watchlist_item_id' => $item->id, 'dedupe_key' => $key, 'kind' => $kind, 'message' => $message]));
+            DB::transaction(fn () => WatchlistAlert::create(['watchlist_item_id' => $item->id, 'dedupe_key' => $key, 'kind' => $kind, 'message' => $message]));
         } catch (UniqueConstraintViolationException) {
             return 0; // corrida entre duas execuções
         }

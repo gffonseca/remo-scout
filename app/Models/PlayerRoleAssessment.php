@@ -10,6 +10,7 @@ use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /** Classificação consolidada do atleta num papel (várias por atleta; guarda a versão do papel). */
 class PlayerRoleAssessment extends Model
@@ -32,7 +33,7 @@ class PlayerRoleAssessment extends Model
     }
 
     /** Data de referência da evidência (observação), para validade. */
-    public function referenceDate(): \Illuminate\Support\Carbon
+    public function referenceDate(): Carbon
     {
         return $this->observed_on ?? $this->updated_at ?? now();
     }

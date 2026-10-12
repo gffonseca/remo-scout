@@ -5,8 +5,10 @@ namespace App\Console\Commands;
 use App\Models\DataSource;
 use App\Models\Player;
 use App\Models\SyncRun;
+use App\Services\Collector\SofascoreTasks;
 use App\Services\PlayerEnrichment;
 use App\Sources\SourceException;
+use App\Support\SourceRunLock;
 use Illuminate\Console\Command;
 
 class EnrichPlayers extends Command
@@ -20,7 +22,7 @@ class EnrichPlayers extends Command
         $provider = $this->argument('provider');
         abort_unless(in_array($provider, ['transfermarkt', 'sofascore'], true), 1, 'Provedor inválido');
         $source = DataSource::byKey($provider);
-        if (! \App\Support\SourceRunLock::run($provider, fn () => $this->enrich($provider, $source))) {
+        if (! SourceRunLock::run($provider, fn () => $this->enrich($provider, $source))) {
             $this->warn("{$provider}: já existe enriquecimento em andamento; esta execução foi ignorada.");
         }
 
@@ -48,7 +50,7 @@ class EnrichPlayers extends Command
                 break;
             }
             if ($source->transport === 'coletor_local') { // Sofascore: pedido ao coletor do Mac, concluído nas próximas rodadas
-                $t = \App\Services\Collector\SofascoreTasks::request($p, $this->option('user') ? (int) $this->option('user') : null);
+                $t = SofascoreTasks::request($p, $this->option('user') ? (int) $this->option('user') : null);
                 $run->note("{$p->name}: ".($t->status === 'aguardando_coletor' ? 'pedido enviado ao coletor do Mac' : ($t->result ?? $t->status)));
                 $t->status === 'falhou' ? $run->errors++ : $run->updated++;
                 $run->save();

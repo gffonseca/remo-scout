@@ -6,6 +6,7 @@ use App\Models\AuditEvent;
 use App\Models\Player;
 use App\Models\RecruitmentNeed;
 use App\Models\ScoutingReport;
+use App\Services\NeedSearch;
 use App\Services\RequirementCheck;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -53,7 +54,7 @@ class ExportController extends Controller
     {
         Gate::authorize('view', $need);
         $financial = (bool) $request->user()->canViewFinancial();
-        $rows = \App\Services\NeedSearch::exportRows($need, \App\Services\NeedSearch::filter(\App\Services\NeedSearch::run($need),
+        $rows = NeedSearch::exportRows($need, NeedSearch::filter(NeedSearch::run($need),
             (string) $request->query('show', 'viaveis'), $request->query('pending') ?: null), $financial);
         AuditEvent::record('export_need_search', $need, ['linhas' => count($rows)]);
         $name = 'pesquisa-'.Str::slug($need->title).'-'.now()->format('Ymd').'.csv';
