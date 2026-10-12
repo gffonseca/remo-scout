@@ -31,6 +31,9 @@ return [
     // Avaliação de papel mais antiga que isso deixa de confirmar requisito (vira Pendente: "avaliação vencida").
     'assessment_valid_months' => (int) env('SCOUT_ASSESSMENT_VALID_MONTHS', 12),
 
+    // Backup do banco (pg_dump) — disco do bucket privado. Fora de produção pode ser local.
+    'backup_disk' => env('SCOUT_BACKUP_DISK', 'media'),
+
     'credentials' => [
         'API_FUTEBOL_KEY' => env('API_FUTEBOL_KEY'),
         'DADOS_FUTEBOL_KEY' => env('DADOS_FUTEBOL_KEY'),

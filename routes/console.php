@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schedule;
 
 // Única estratégia de agendamento: scheduler Laravel no serviço worker (schedule:work). Horários em UTC (Belém = UTC−3).
+Schedule::command('scout:backup-db --tag=diario')->dailyAt('05:10')->withoutOverlapping(60); // 02:10 Belém
 Schedule::command('scout:probe-sources')->dailyAt('08:30')->withoutOverlapping();
 Schedule::command('scout:sync-api-futebol --max=400')->dailyAt('09:00')->withoutOverlapping(120);   // 06:00 Belém
 Schedule::command('scout:sync-api-football --max=400')->dailyAt('09:40')->withoutOverlapping(120); // 06:40 Belém
