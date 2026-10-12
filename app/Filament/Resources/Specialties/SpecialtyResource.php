@@ -50,12 +50,17 @@ class SpecialtyResource extends Resource
             Section::make()->columns(3)->schema([
                 TextInput::make('name')->label('Nome')->required()->maxLength(120),
                 TextInput::make('code')->label('Código')->required()->unique(ignoreRecord: true)->alphaDash()->disabledOn('edit'),
-                Select::make('status')->label('Status')->options(CatalogStatus::class)->default('proposta')->required(),
+                Select::make('status')->label('Status')->default('proposta')->required()
+                    ->disabled(fn (string $operation) => $operation === 'edit' || ! auth()->user()->isCoordinator())->dehydrated(fn (string $operation) => $operation === 'create')
+                    ->options(fn () => auth()->user()->isCoordinator() ? CatalogStatus::class : ['proposta' => 'Proposta'])
+                    ->helperText('Aprovar só pelo botão "Aprovar", com critérios A–D completos.'),
                 TagsInput::make('aliases')->label('Sinônimos')->columnSpanFull(),
                 Textarea::make('description')->label('Descrição')->rows(2)->columnSpanFull(),
                 Textarea::make('evaluation_suggestions')->label('Como avaliar (amostra, denominador, vídeo)')->rows(3)->columnSpanFull(),
                 CheckboxList::make('compatible_positions')->label('Posições compatíveis (vazio = qualquer posição)')->options(Position::options())->columns(3)->columnSpanFull(),
             ]),
+            Section::make('Critérios observáveis por nível (A–D)')->columns(2)->schema(
+                collect(['A', 'B', 'C', 'D'])->map(fn ($lv) => Textarea::make("level_guide.{$lv}")->label("Nível {$lv}")->rows(2))->all()),
             Section::make('Registro da alteração')->visibleOn('edit')->schema([
                 Textarea::make('change_note')->label('O que mudou e por quê')->rows(2)->dehydrated(false),
             ]),

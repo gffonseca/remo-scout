@@ -29,14 +29,18 @@ class RoleAssessmentsRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->columns(2)->components([
-            Select::make('tactical_role_id')->label('Papel tático')->required()->searchable()->columnSpanFull()
+            Select::make('tactical_role_id')->label('Papel tático')->required()->searchable()->columnSpanFull()->live()
+                ->helperText(fn (\Filament\Schemas\Components\Utilities\Get $get) => ($r = TacticalRole::find($get('tactical_role_id'))) && $r->status?->value !== 'ativo'
+                    ? 'Perfil em proposta: critérios ainda não aprovados pelo departamento — nível sem calibração.' : null)
                 ->options(fn () => TacticalRole::query()->where('status', '!=', 'arquivado')->orderBy('position_group')->orderBy('name')->get()
                     ->groupBy('position_group')->map(fn ($g) => $g->pluck('name', 'id'))->toArray()),
             Select::make('kind')->label('Tipo')->options(AssessmentKind::class)->default('observado')->required(),
-            Select::make('level')->label('Nível em que executa o papel')->options(Level::class)->default('nao_observado')->required()
-                ->helperText('"Não observado" ≠ nível baixo: significa sem evidência.'),
+            Select::make('level')->label('Nível em que executa o papel')->options(Level::class)->default('nao_observado')->required()->live()
+                ->helperText(fn (\Filament\Schemas\Components\Utilities\Get $get) => \App\Services\CatalogApproval::guideFor(
+                    TacticalRole::find($get('tactical_role_id')), $get('phase'), is_string($get('level')) ? $get('level') : $get('level')?->value)
+                    ?? '"Não observado" ≠ nível baixo: significa sem evidência.'),
             Select::make('confidence')->label('Confiança')->options(Confidence::class)->default('media')->required(),
-            Select::make('phase')->label('Fase do jogo')->options(collect(\App\Enums\GamePhase::cases())->mapWithKeys(fn ($p) => [$p->value => $p->getLabel()]))
+            Select::make('phase')->label('Fase do jogo')->live()->options(collect(\App\Enums\GamePhase::cases())->mapWithKeys(fn ($p) => [$p->value => $p->getLabel()]))
                 ->placeholder('Geral (sem fase)')->helperText('Transições são comportamentos dentro do papel. Avaliação de uma fase não vale para outra.'),
             \Filament\Forms\Components\DatePicker::make('observed_on')->label('Data da observação')->native(false)->displayFormat('d/m/Y')
                 ->default(now())->maxDate(now())->required()->helperText('Define a validade: após '.config('scout.assessment_valid_months').' meses a avaliação deixa de confirmar requisito.'),

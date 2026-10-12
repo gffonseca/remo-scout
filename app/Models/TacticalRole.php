@@ -24,12 +24,26 @@ class TacticalRole extends Model
             'phases' => 'array',
             'criteria' => 'array',
             'status' => CatalogStatus::class,
+            'level_guide' => 'array',
+            'reviewed_at' => 'datetime',
         ];
+    }
+
+    /** F22: critério A–D editado por quem não aprova → perfil volta a "proposta" (precisa nova aprovação). */
+    protected static function booted(): void
+    {
+        static::saving(function (self $m) {
+            if ($m->exists && $m->isDirty('level_guide') && $m->getOriginal('status') === CatalogStatus::Ativo
+                && ! (auth()->user()?->isCoordinator() ?? false)) {
+                $m->status = CatalogStatus::Proposta;
+                $m->reviewed_at = null;
+            }
+        });
     }
 
     protected function versionedFields(): array
     {
-        return ['position_group', 'description', 'compatible_positions', 'phases', 'behaviors', 'mandatory_requirements', 'desirable_requirements', 'criteria', 'evaluation_suggestions'];
+        return ['level_guide', 'position_group', 'description', 'compatible_positions', 'phases', 'behaviors', 'mandatory_requirements', 'desirable_requirements', 'criteria', 'evaluation_suggestions'];
     }
 
     public function assessments(): HasMany

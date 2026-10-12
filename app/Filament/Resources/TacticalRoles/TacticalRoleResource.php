@@ -65,8 +65,18 @@ class TacticalRoleResource extends Resource
                 TextInput::make('code')->label('Código')->required()->unique(ignoreRecord: true)->alphaDash()->maxLength(40)
                     ->disabledOn('edit')->helperText('Identificador estável usado em importação/exportação.'),
                 TagsInput::make('aliases')->label('Apelidos/sinônimos')->columnSpan(2),
-                Select::make('status')->label('Status')->options(CatalogStatus::class)->default('proposta')->required(),
+                Select::make('status')->label('Status')->options(CatalogStatus::class)->default('proposta')->required()
+                    ->disabled(fn (string $operation) => $operation === 'edit' || ! auth()->user()->isCoordinator())->dehydrated(fn (string $operation) => $operation === 'create')
+                    ->options(fn () => auth()->user()->isCoordinator() ? CatalogStatus::class : ['proposta' => 'Proposta'])
+                    ->helperText('Aprovar (ativo) só pelo botão "Aprovar perfil", com critérios A–D completos.'),
             ]),
+            Section::make('Critérios observáveis por nível (A–D), por fase')->columns(2)
+                ->description('Para cada fase marcada: o que se vê em campo em cada nível. O formulário de avaliação mostra este texto ao escolher o nível. Nenhum nível global substitui a avaliação por papel e fase.')
+                ->schema(collect(self::PHASES)->map(fn ($label, $key) => \Filament\Schemas\Components\Fieldset::make($label)
+                    ->visible(fn (\Filament\Schemas\Components\Utilities\Get $get) => in_array($key, $get('phases') ?? [], true))
+                    ->columns(1)->columnSpanFull()
+                    ->schema(collect(['A', 'B', 'C', 'D'])->map(fn ($lv) => Textarea::make("level_guide.{$key}.{$lv}")->label("Nível {$lv}")->rows(2)
+                        ->placeholder($lv === 'A' ? 'ex.: executa o papel com frequência e qualidade em nível de Série A' : null))->all()))->values()->all()),
             Section::make('Cartão do papel')->columns(2)->schema([
                 Textarea::make('description')->label('Descrição')->rows(2)->columnSpanFull()->required(),
                 CheckboxList::make('compatible_positions')->label('Posições compatíveis')->options(Position::options())->columns(3)->columnSpanFull(),
