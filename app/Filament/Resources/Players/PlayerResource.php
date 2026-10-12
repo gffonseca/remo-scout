@@ -139,7 +139,11 @@ class PlayerResource extends Resource
                 TextInput::make('agent_name')->label('Empresário (texto livre, se sem cadastro)'),
                 Select::make('market_status')->label('Situação de mercado')->options(MarketStatus::class)->default('desconhecido')->required(),
                 TextInput::make('economic_rights_note')->label('Direitos econômicos (observado)')->placeholder('ex.: 70% clube X / 30% atleta')->columnSpan(2),
-                Select::make('eu_passport')->label('Passaporte comunitário')->options([1 => 'Sim', 0 => 'Não'])->placeholder('Não informado'),
+                Select::make('eu_passport')->label('Passaporte comunitário (documento)')->options([1 => 'Sim — documento conferido', 0 => 'Não possui'])->placeholder('Não informado')->live()
+                    ->helperText('Cidadania declarada por fonte não é passaporte. "Sim" exige descrever o documento conferido.'),
+                Textarea::make('eu_passport_evidence')->label('Documento conferido')->rows(2)
+                    ->visible(fn ($get) => (string) $get('eu_passport') === '1')->required(fn ($get) => (string) $get('eu_passport') === '1')
+                    ->placeholder('ex.: cópia do passaporte italiano nº final 123, validade 2031, recebida do empresário em 10/10/2026'),
                 TagsInput::make('languages')->label('Idiomas')->placeholder('ex.: português, espanhol'),
                 \Filament\Forms\Components\Toggle::make('is_priority')->label('Lista prioritária')->inline(false),
                 TextInput::make('priority_note')->label('Nota da prioridade'),
@@ -218,7 +222,10 @@ class PlayerResource extends Resource
                 TextEntry::make('asking_price')->label('Pedida')->placeholder('não informada')
                     ->formatStateUsing(fn ($state, Player $r) => $r->asking_price_currency.' '.number_format((float) $state, 0, ',', '.'))
                     ->visible(fn () => auth()->user()->canViewFinancial()),
-                TextEntry::make('eu_passport')->label('Passaporte comunitário')->formatStateUsing(fn ($state) => $state ? 'Sim' : 'Não')->placeholder('não informado'),
+                TextEntry::make('eu_passport')->label('Passaporte comunitário')->formatStateUsing(fn ($state) => $state ? 'Sim (documento conferido)' : 'Não possui')->placeholder('não informado')
+                    ->helperText(fn ($record) => $record->eu_passport ? $record->eu_passport_evidence.' — '.($record->eu_passport_confirmed_at?->format('d/m/Y') ?? '') : null),
+                TextEntry::make('citizenships')->label('Cidadanias declaradas (fontes)')->placeholder('—')
+                    ->state(fn ($record) => collect($record->citizenships ?? [])->map(fn ($c) => $c['country'].' · '.$c['source'].($c['at'] ? ' '.$c['at'] : ''))->all())->listWithLineBreaks(),
                 TextEntry::make('languages')->label('Idiomas')->badge()->placeholder('não informado'),
                 TextEntry::make('priority_note')->label('Lista prioritária')->visible(fn (Player $r) => $r->is_priority)->placeholder('sim'),
                 TextEntry::make('notes')->label('Notas')->columnSpanFull()->placeholder('—'),

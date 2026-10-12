@@ -161,9 +161,9 @@ class PlayerEnrichment
                 $p->photo_source = Transfermarkt::PROVIDER;
                 $changes++;
             }
-            if (array_intersect($cit, Transfermarkt::EU) && $p->eu_passport === null) {
-                $p->eu_passport = true;
-                $changes++;
+            // F15: cidadania informada pela fonte vira cidadania declarada — nunca passaporte confirmado.
+            foreach ($cit as $c) {
+                $changes += $p->addCitizenship(Transfermarkt::country($c), Transfermarkt::PROVIDER) ? 1 : 0;
             }
             if (! empty($prof['agent']['name']) && ! $p->agent_id) {
                 $agent = Agent::query()->whereRaw('lower(name) = ?', [mb_strtolower($prof['agent']['name'])])->first()

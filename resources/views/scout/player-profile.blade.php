@@ -140,7 +140,8 @@
             @if ($cbf)
                 <div class="sc-row"><span class="k">Inscrição CBF</span><span class="v" title="Registro público CBF, visto {{ $cbf->last_seen_at?->format('d/m/Y') }}">{{ $cbf->club?->name ?? $cbf->club_name }}{{ ($c = collect($cbf->competitions ?? [])->sortKeysDesc()->first()) ? ' · '.implode(', ', $c) : '' }}</span></div>
             @endif
-            <div class="sc-row"><span class="k">Passaporte comunitário</span><span class="v">{{ $p->eu_passport === null ? 'n/i' : ($p->eu_passport ? 'Sim' : 'Não') }}</span></div>
+            <div class="sc-row"><span class="k">Passaporte comunitário</span><span class="v" title="{{ $p->eu_passport ? $p->eu_passport_evidence : 'Cidadania declarada por fonte não confirma passaporte' }}">{{ $p->eu_passport === null ? 'n/i' : ($p->eu_passport ? 'Sim (doc. conferido)' : 'Não possui') }}</span></div>
+            @if (filled($p->citizenships))<div class="sc-row"><span class="k">Cidadanias (fontes)</span><span class="v">{{ collect($p->citizenships)->pluck('country')->implode(', ') }}</span></div>@endif
             <div class="sc-row"><span class="k">Idiomas</span><span class="v">{{ $p->languages ? implode(', ', $p->languages) : 'n/i' }}</span></div>
             <div class="sc-row"><span class="k">Empresário</span><span class="v">{{ $p->agent?->name ?? ($p->agent_name ?: 'n/i') }}</span></div>
             @if ($p->agent && ($p->agent->phone || $p->agent->whatsapp))<div class="sc-row"><span class="k">Contato empresário</span><span class="v">@if ($p->agent->whatsappUrl())<a href="{{ $p->agent->whatsappUrl() }}" target="_blank" rel="noopener" style="color:#79B9F2">{{ $p->agent->whatsapp ?: $p->agent->phone }}</a>@else{{ $p->agent->phone }}@endif</span></div>@endif

@@ -152,7 +152,9 @@ class SourcesTest extends ScoutTestCase
         $this->assertSame('1993-03-19', $p->birth_date->toDateString());
         $this->assertSame('PD', $p->primary_position->value);
         $this->assertSame('esquerdo', $p->preferred_foot->value);
-        $this->assertTrue($p->eu_passport);
+        $this->assertNull($p->eu_passport); // F15: cidadania holandesa declarada não confirma passaporte
+        $this->assertSame(['Marrocos', 'Holanda'], collect($p->citizenships)->pluck('country')->all());
+        $this->assertSame('transfermarkt', $p->citizenships[1]['source']);
         $this->assertSame(175, $p->height_cm); // não sobrescreve
         $this->assertTrue(EnrichmentReview::where('player_id', $p->id)->where('field', 'height_cm')->where('proposed_value', '180')->exists());
         $this->assertSame('transfermarkt', $p->field_sources['birth_date']['source']);

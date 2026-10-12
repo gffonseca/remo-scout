@@ -46,6 +46,8 @@ class Player extends Model
             'data_origin' => DataOrigin::class,
             'languages' => 'array',
             'eu_passport' => 'boolean',
+            'citizenships' => 'array',
+            'eu_passport_confirmed_at' => 'datetime',
             'is_priority' => 'boolean',
             'market_status' => MarketStatus::class,
             'salary_min' => 'decimal:2',
@@ -73,6 +75,22 @@ class Player extends Model
     public function photoUrl(): ?string
     {
         return \App\Support\Media::url($this->photo_path) ?? $this->photo_url;
+    }
+
+    /** Acrescenta cidadania declarada por uma fonte (sem duplicar país). Não confirma documento. */
+    public function addCitizenship(?string $country, string $source): bool
+    {
+        if (blank($country)) {
+            return false;
+        }
+        $list = $this->citizenships ?? [];
+        if (collect($list)->contains(fn ($c) => mb_strtolower($c['country'] ?? '') === mb_strtolower($country))) {
+            return false;
+        }
+        $list[] = ['country' => $country, 'source' => $source, 'at' => now()->toDateString()];
+        $this->citizenships = $list;
+
+        return true;
     }
 
     public function agent(): BelongsTo
@@ -104,6 +122,22 @@ class Player extends Model
 
     protected static function booted(): void
     {
+        // F15: passaporte comunitário "Sim" exige documento conferido (evidência + responsável + data).
+        static::saving(function (self $p) {
+            if ($p->isDirty('eu_passport') || $p->isDirty('eu_passport_evidence')) {
+                if ($p->eu_passport === true && blank($p->eu_passport_evidence)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['eu_passport' => 'Passaporte comunitário só pode ser "Sim" com o documento conferido descrito na evidência.']);
+                }
+                if ($p->eu_passport === true) {
+                    $p->eu_passport_confirmed_by ??= auth()->id();
+                    $p->eu_passport_confirmed_at ??= now();
+                } else {
+                    $p->eu_passport_confirmed_by = null;
+                    $p->eu_passport_confirmed_at = null;
+                }
+            }
+        });
+
         // Mantém histórico: cada mudança na faixa salarial ou na pedida gera observação de mercado datada.
         static::saved(function (self $p) {
             if ($p->wasChanged(['salary_min', 'salary_max']) || ($p->wasRecentlyCreated && ($p->salary_min !== null || $p->salary_max !== null))) {

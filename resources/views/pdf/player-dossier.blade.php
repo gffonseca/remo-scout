@@ -14,7 +14,7 @@
     <tr><td><b>Clube atual:</b> {{ $player->currentClub?->name ?? 'não informado' }}</td>
         <td><b>Altura:</b> {{ $player->height_cm ? $player->height_cm.' cm' : 'não informada' }}</td>
         <td><b>ID CBF:</b> {{ $player->cbf_id ?? 'não informado' }}</td></tr>
-    <tr><td><b>Nacionalidade:</b> {{ $player->nationality ?? 'não informada' }}{{ $player->eu_passport ? ' · passaporte comunitário' : '' }}</td>
+    <tr><td><b>Nacionalidade:</b> {{ $player->nationality ?? 'não informada' }}{{ $player->eu_passport ? ' · passaporte comunitário (documento conferido)' : '' }}{{ filled($player->citizenships) ? ' · cidadanias declaradas: '.collect($player->citizenships)->pluck('country')->implode(', ') : '' }}</td>
         <td><b>Empresário:</b> {{ $player->agent?->label() ?? ($player->agent_name ?: 'não informado') }}@if ($player->agent && ($player->agent->phone || $player->agent->email))<br><span class="muted">{{ collect([$player->agent->phone, $player->agent->email])->filter()->implode(' · ') }}</span>@endif</td>
         <td><b>Origem do cadastro:</b> {{ $player->data_origin->getLabel() }}</td></tr>
     <tr><td><b>Situação de mercado:</b> {{ $player->market_status->getLabel() }}</td>
