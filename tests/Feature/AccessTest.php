@@ -70,4 +70,18 @@ class AccessTest extends ScoutTestCase
         $this->assertStringContainsString('Uso interno', $res->streamedContent());
         $this->get(route('export.shortlist', [$n, 'pdf']))->assertNotFound();
     }
+
+    public function test_mfa_required_for_admin_only(): void
+    {
+        $this->actingAs($this->user('admin'));
+        $res = $this->get('/atletas');
+        $res->assertRedirect();
+        $this->assertStringContainsString('multi-factor', $res->headers->get('Location'));
+    }
+
+    public function test_mfa_not_forced_for_coordinator(): void
+    {
+        $this->actingAs($this->user('coordenador'));
+        $this->get('/atletas')->assertOk();
+    }
 }

@@ -36,7 +36,8 @@ class AdminPanelProvider extends PanelProvider
             ->profile(isSimple: false)
             ->multiFactorAuthentication([
                 AppAuthentication::make()->recoverable(),
-            ], isRequired: fn () => (bool) auth()->user()?->isAdmin())
+            ], isRequired: true)
+            ->multiFactorAuthenticationRequiredMiddlewareName(\App\Http\Middleware\RequireMfaForAdmins::class)
             ->brandName('REMO SCOUT — piloto')
             ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
