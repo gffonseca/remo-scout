@@ -59,20 +59,22 @@ class CoberturaDados extends Page
     public function data(): array
     {
         $rows = DataCoverage::rows();
-        $field = $this->tipo === 'foto' ? 'photo_reason' : 'stats_reason';
-        $list = $rows->whereNotNull($field)
+        $field = $this->tipo === 'foto' ? 'photo_reason' : 'stats_state';
+        $list = $rows->when($this->tipo === 'foto', fn ($c) => $c->whereNotNull('photo_reason'), fn ($c) => $c->whereIn('stats_state', DataCoverage::MISSING + ['parcial', 'desatualizado']))
             ->when($this->motivo, fn ($c) => $c->where($field, $this->motivo))
             ->when($this->prioritarios, fn ($c) => $c->where('priority', true));
 
         return [
             'total' => $rows->count(),
-            'stats' => $rows->whereNotNull('stats_reason')->countBy('stats_reason')->all(),
+            'states' => $rows->countBy('stats_state')->all(),
             'photo' => $rows->whereNotNull('photo_reason')->countBy('photo_reason')->all(),
+            'with_photo' => $rows->whereNull('photo_reason')->count(),
             'list' => $list->take(300)->values(),
             'listCount' => $list->count(),
             'field' => $field,
             'clubs' => DataCoverage::unresolvedClubs(),
-            'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_REASONS,
+            'runs' => DataCoverage::sourceRuns(),
+            'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_STATES,
         ];
     }
 }

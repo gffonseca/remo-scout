@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\CoberturaDados;
 use App\Models\Club;
+use App\Models\DataSource;
 use App\Models\Fixture;
 use App\Models\IdentityCandidate;
 use App\Models\Player;
@@ -39,30 +40,45 @@ class DataCoverageTest extends ScoutTestCase
         $this->assertSame(0, PhotoBackfill::run());
     }
 
-    public function test_reasons_for_missing_stats_and_photo(): void
+    public function test_states_for_stats_and_photo(): void
     {
         $covered = Club::create(['name' => 'Coberto']);
         $other = Club::create(['name' => 'Sem partidas']);
-        Fixture::create(['provider' => 'api_football', 'external_id' => 'f1', 'season' => now()->format('Y'), 'home_club_id' => $covered->id, 'away_club_id' => null]);
-        $withStats = Player::create(['name' => 'Com estatística', 'current_club_id' => $covered->id]);
-        PlayerSeasonStat::create(['player_id' => $withStats->id, 'provider' => 'cbf', 'competition_key' => 'x', 'competition_name' => 'X', 'season' => '2026', 'appearances' => 3]);
+        $y = now(config('scout.display_timezone'))->format('Y');
+        Fixture::create(['provider' => 'api_football', 'external_id' => 'f1', 'season' => $y, 'home_club_id' => $covered->id, 'data_quality' => 'completo']);
+        $stat = fn (Player $p, array $a) => PlayerSeasonStat::create($a + ['player_id' => $p->id, 'provider' => 'cbf', 'competition_key' => uniqid(), 'competition_name' => 'X', 'fetched_at' => now()]);
+
+        $stat(Player::create(['name' => 'Disponível']), ['season' => $y, 'appearances' => 3, 'minutes' => 270]);
+        $stat(Player::create(['name' => 'Temporada 25/26']), ['season' => substr((string) ($y - 1), 2).'/'.substr($y, 2), 'appearances' => 3, 'minutes' => 270]);
+        $stat(Player::create(['name' => 'Parcial']), ['season' => $y, 'appearances' => 3, 'minutes' => null]);
+        $stat(Player::create(['name' => 'Antigo']), ['season' => '2019', 'appearances' => 30, 'minutes' => 2500]);
+        $stat(Player::create(['name' => 'Coleta velha']), ['season' => $y, 'appearances' => 3, 'minutes' => 270, 'fetched_at' => now()->subDays(45)]);
         $review = Player::create(['name' => 'Em revisão', 'current_club_id' => $covered->id]);
         IdentityCandidate::create(['player_id' => $review->id, 'provider' => 'api_football', 'external_id' => '9', 'kind' => 'mesclar', 'status' => 'pendente', 'score' => 90, 'label' => 'x']);
         Player::create(['name' => 'Sem clube']);
         Player::create(['name' => 'Clube sem partidas', 'current_club_id' => $other->id]);
-        Player::create(['name' => 'Sem nascimento', 'current_club_id' => $covered->id]);
-        Player::create(['name' => 'Não encontrado', 'current_club_id' => $covered->id, 'birth_date' => '2000-01-01']);
+        Player::create(['name' => 'Aguardando', 'current_club_id' => $covered->id]);
+        $linked = Player::create(['name' => 'Vinculado sem jogo', 'current_club_id' => $covered->id, 'birth_date' => '2000-01-01']);
+        PlayerExternalId::create(['player_id' => $linked->id, 'provider' => 'api_football', 'external_id' => '77', 'verified' => true, 'link_method' => 'nome_nascimento']);
 
         $r = DataCoverage::rows()->keyBy('name');
-        $this->assertNull($r['Com estatística']->stats_reason);
-        $this->assertSame('revisao', $r['Em revisão']->stats_reason);
-        $this->assertSame('sem_clube', $r['Sem clube']->stats_reason);
-        $this->assertSame('clube_sem_partidas', $r['Clube sem partidas']->stats_reason);
-        $this->assertSame('sem_nascimento', $r['Sem nascimento']->stats_reason);
-        $this->assertSame('nao_encontrado', $r['Não encontrado']->stats_reason);
+        $this->assertSame('disponivel', $r['Disponível']->stats_state);
+        $this->assertSame('disponivel', $r['Temporada 25/26']->stats_state); // rótulo com 2 dígitos não some
+        $this->assertSame('parcial', $r['Parcial']->stats_state);
+        $this->assertSame('desatualizado', $r['Antigo']->stats_state);
+        $this->assertSame('desatualizado', $r['Coleta velha']->stats_state);
+        $this->assertSame('identidade_pendente', $r['Em revisão']->stats_state);
+        $this->assertSame('nao_coletado', $r['Sem clube']->stats_state);
+        $this->assertSame('fora_cobertura', $r['Clube sem partidas']->stats_state);
+        $this->assertSame('aguardando_vinculo', $r['Aguardando']->stats_state);
+        $this->assertSame('sem_participacao', $r['Vinculado sem jogo']->stats_state);
         $this->assertSame('sem_vinculo', $r['Sem clube']->photo_reason);
 
+        DataSource::updateOrCreate(['key' => 'api_football'], ['name' => 'API-Football', 'kind' => 'api_comercial', 'enabled' => true])
+            ->forceFill(['circuit_open_until' => now()->addHour()])->save();
+        $this->assertSame('falha_bloqueio', DataCoverage::rows()->keyBy('name')['Aguardando']->stats_state); // fonte pausada ≠ não jogou
+
         $this->actingAs($this->user('leitor'));
-        $this->get(CoberturaDados::getUrl(['motivo' => 'sem_nascimento']))->assertOk()->assertSee('Sem nascimento')->assertDontSee('Não encontrado</a>', false);
+        $this->get(CoberturaDados::getUrl(['motivo' => 'fora_cobertura']))->assertOk()->assertSee('Clube sem partidas')->assertSee('Denominador: 10 atletas');
     }
 }

@@ -4,8 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\DataSource;
 use App\Models\Player;
+use App\Models\ProspectCase;
 use App\Models\SyncRun;
+use App\Models\WatchlistItem;
 use App\Services\Collector\SofascoreTasks;
+use App\Services\DataCoverage;
 use App\Services\PlayerEnrichment;
 use App\Sources\SourceException;
 use App\Support\SourceRunLock;
@@ -13,7 +16,7 @@ use Illuminate\Console\Command;
 
 class EnrichPlayers extends Command
 {
-    protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing} {--limit=30} {--user=}';
+    protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing|cobertura} {--limit=30} {--user=} {--dry-run : só lista quem seria processado, sem chamar a fonte}';
 
     protected $description = 'Vincula e enriquece atletas por fonte externa (sob demanda, em lote pequeno)';
 
@@ -22,6 +25,12 @@ class EnrichPlayers extends Command
         $provider = $this->argument('provider');
         abort_unless(in_array($provider, ['transfermarkt', 'sofascore'], true), 1, 'Provedor inválido');
         $source = DataSource::byKey($provider);
+        if ($this->option('dry-run')) {
+            $this->table(['Atleta', 'Clube', 'Prioridade'], $this->candidates($provider)->map(fn ($p) => [$p->name, $p->currentClub?->name ?? '—', $p->coverage_rank ?? ($p->is_priority ? 'lista prioritária' : '')])->all());
+            $this->line('Prévia: nenhuma chamada à fonte.');
+
+            return self::SUCCESS;
+        }
         if (! SourceRunLock::run($provider, fn () => $this->enrich($provider, $source))) {
             $this->warn("{$provider}: já existe enriquecimento em andamento; esta execução foi ignorada.");
         }
@@ -36,15 +45,7 @@ class EnrichPlayers extends Command
         $run = SyncRun::create(['data_source_id' => $source->id, 'job' => 'enriquecimento', 'status' => 'em_execucao', 'started_at' => now(),
             'scope' => ['scope' => $this->option('scope'), 'limit' => (int) $this->option('limit')], 'requested_by' => $this->option('user')]);
 
-        $q = Player::query()->with(['currentClub', 'externalIds'])
-            ->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))
-            ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider)->where('external_id', 'like', 'nao-encontrado%'));
-        match ($this->option('scope')) {
-            'shortlist' => $q->whereHas('prospectCases.stage', fn ($s) => $s->where('is_shortlist', true)),
-            'missing' => $q->whereNull('birth_date'),
-            default => $q->where('is_priority', true),
-        };
-        foreach ($q->orderByDesc('is_priority')->limit((int) $this->option('limit'))->get() as $p) {
+        foreach ($this->candidates($provider) as $p) {
             if (microtime(true) > $deadline) {
                 $run->note('Prazo da execução atingido; continua na próxima.');
                 break;
@@ -80,5 +81,35 @@ class EnrichPlayers extends Command
         }
         $run->finish();
         $this->info("{$provider}: {$run->status} · enriquecidos {$run->updated} · a revisar {$run->discarded} · erros {$run->errors}");
+    }
+
+    /**
+     * Fila do lote. "cobertura": atletas sem estatística utilizável (estado da Cobertura de dados), priorizando
+     * watchlist ativa → candidatos de necessidades abertas → lista prioritária. Retomável: quem foi tentado há menos de 14 dias sai da fila.
+     */
+    private function candidates(string $provider)
+    {
+        $q = Player::query()->with(['currentClub', 'externalIds'])
+            ->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))
+            ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider)->where('external_id', 'like', 'nao-encontrado%'));
+        if ($this->option('scope') === 'cobertura') {
+            $states = DataCoverage::rows()->keyBy('id');
+            $want = ['aguardando_vinculo', 'fora_cobertura', 'desatualizado', 'nao_coletado', 'sem_participacao'];
+            $ids = $states->filter(fn ($r) => in_array($r->stats_state, $want, true))->keys();
+            $watch = WatchlistItem::where('status', 'ativo')->pluck('player_id')->flip();
+            $needs = ProspectCase::whereHas('need', fn ($n) => $n->where('status', 'aberta'))->pluck('player_id')->flip();
+
+            return $q->whereIn('id', $ids)->get()
+                ->each(fn ($p) => $p->coverage_rank = $watch->has($p->id) ? 'watchlist' : ($needs->has($p->id) ? 'necessidade aberta' : ($p->is_priority ? 'lista prioritária' : 'base')))
+                ->sortBy(fn ($p) => array_search($p->coverage_rank, ['watchlist', 'necessidade aberta', 'lista prioritária', 'base'], true))
+                ->take((int) $this->option('limit'))->values();
+        }
+        match ($this->option('scope')) {
+            'shortlist' => $q->whereHas('prospectCases.stage', fn ($s) => $s->where('is_shortlist', true)),
+            'missing' => $q->whereNull('birth_date'),
+            default => $q->where('is_priority', true),
+        };
+
+        return $q->orderByDesc('is_priority')->limit((int) $this->option('limit'))->get();
     }
 }
