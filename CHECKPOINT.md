@@ -1,6 +1,6 @@
 # CHECKPOINT — REMO SCOUT
 
-Atualize a cada sessão. Última atualização: 11/10/2026 (sessão de construção inicial).
+Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 2 do refinamento concluído na branch `refino`).
 
 ## Decisões vigentes (ver docs/PROMPT-v2.md §2)
 - Usuários: Gustavo (admin/piloto), Rafael (coordenador), 2 analistas (a contratar), Executivo de Futebol (leitor; financeiro por permissão).
@@ -49,3 +49,20 @@ Atualize a cada sessão. Última atualização: 11/10/2026 (sessão de construç
 - Decisões do Q&A em docs/auditoria/DECISOES-REFINAMENTO.md (deploy só no fim; fases com posse/sem posse/bola parada no Bloco 1; IA de notícias = Claude API; Sofascore só via coletor local; restauração no Mac Mini).
 - Bloco 1 (F01–F08, F10, F23) concluído na branch `refino` com revisão independente; entrega e plano de deploy/rollback em docs/auditoria/BLOCO-1-ENTREGA.md. CI próprio verde (PHP 8.3 + PostgreSQL 16).
 - Próximo: Bloco 2 (F09, F12–F17, F20).
+
+## 12/10/2026 — Bloco 2 do refinamento (branch `refino`, não publicado)
+- F09, F12–F17 e F20 concluídos com revisão independente: 1 grave, 7 médios e 7 baixos, todos corrigidos. Detalhes, migrações e plano de deploy em docs/auditoria/BLOCO-2-ENTREGA.md; matriz de fontes em docs/auditoria/MATRIZ-INTEGRACOES.md.
+- Fontes novas:
+  - **API-Football Pro**, assinado pelo Gustavo e válido até 12/11/2026. Chave no Railway web+worker. Estatística individual de Série A/B; escalação de Série C/Nordeste; nascimento para vínculo automático.
+  - **Dados Futebol Pro:** elenco atual.
+  - **football-data.co.uk:** força dos clubes da Série A.
+  - **BID CBF:** consulta assistida, porque há CAPTCHA.
+  - **Sofascore:** sob demanda via coletor do Mac (tarefas a cada 15 min).
+  - Sportmonks não autorizada (Free sem Brasil). kariofreire descartado.
+- Coletor 1.1.0 (manifesto, idempotência, retomada, tarefas): atualizar o Mac Mini só no deploy.
+- Pendências do Gustavo:
+  - autorizar o deploy dos Blocos 1+2;
+  - trocar as chaves coladas no chat;
+  - decidir a renovação da API-Football até 12/11.
+- Pendência do Rafael: conferir a cobertura da API Futebol e da CBF (botão na tela de fontes).
+- Próximo: Bloco 3 (fluxo de mercado e layout) e Bloco 4 (notícias via Claude API, operação, ensaio de restauração no Mac Mini, piloto).
