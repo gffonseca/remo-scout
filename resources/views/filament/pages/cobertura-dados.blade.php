@@ -60,6 +60,17 @@
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoPreview'] }} atleta(s) recebem a foto da API-Football (vínculo confiável, sem foto)</span><span class="v">{{ ($this->fixAction)(['correcao' => 'fotos']) }}</span></div>
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoToCheck'] }} URL(s) externas ainda não verificadas</span><span class="v">{{ ($this->fixAction)(['correcao' => 'checar']) }}</span></div>
         <div class="sc-row"><span class="k">Enriquecimento: {{ $d['toEnrich'] }} de {{ $d['total'] }} atleta(s) do scout sem consulta ao Transfermarkt nos últimos 14 dias</span><span class="v">{{ ($this->fixAction)(['correcao' => 'enriquecer']) }}</span></div>
+        @php $cv = $d['convergence']; $cvRows = collect($cv['rows'] ?? []); @endphp
+        <div class="sc-row"><span class="k">Identidades sem nascimento: ligação quando CBF e Transfermarkt concordam (nascimento + clube)@if ($cv) · última {{ $cv['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($cv['at'])->timezone($tz)->format('d/m H:i') }}: {{ $cvRows->where('decision', 'ligar')->count() }} ligar · {{ $cvRows->where('decision', 'fila')->count() }} seguem na fila · {{ $cvRows->where('decision', 'erro')->count() }} erro(s)@endif</span>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'convergir_previa']) }} @if ($cv && ! $cv['applied'] && $cvRows->where('decision', 'ligar')->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'convergir']) }}@endif</span></div>
+        @if ($cvRows->isNotEmpty())
+            <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver a {{ $cv['applied'] ? 'aplicação' : 'prévia' }} atleta a atleta ({{ $cvRows->count() }})</summary>
+                @foreach ($cvRows->sortBy(fn ($r) => ['ligar' => 0, 'erro' => 1, 'fila' => 2][$r['decision']] ?? 3) as $r)
+                    <div class="sc-row" wire:key="cv-{{ $r['player_id'] }}"><span class="k"><strong>{{ $r['player'] }}</strong> · {{ $r['club'] ?? '—' }}@if ($r['tm_label']) · TM: {{ $r['tm_label'] }}@endif <span class="sc-muted">— {{ $r['reason'] }}</span></span>
+                        <span class="v">{{ ['ligar' => 'Ligar', 'fila' => 'Fila', 'erro' => 'Erro'][$r['decision']] ?? $r['decision'] }}</span></div>
+                @endforeach
+            </details>
+        @endif
         @if ($d['batches']->isNotEmpty())
             <h4 style="margin-top:.9rem">Lotes de correção</h4>
             @foreach ($d['batches'] as $b)

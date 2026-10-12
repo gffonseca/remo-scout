@@ -189,6 +189,11 @@ class Player extends Model
         });
     }
 
+    public function cbfAthletes(): HasMany
+    {
+        return $this->hasMany(CbfAthlete::class);
+    }
+
     public function externalIds(): HasMany
     {
         return $this->hasMany(PlayerExternalId::class);

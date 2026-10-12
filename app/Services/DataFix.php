@@ -52,6 +52,13 @@ class DataFix
 
                 continue;
             }
+            if (is_string($x) && is_string($v) && in_array($x[0] ?? '', ['{', '['], true) && is_array($jx = json_decode($x, true)) && is_array($jv = json_decode($v, true))) {
+                if (static::canon($jx) !== static::canon($jv)) { // jsonb devolve outra ordem/espaçamento
+                    return false;
+                }
+
+                continue;
+            }
             $date = '/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/';
             if (is_string($x) && is_string($v) && preg_match($date, $x) && preg_match($date, $v)) {
                 if (Carbon::parse($x)->getTimestamp() !== Carbon::parse($v)->getTimestamp()) {
@@ -66,6 +73,13 @@ class DataFix
         }
 
         return true;
+    }
+
+    private static function canon(array $a): array
+    {
+        ksort($a);
+
+        return array_map(fn ($v) => is_array($v) ? static::canon($v) : $v, $a);
     }
 
     /**
