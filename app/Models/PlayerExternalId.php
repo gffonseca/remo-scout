@@ -23,7 +23,7 @@ class PlayerExternalId extends Model
         // vínculo confiável novo ou confirmado: a foto do provedor passa ao cadastro (se ele não tiver foto)
         static::saved(function (self $e) {
             if ($e->provider === 'api_football' && ($e->verified || $e->link_method === 'cadastro_provisorio')) {
-                PhotoBackfill::run($e->player_id);
+                PhotoBackfill::forPlayer($e->player_id);
             }
         });
     }

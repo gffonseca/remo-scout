@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\PlayerPhotos;
 use App\Filament\Pages\CoberturaDados;
 use App\Models\Club;
 use App\Models\DataSource;
@@ -13,6 +14,8 @@ use App\Models\PlayerSeasonStat;
 use App\Models\ProviderAthlete;
 use App\Services\DataCoverage;
 use App\Services\PhotoBackfill;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 /** Fotos da API-Football chegam ao cadastro com vínculo confiável; cobertura explica a falta de estatística e foto. */
 class DataCoverageTest extends ScoutTestCase
@@ -37,7 +40,80 @@ class DataCoverageTest extends ScoutTestCase
         $this->assertSame('api_football', $ok->fresh()->photo_source);
         $this->assertNull($doubt->fresh()->photo_url);
         $this->assertSame('https://exemplo/foto.png', $own->fresh()->photo_url);
-        $this->assertSame(0, PhotoBackfill::run());
+        $this->assertSame(0, PhotoBackfill::run()['count']);
+    }
+
+    public function test_new_link_only_touches_its_own_player(): void
+    {
+        $this->athlete('11');
+        $this->athlete('12');
+        $other = Player::create(['name' => 'Outro']);
+        PlayerExternalId::withoutEvents(fn () => PlayerExternalId::create(['player_id' => $other->id, 'provider' => 'api_football', 'external_id' => '12', 'verified' => true, 'link_method' => 'id']));
+        $p = Player::create(['name' => 'Novo vínculo']);
+        PlayerExternalId::create(['player_id' => $p->id, 'provider' => 'api_football', 'external_id' => '11', 'verified' => true, 'link_method' => 'id']);
+        $this->assertNotNull($p->fresh()->photo_url);
+        $this->assertNull($other->fresh()->photo_url); // o restante só por backfill com prévia
+        $this->assertSame(0, DB::table('data_fix_changes')->count());
+    }
+
+    public function test_backfill_preview_apply_and_revert(): void
+    {
+        $this->athlete('5');
+        $p = Player::create(['name' => 'Lote']);
+        PlayerExternalId::withoutEvents(fn () => PlayerExternalId::create(['player_id' => $p->id, 'provider' => 'api_football', 'external_id' => '5', 'verified' => true, 'link_method' => 'id']));
+        $this->artisan('scout:photos --backfill')->expectsOutputToContain('PRÉVIA: 1')->assertSuccessful();
+        $this->assertNull($p->fresh()->photo_url);
+        $this->artisan('scout:photos --backfill --apply')->expectsOutputToContain('APLICADO: 1')->assertSuccessful();
+        $this->assertStringEndsWith('/5.png', $p->fresh()->photo_url);
+        $batch = DB::table('data_fix_changes')->where('kind', 'photo')->value('batch');
+        $this->artisan("scout:photos --revert={$batch}")->assertSuccessful();
+        $this->assertNull($p->fresh()->photo_url);
+    }
+
+    public function test_probe_states_and_hidden_urls_fall_back_to_initials(): void
+    {
+        $img = imagecreatetruecolor(120, 120);
+        for ($i = 0; $i < 3000; $i++) {
+            imagesetpixel($img, random_int(0, 119), random_int(0, 119), random_int(0, 0xFFFFFF)); // ruído: PNG acima do limiar de "genérica"
+        }
+        ob_start();
+        imagepng($img);
+        $png = ob_get_clean();
+        Http::fake([
+            'media.api-sports.io/ok.png' => Http::response($png, 200, ['Content-Type' => 'image/png']),
+            'media.api-sports.io/404.png' => Http::response('', 404),
+            'media.api-sports.io/403.png' => Http::response('', 403),
+            'media.api-sports.io/html.png' => Http::response('<html>', 200, ['Content-Type' => 'text/html']),
+        ]);
+        $probe = fn ($u) => PlayerPhotos::probe($u);
+        $this->assertSame('ok', $probe('https://media.api-sports.io/ok.png'));
+        $this->assertSame('ok', $probe('https://media.api-sports.io/ok.png'));
+        $this->assertSame('quebrada', $probe('https://media.api-sports.io/404.png'));
+        $this->assertSame('bloqueada', $probe('https://media.api-sports.io/403.png'));
+        $this->assertSame('nao_imagem', $probe('https://media.api-sports.io/html.png'));
+        $this->assertSame('host_nao_permitido', $probe('https://exemplo.com/a.png'));
+        $this->assertSame('host_nao_permitido', $probe('http://media.api-sports.io/ok.png'));
+        $this->assertSame('generica', $probe('https://img.a.transfermarkt.technology/portrait/header/default.jpg'));
+
+        $p = Player::create(['name' => 'José da Silva', 'photo_url' => 'https://media.api-sports.io/404.png', 'photo_status' => 'quebrada']);
+        $this->assertNull($p->photoUrl());
+        $this->assertStringStartsWith('data:image/svg+xml;base64,', $p->avatarUrl());
+        $this->assertStringContainsString('JS', base64_decode(substr($p->avatarUrl(), 26)));
+        $p->update(['photo_status' => 'bloqueada']); // servidor recusado ≠ navegador recusado: ainda tenta, com fallback
+        $this->assertSame('https://media.api-sports.io/404.png', $p->fresh()->photoUrl());
+    }
+
+    public function test_manual_upload_records_origin_and_is_not_replaced_by_source_photo(): void
+    {
+        $u = $this->user('analista');
+        $this->actingAs($u);
+        $p = Player::create(['name' => 'Com upload']);
+        $p->update(['photo_path' => 'players/abc.jpg']);
+        $this->assertSame('upload', $p->fresh()->photo_source);
+        $this->assertSame($u->id, $p->fresh()->photo_uploaded_by);
+        $this->athlete('8');
+        PlayerExternalId::create(['player_id' => $p->id, 'provider' => 'api_football', 'external_id' => '8', 'verified' => true, 'link_method' => 'id']);
+        $this->assertNull($p->fresh()->photo_url); // fonte não substitui foto manual
     }
 
     public function test_states_for_stats_and_photo(): void

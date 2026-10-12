@@ -21,16 +21,13 @@
 <div style="display:flex;flex-direction:column;gap:1rem">
     {{-- Cabeçalho --}}
     <div class="sc-hero">
-        <div class="sc-avatar" @if (! $photo) aria-hidden="true" @endif>
-            @if ($photo)
-                <img src="{{ $photo }}" alt="Foto de {{ $p->name }}" referrerpolicy="no-referrer" loading="lazy"
-                     onerror="this.onerror=null;this.src='{{ asset('images/player-silhouette.svg') }}'">
-            @else
-                <svg viewBox="0 0 64 64" width="78" height="78"><circle cx="32" cy="24" r="12" fill="#2c4466"/><path d="M8 64c2-16 12-24 24-24s22 8 24 24z" fill="#2c4466"/></svg>
-            @endif
+        <div class="sc-avatar">
+            <img src="{{ $p->avatarUrl() }}" alt="{{ $photo ? 'Foto de '.$p->name : 'Sem foto: '.$p->name }}" referrerpolicy="no-referrer" loading="lazy"
+                 onerror="this.onerror=null;this.src='{{ \App\Support\Media::initialsAvatar($p->name) }}'">
         </div>
         <div>
             <div class="sc-name">{{ $p->name }}</div>
+            @if (! $photo)<div class="sc-muted" style="font-size:.75rem">Sem foto{{ $p->photo_status && in_array($p->photo_status, \App\Models\Player::PHOTO_HIDDEN, true) ? ' (URL da fonte '.str_replace('_', ' ', $p->photo_status).')' : '' }}</div>@endif
             <div class="sc-sub">{{ $p->primary_position?->getLabel() ?? 'Posição não informada' }}@if ($p->full_name && $p->full_name !== $p->name) · {{ $p->full_name }}@endif</div>
             <div class="sc-chips">
                 <span class="sc-chip">{{ $p->nationality ?? 'Nacionalidade n/i' }}</span>

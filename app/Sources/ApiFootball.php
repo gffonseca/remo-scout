@@ -129,7 +129,12 @@ class ApiFootball
         if ($touched) {
             SeasonStatsAggregator::rebuildProvider(self::PROVIDER, array_values(array_unique($touched)));
         }
-        if ($photos = PhotoBackfill::run()) {
+        // fotos de atletas tocados nesta execução (vínculo confiável, cadastro sem foto); o restante é backfill com prévia
+        $photos = 0;
+        foreach (array_unique($touched) as $pid) {
+            $photos += PhotoBackfill::forPlayer($pid) ? 1 : 0;
+        }
+        if ($photos) {
             $run->note("{$photos} foto(s) de atleta vinda(s) da API-Football (vínculo confiável, cadastro sem foto).");
         }
     }

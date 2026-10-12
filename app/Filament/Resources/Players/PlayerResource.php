@@ -109,7 +109,7 @@ class PlayerResource extends Resource
                     TextInput::make('height_cm')->label('Altura (cm)')->numeric()->minValue(140)->maxValue(215),
                     FileUpload::make('photo_path')->label('Foto de perfil')->disk('media')->directory('players')->visibility('private')
                         ->image()->imageEditor()->imageCropAspectRatio('1:1')->maxSize(3072)
-                        ->helperText('Upload próprio tem prioridade sobre a foto vinda de fonte externa (Transfermarkt/Sofascore).'),
+                        ->helperText('Envie só foto do próprio atleta (identidade conferida). Upload próprio tem prioridade sobre a foto de fonte externa e não é substituído por ela.'),
                 ]),
             Section::make('Posições')
                 ->columns(2)
@@ -260,8 +260,9 @@ class PlayerResource extends Resource
             ->persistSortInSession()
             ->columns([
                 TextColumn::make('is_priority')->label('')->state(fn (Player $r) => $r->is_priority ? '★' : null)->color('warning')->weight('bold')->tooltip(fn (Player $r) => $r->is_priority ? ($r->priority_note ?: 'Lista prioritária') : null)->width('1%'),
-                ImageColumn::make('avatar')->label('')->state(fn (Player $r) => $r->photoUrl())->circular()->imageSize(32)
-                    ->defaultImageUrl(asset('images/player-silhouette.svg'))->extraImgAttributes(['loading' => 'lazy', 'referrerpolicy' => 'no-referrer', 'onerror' => "this.onerror=null;this.src='/images/player-silhouette.svg'"])->width('1%'),
+                ImageColumn::make('avatar')->label('')->state(fn (Player $r) => $r->avatarUrl())->circular()->imageSize(32)
+                    ->extraImgAttributes(fn (Player $r) => ['loading' => 'lazy', 'referrerpolicy' => 'no-referrer', 'alt' => $r->photoUrl() ? 'Foto de '.$r->name : 'Sem foto: '.$r->name,
+                        'onerror' => "this.onerror=null;this.src='".Media::initialsAvatar($r->name)."'"])->width('1%'),
                 TextColumn::make('name')->label('Atleta')->searchable(query: fn (Builder $query, string $search) => $query->where(fn ($w) => $w
                     ->whereRaw('lower(unaccent_name(name)) like lower(unaccent_name(?))', ["%{$search}%"])
                     ->orWhereRaw('lower(unaccent_name(coalesce(full_name, \'\'))) like lower(unaccent_name(?))', ["%{$search}%"])

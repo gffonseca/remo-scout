@@ -32,7 +32,7 @@
                     <article class="scout-card" wire:key="case-{{ $case->id }}">
                         <div class="flex items-start justify-between gap-2">
                             <a href="{{ \App\Filament\Resources\Players\PlayerResource::getUrl('view', ['record' => $case->player_id]) }}" class="flex items-center gap-2 font-semibold hover:underline">
-                                <img src="{{ $case->player->photoUrl() ?? asset('images/player-silhouette.svg') }}" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:top" onerror="this.onerror=null;this.src='{{ asset('images/player-silhouette.svg') }}'">
+                                <img src="{{ $case->player->avatarUrl() }}" alt="" referrerpolicy="no-referrer" loading="lazy" style="width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:top" onerror="this.onerror=null;this.src='{{ \App\Support\Media::initialsAvatar($case->player->name) }}'">
                                 {{ $case->player->name }}</a>
                             <x-filament::badge size="sm" :color="$case->priority->getColor()">{{ $case->priority->getLabel() }}</x-filament::badge>
                         </div>
