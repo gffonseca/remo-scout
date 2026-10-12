@@ -154,12 +154,26 @@ class DataCoverageTest extends ScoutTestCase
         $this->assertSame('sem_participacao', $r['Vinculado sem jogo']->stats_state);
         $this->assertSame('sem_vinculo', $r['Sem clube']->photo_reason);
 
+        // "com foto" só conta link aprovado na verificação; silhueta da fonte = fonte sem foto
+        $url = 'https://media.api-sports.io/football/players/';
+        foreach (['ok' => 'Foto ok', 'bloqueada' => 'Foto bloqueada', 'generica' => 'Silhueta', 'quebrada' => 'Link quebrado', null => 'Nao checada'] as $st => $name) {
+            Player::create(['name' => $name, 'photo_url' => $url.$name.'.png', 'photo_status' => $st ?: null]);
+        }
+        Player::create(['name' => 'Upload', 'photo_path' => 'players/x.jpg']);
+        $r = DataCoverage::rows()->keyBy('name');
+        $this->assertNull($r['Foto ok']->photo_reason);
+        $this->assertNull($r['Foto bloqueada']->photo_reason);
+        $this->assertNull($r['Upload']->photo_reason);
+        $this->assertSame('fonte_sem_foto', $r['Silhueta']->photo_reason);
+        $this->assertSame('url_quebrada', $r['Link quebrado']->photo_reason);
+        $this->assertSame('nao_verificada', $r['Nao checada']->photo_reason);
+
         DataSource::updateOrCreate(['key' => 'api_football'], ['name' => 'API-Football', 'kind' => 'api_comercial', 'enabled' => true])
             ->forceFill(['circuit_open_until' => now()->addHour()])->save();
         $this->assertSame('falha_bloqueio', DataCoverage::rows()->keyBy('name')['Aguardando']->stats_state); // fonte pausada ≠ não jogou
 
         $this->actingAs($this->user('leitor'));
-        $this->get(CoberturaDados::getUrl(['motivo' => 'fora_cobertura']))->assertOk()->assertSee('Clube sem partidas')->assertSee('Denominador: 10 atletas');
+        $this->get(CoberturaDados::getUrl(['motivo' => 'fora_cobertura']))->assertOk()->assertSee('Clube sem partidas')->assertSee('Denominador: 16 atletas');
     }
 
     public function test_photo_check_batch_can_be_reverted_despite_timestamp_format(): void
