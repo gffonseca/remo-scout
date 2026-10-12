@@ -51,6 +51,24 @@
         </table>
         @if ($d['listCount'] > 300)<p class="sc-muted">Mostrando 300 de {{ $d['listCount'] }}. Use os filtros.</p>@endif
     </section>
+    @if (auth()->user()->isAdmin())
+    <section class="sc-panel">
+        <h4>Correções em lote (prévia — nada foi gravado)</h4>
+        @php $cp = $d['clubPreview']; @endphp
+        <div class="sc-row"><span class="k">Clube nas estatísticas: {{ $cp['vincular'] }} linha(s) ligam ao clube por vínculo confiável · {{ $cp['a_confirmar'] }} por semelhança (não aplicadas) · {{ $cp['sem_vinculo'] }} sem vínculo · {{ $cp['sem_rotulo'] }} sem rótulo da fonte</span>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'clubes']) }}</span></div>
+        <div class="sc-row"><span class="k">Fotos: {{ $d['photoPreview'] }} atleta(s) recebem a foto da API-Football (vínculo confiável, sem foto)</span><span class="v">{{ ($this->fixAction)(['correcao' => 'fotos']) }}</span></div>
+        <div class="sc-row"><span class="k">Fotos: {{ $d['photoToCheck'] }} URL(s) externas ainda não verificadas</span><span class="v">{{ ($this->fixAction)(['correcao' => 'checar']) }}</span></div>
+        @if ($d['batches']->isNotEmpty())
+            <h4 style="margin-top:.9rem">Lotes de correção</h4>
+            @foreach ($d['batches'] as $b)
+                <div class="sc-row" wire:key="batch-{{ $b->batch }}"><span class="k">{{ \Illuminate\Support\Carbon::parse($b->at)->timezone($tz)->format('d/m H:i') }} · {{ $b->kind }} · {{ $b->rows }} linha(s){{ $b->reverted ? ' · '.$b->reverted.' desfeita(s)' : '' }} <span class="sc-muted">{{ $b->batch }}</span></span>
+                    <span class="v">@if ($b->reverted < $b->rows)<button type="button" wire:click="revertBatch('{{ $b->batch }}')" wire:confirm="Desfazer o lote {{ $b->batch }}? Linhas editadas depois ficam como estão." style="text-decoration:underline">Desfazer</button>@endif</span></div>
+            @endforeach
+        @endif
+    </section>
+    @endif
+
     <section class="sc-panel">
         <h4>Clubes das fontes sem vínculo nas estatísticas ({{ $d['clubs']->count() }})</h4>
         <p class="sc-muted" style="margin-bottom:.5rem">Estas linhas aparecem como "Clube não identificado". O vínculo é pelo ID do clube na fonte, confirmado por coordenador; nome parecido não basta.</p>
