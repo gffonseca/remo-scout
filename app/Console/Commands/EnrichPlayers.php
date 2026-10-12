@@ -16,13 +16,16 @@ use Illuminate\Console\Command;
 
 class EnrichPlayers extends Command
 {
-    protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing|cobertura} {--limit=30} {--user=} {--dry-run : só lista quem seria processado, sem chamar a fonte}';
+    protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing|cobertura|scout} {--limit=30} {--user=} {--actor= : user:<id> (botões da tela)} {--dry-run : só lista quem seria processado, sem chamar a fonte}';
 
     protected $description = 'Vincula e enriquece atletas por fonte externa (sob demanda, em lote pequeno)';
 
     public function handle(): int
     {
         $provider = $this->argument('provider');
+        if (! $this->option('user') && str_starts_with((string) $this->option('actor'), 'user:')) {
+            $this->input->setOption('user', substr($this->option('actor'), 5));
+        }
         abort_unless(in_array($provider, ['transfermarkt', 'sofascore'], true), 1, 'Provedor inválido');
         $source = DataSource::byKey($provider);
         if ($this->option('dry-run')) {
@@ -92,16 +95,21 @@ class EnrichPlayers extends Command
         $q = Player::query()->with(['currentClub', 'externalIds'])
             ->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))
             ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider)->where('external_id', 'like', 'nao-encontrado%'));
-        if ($this->option('scope') === 'cobertura') {
+        if (in_array($this->option('scope'), ['cobertura', 'scout'], true)) {
             $states = DataCoverage::rows()->keyBy('id');
-            $want = ['aguardando_vinculo', 'fora_cobertura', 'desatualizado', 'nao_coletado', 'sem_participacao'];
-            $ids = $states->filter(fn ($r) => in_array($r->stats_state, $want, true))->keys();
+            // cobertura: só quem está sem estatística utilizável. scout: todos os atletas do scout (perfil, carreira, valor, contrato),
+            // menos quem já tem candidatos desta fonte esperando revisão humana (buscar de novo só repetiria a fila).
+            $want = $this->option('scope') === 'cobertura' ? ['aguardando_vinculo', 'fora_cobertura', 'desatualizado', 'nao_coletado', 'sem_participacao'] : null;
+            $ids = $states->filter(fn ($r) => $want === null || in_array($r->stats_state, $want, true))->keys();
             $watch = WatchlistItem::where('status', 'ativo')->pluck('player_id')->flip();
             $needs = ProspectCase::whereHas('need', fn ($n) => $n->where('status', 'aberta'))->pluck('player_id')->flip();
+            $order = ['watchlist', 'necessidade aberta', 'lista prioritária', 'base'];
 
-            return $q->whereIn('id', $ids)->get()
+            return $q->whereIn('id', $ids)
+                ->whereDoesntHave('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
+                ->get()
                 ->each(fn ($p) => $p->coverage_rank = $watch->has($p->id) ? 'watchlist' : ($needs->has($p->id) ? 'necessidade aberta' : ($p->is_priority ? 'lista prioritária' : 'base')))
-                ->sortBy(fn ($p) => array_search($p->coverage_rank, ['watchlist', 'necessidade aberta', 'lista prioritária', 'base'], true))
+                ->sortBy(fn ($p) => array_search($p->coverage_rank, $order, true).'|'.($p->enriched_at ? '1'.$p->enriched_at->format('YmdHis') : '0'))
                 ->take((int) $this->option('limit'))->values();
         }
         match ($this->option('scope')) {

@@ -4,11 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Player;
 use App\Models\RecruitmentNeed;
+use App\Models\User;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /** F01 — exportações seguem a mesma política de acesso do painel (usuário ativo + MFA obrigatório de admin). */
 class ExportAccessTest extends ScoutTestCase
 {
-    private function adminWithMfa(): \App\Models\User
+    private function adminWithMfa(): User
     {
         $u = $this->user('admin');
         $u->forceFill(['app_authentication_secret' => 'JBSWY3DPEHPK3PXP'])->save();
@@ -40,7 +42,7 @@ class ExportAccessTest extends ScoutTestCase
         return [['coordenador'], ['analista'], ['leitor']];
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('nonAdminRoles')]
+    #[DataProvider('nonAdminRoles')]
     public function test_non_admin_roles_follow_policy_without_forced_mfa(string $role): void
     {
         $p = Player::create(['name' => 'Atleta']);

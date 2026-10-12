@@ -4,10 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\Agent;
 use App\Models\Club;
+use App\Models\ClubExternalId;
+use App\Models\ContractObservation;
 use App\Models\ImportBatch;
 use App\Models\MarketObservation;
 use App\Models\Player;
+use App\Models\PlayerExternalId;
+use App\Models\PlayerRoleAssessment;
+use App\Models\TacticalRole;
 use App\Services\Import\PlayerImporter;
+use App\Support\ClubResolver;
+use Database\Seeders\ClubsSeeder;
 
 /** F05 — reversão campo a campo, conflitos explícitos, derivados e reversão única. F02 na importação. */
 class ImportRevertTest extends ScoutTestCase
@@ -60,8 +67,8 @@ class ImportRevertTest extends ScoutTestCase
     {
         $b = $this->import([['Nome' => 'Novo Um', 'CBF' => '201'], ['Nome' => 'Novo Dois', 'CBF' => '202'], ['Nome' => 'Novo Três', 'CBF' => '203']]);
         Player::where('cbf_id', '201')->first()->update(['name' => 'Novo Um Corrigido']);
-        \App\Models\PlayerRoleAssessment::create(['player_id' => Player::where('cbf_id', '202')->value('id'),
-            'tactical_role_id' => \App\Models\TacticalRole::value('id'), 'kind' => 'observado', 'level' => 'B', 'evidence' => 'x']);
+        PlayerRoleAssessment::create(['player_id' => Player::where('cbf_id', '202')->value('id'),
+            'tactical_role_id' => TacticalRole::value('id'), 'kind' => 'observado', 'level' => 'B', 'evidence' => 'x']);
 
         $r = PlayerImporter::revert($b, null);
         $this->assertSame(1, $r['removed']);
@@ -80,8 +87,8 @@ class ImportRevertTest extends ScoutTestCase
 
     public function test_club_alias_is_reused_and_created_club_and_agent_leave_with_the_batch(): void
     {
-        $this->seed(\Database\Seeders\ClubsSeeder::class);
-        \App\Support\ClubResolver::flush();
+        $this->seed(ClubsSeeder::class);
+        ClubResolver::flush();
         $clubs = Club::count();
         $b = $this->import([
             ['Nome' => 'A', 'CBF' => '401', 'Clube' => 'Bragantino', 'Empresário' => 'Agência Nova'],
@@ -139,11 +146,11 @@ class ImportRevertTest extends ScoutTestCase
         $b = $this->import([['Nome' => 'Um', 'CBF' => '801'], ['Nome' => 'Dois', 'CBF' => '802'], ['Nome' => 'Três', 'CBF' => '803']]);
         $this->travel(5)->seconds();
         Player::where('cbf_id', '801')->first()->update(['birth_date' => '2001-01-01']); // campo fora do snapshot
-        \App\Models\PlayerExternalId::create(['player_id' => Player::where('cbf_id', '802')->value('id'), 'provider' => 'transfermarkt', 'external_id' => '999']);
+        PlayerExternalId::create(['player_id' => Player::where('cbf_id', '802')->value('id'), 'provider' => 'transfermarkt', 'external_id' => '999']);
         $r = PlayerImporter::revert($b, null);
         $this->assertSame(1, $r['removed']);
         $this->assertEqualsCanonicalizing(['801', '802'], Player::pluck('cbf_id')->all());
-        $this->assertSame(1, \App\Models\PlayerExternalId::count()); // vínculo externo não sumiu em cascata
+        $this->assertSame(1, PlayerExternalId::count()); // vínculo externo não sumiu em cascata
         $this->assertStringContainsString('player_external_ids', collect($r['conflicts'])->firstWhere('label', 'Dois')['reason']);
     }
 
@@ -151,7 +158,7 @@ class ImportRevertTest extends ScoutTestCase
     {
         $map = $this->map + ['contract_end' => 'Fim'];
         $b = PlayerImporter::commit(PlayerImporter::plan([['Nome' => 'X', 'CBF' => '901', 'Fim' => '31/12/2026']], $map, true), 'l.csv', $map, null);
-        $obs = \App\Models\ContractObservation::first();
+        $obs = ContractObservation::first();
         $this->travel(10)->seconds();
         $obs->update(['confirmation' => 'confirmado']);
         $r = PlayerImporter::revert($b, null);
@@ -163,10 +170,10 @@ class ImportRevertTest extends ScoutTestCase
     {
         $b = $this->import([['Nome' => 'A', 'CBF' => '1001', 'Clube' => 'Clube Novíssimo']]);
         $club = Club::where('name', 'Clube Novíssimo')->first();
-        \App\Models\ClubExternalId::create(['club_id' => $club->id, 'provider' => 'api_futebol', 'external_id' => '555']);
+        ClubExternalId::create(['club_id' => $club->id, 'provider' => 'api_futebol', 'external_id' => '555']);
         Player::where('cbf_id', '1001')->first()->forceDelete(); // atleta já não segura o clube
         PlayerImporter::revert($b, null);
         $this->assertNotNull($club->fresh());
-        $this->assertSame(1, \App\Models\ClubExternalId::count());
+        $this->assertSame(1, ClubExternalId::count());
     }
 }

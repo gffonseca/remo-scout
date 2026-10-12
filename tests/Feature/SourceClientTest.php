@@ -8,6 +8,7 @@ use App\Sources\SourceClient;
 use App\Sources\SourceException;
 use Database\Seeders\DataSourcesSeeder;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 
 /** F09 — cota atômica, Retry-After, circuito com retomada, timeout, cache e diagnóstico de atualização. */
@@ -79,10 +80,10 @@ class SourceClientTest extends ScoutTestCase
     public function test_quota_day_follows_brasilia_midnight_not_utc(): void
     {
         Http::fake(['*' => Http::response(['ok' => true])]);
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-10-13 01:00:00', 'UTC')); // 22:00 de 12/10 em Belém
+        $this->travelTo(Carbon::parse('2026-10-13 01:00:00', 'UTC')); // 22:00 de 12/10 em Belém
         DataSource::byKey('transfermarkt')->update(['daily_quota' => 3, 'used_today' => 3, 'quota_date' => '2026-10-12']);
         $this->assertSame('cota', $this->kind(fn () => $this->tm()->getJson('/x')));
-        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-10-13 03:30:00', 'UTC')); // 00:30 de 13/10 em Belém
+        $this->travelTo(Carbon::parse('2026-10-13 03:30:00', 'UTC')); // 00:30 de 13/10 em Belém
         $this->tm()->getJson('/x');
         $this->assertSame(1, DataSource::byKey('transfermarkt')->used_today);
     }

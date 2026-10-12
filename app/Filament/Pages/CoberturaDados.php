@@ -69,13 +69,13 @@ class CoberturaDados extends Page
             ->visible(fn () => auth()->user()->isAdmin())
             ->requiresConfirmation()
             ->modalHeading(fn (array $arguments) => self::FIXES[$arguments['correcao'] ?? '']['label'] ?? '')
-            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.')
+            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(($arguments['correcao'] ?? '') === 'enriquecer' ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
             ->action(function (array $arguments) {
                 abort_unless(auth()->user()->isAdmin(), 403);
                 $fix = self::FIXES[$arguments['correcao'] ?? ''] ?? abort(404);
                 RunArtisanSync::dispatch($fix['command'], $fix['params'] + ['--actor' => 'user:'.auth()->id()]);
                 Cache::forget('coverage.rows');
-                Notification::make()->success()->title('Correção enviada ao worker')->body('Atualize a página em alguns minutos para ver o lote.')->send();
+                Notification::make()->success()->title(($arguments['correcao'] ?? '') === 'enriquecer' ? 'Enriquecimento enviado ao worker' : 'Correção enviada ao worker')->body('Atualize a página em alguns minutos para ver o lote.')->send();
             });
     }
 
@@ -86,6 +86,8 @@ class CoberturaDados extends Page
             'help' => 'Copia a foto da API-Football para atletas com vínculo confiável e sem foto. Não substitui upload nem foto da CBF.'],
         'checar' => ['label' => 'Verificar URLs de foto (200)', 'command' => 'scout:photos', 'params' => ['--check' => true, '--apply' => true, '--limit' => 200],
             'help' => 'Confere até 200 URLs externas (host permitido, resposta, tipo, tamanho) e grava o estado. Não apaga URL.'],
+        'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],
+            'help' => 'Para até 40 atletas do scout (watchlist → necessidades abertas → lista prioritária → demais; quem nunca foi tentado primeiro): vincula só por nome + nascimento (o resto vai para "Identidades a revisar") e traz perfil, carreira por temporada, valor de mercado e contrato observados. Fonte não oficial; dado divergente vira revisão, não sobrescrita. Leva até 20 min; o resultado fica em "Histórico de importações".'],
     ];
 
     public function revertBatch(string $batch): void
@@ -117,6 +119,7 @@ class CoberturaDados extends Page
             'clubs' => DataCoverage::unresolvedClubs(),
             'clubPreview' => DataCoverage::clubBackfillPreview(),
             'photoPreview' => PhotoBackfill::candidates()->count(),
+            'toEnrich' => Player::whereIn('id', $rows->pluck('id'))->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))->count(),
             'photoToCheck' => Player::whereNotNull('photo_url')->whereNull('photo_path')->whereNull('photo_checked_at')->count(),
             'batches' => DataCoverage::batches(),
             'runs' => DataCoverage::sourceRuns(),

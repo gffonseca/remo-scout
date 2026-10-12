@@ -14,7 +14,10 @@ use App\Services\RequirementCheck;
 use App\Services\RequirementConfirmation;
 use App\Support\PlayerInsight;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /** F03/F04/F10 — requisitos por papel/fase, estados explícitos e nível observado ≠ potencial. */
@@ -193,7 +196,7 @@ class RequirementsTest extends ScoutTestCase
         $rows = ['transicao_defensiva' => 'pressão pós-perda', 'geral' => 'visão geral', 'com_posse' => 'construção', 'outra_coisa' => 'texto livre'];
         $ids = [];
         foreach ($rows as $phase => $ev) {
-            $ids[$phase] = (string) \Illuminate\Support\Str::uuid7();
+            $ids[$phase] = (string) Str::uuid7();
             DB::table('player_role_assessments')->insert(['id' => $ids[$phase], 'player_id' => $p->id, 'tactical_role_id' => $this->role->id,
                 'kind' => 'observado', 'level' => 'B', 'phase' => $phase, 'evidence' => $ev, 'created_at' => '2026-05-01 10:00:00', 'updated_at' => now()]);
         }
@@ -256,10 +259,10 @@ class RequirementsTest extends ScoutTestCase
         try {
             DB::transaction(fn () => $this->phased($n, null, 'A')); // savepoint: a falha não aborta o teste
             $this->fail('duplicou requisito geral');
-        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+        } catch (UniqueConstraintViolationException) {
         }
         $this->assertSame(1, NeedRoleRequirement::where('recruitment_need_id', $n->id)->count());
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::transaction(fn () => $this->role->delete()); // FK restrict, mesmo por fora da policy
     }
 

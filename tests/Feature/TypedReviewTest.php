@@ -7,6 +7,7 @@ use App\Models\EnrichmentReview;
 use App\Models\Player;
 use App\Services\PlayerEnrichment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /** F16 — revisão com valor tipado; aceite só com aplicação confirmada; conflito explícito. */
 class TypedReviewTest extends ScoutTestCase
@@ -65,7 +66,7 @@ class TypedReviewTest extends ScoutTestCase
         $p = Player::create(['name' => 'X', 'current_club_id' => $a->id]);
         $m = require database_path('migrations/2026_10_14_000100_typed_enrichment_reviews.php');
         $m->down();
-        DB::table('enrichment_reviews')->insert(['id' => (string) \Illuminate\Support\Str::uuid7(), 'player_id' => $p->id, 'provider' => 'transfermarkt',
+        DB::table('enrichment_reviews')->insert(['id' => (string) Str::uuid7(), 'player_id' => $p->id, 'provider' => 'transfermarkt',
             'field' => 'current_club_id', 'current_value' => 'Alfa', 'proposed_value' => 'Beta (#'.$b->id.')', 'status' => 'pendente', 'created_at' => now(), 'updated_at' => now()]);
         $m->up();
         $r = EnrichmentReview::firstOrFail();

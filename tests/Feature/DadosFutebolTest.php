@@ -16,6 +16,7 @@ use App\Sources\SourceClient;
 use App\Support\ClubResolver;
 use App\Support\PlayerInsight;
 use Database\Seeders\DataSourcesSeeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 /** Dados Futebol: elenco como retrato com origem/data; nunca altera cadastro nem liga por nome. */
@@ -86,15 +87,15 @@ class DadosFutebolTest extends ScoutTestCase
         $keys = array_keys(json_decode(ClubSquadEntry::where('external_player_id', '1')->toBase()->value('raw'), true));
         sort($keys);
         $this->assertSame(['id', 'nome', 'nome_popular', 'numero_camisa', 'posicao'], $keys);
-        $this->assertSame([], array_diff_key(\App\Sources\DadosFutebol::whitelist(['id' => 1, 'lesionado' => true, 'cpf' => 'x']), ['id' => 1]));
+        $this->assertSame([], array_diff_key(DadosFutebol::whitelist(['id' => 1, 'lesionado' => true, 'cpf' => 'x']), ['id' => 1]));
 
-        \Illuminate\Support\Facades\Cache::flush(); // ignora o cache de 6 h para simular a semana seguinte
+        Cache::flush(); // ignora o cache de 6 h para simular a semana seguinte
         $this->travel(7)->days();
         $s2 = $api->syncSquad($club, $this->newRun());
         $this->assertSame(1, $s2['left']);
         $this->assertNotNull(ClubSquadEntry::where('external_player_id', '2')->value('left_at'));
 
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
         $this->travel(7)->days();
         $run = $this->newRun();
         $api->syncSquad($club, $run); // resposta vazia não "esvazia" o elenco
@@ -124,7 +125,7 @@ class DadosFutebolTest extends ScoutTestCase
         $this->assertStringContainsString('não informa nascimento', $c->evidence);
 
         IdentityReview::confirm($c, $this->user('analista'));
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
         $stats = (new DadosFutebol)->syncSquad($club, $this->newRun());
         $this->assertSame(1, $stats['linked']);
         $this->assertSame($p->id, ClubSquadEntry::where('external_player_id', '77')->value('player_id'));

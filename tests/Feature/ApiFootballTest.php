@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Players\PlayerResource;
 use App\Models\Appearance;
 use App\Models\Club;
 use App\Models\DataSource;
@@ -17,7 +18,9 @@ use App\Sources\ApiFootball;
 use App\Sources\SourceClient;
 use App\Sources\SourceException;
 use App\Support\ClubResolver;
+use App\Support\PlayerStatsView;
 use Database\Seeders\DataSourcesSeeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 /** API-Football: partidas reais salvas (Série A com estatística individual; Série C só escalação). */
@@ -209,7 +212,7 @@ class ApiFootballTest extends ScoutTestCase
         Http::assertSentCount(4); // lista + 2 elencos + 1 partida (não finalizada é ignorada)
 
         $run2 = SyncRun::create(['data_source_id' => DataSource::byKey('api_football')->id, 'job' => 't']);
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
         Fixture::query()->update(['played_on' => now()->subDays(30)->toDateString()]); // antiga e completa: não reconsulta
         (new ApiFootball)->sync($run2, [71], 10, 2026);
         $this->assertSame(0, $run2->received);
@@ -223,7 +226,7 @@ class ApiFootballTest extends ScoutTestCase
         $this->assertGreaterThan(30, Player::provisional()->count());
         $this->assertFalse(Player::provisional()->whereKey([$real->id, $cbf->id])->exists());
         $this->actingAs($this->user('analista'));
-        $html = $this->get(\App\Filament\Resources\Players\PlayerResource::getUrl('index'))->assertOk()->getContent();
+        $html = $this->get(PlayerResource::getUrl('index'))->assertOk()->getContent();
         $this->assertStringContainsString('Atleta do Scout Visível', $html);
         $this->assertStringContainsString('Cadastrado da CBF', $html);
         $shadow = Player::provisional()->first();
@@ -246,6 +249,6 @@ class ApiFootballTest extends ScoutTestCase
     {
         $s = PlayerSeasonStat::create(['player_id' => Player::create(['name' => 'X'])->id, 'provider' => 'api_football', 'competition_key' => 'c', 'competition_name' => 'Copa',
             'season' => '2026', 'appearances' => 10, 'minutes' => 900, 'extra' => ['jogos_com_estatistica' => 3, 'estatistica' => ['finalizacoes' => 4]]]);
-        $this->assertSame('3 de 10 jogos', \App\Support\PlayerStatsView::detailCoverage($s));
+        $this->assertSame('3 de 10 jogos', PlayerStatsView::detailCoverage($s));
     }
 }

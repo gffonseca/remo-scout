@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Console\Commands\PlayerPhotos;
 use App\Filament\Pages\CoberturaDados;
+use App\Jobs\RunArtisanSync;
 use App\Models\Club;
 use App\Models\DataSource;
 use App\Models\Fixture;
@@ -16,7 +17,9 @@ use App\Services\DataCoverage;
 use App\Services\PhotoBackfill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 
 /** Fotos da API-Football chegam ao cadastro com vínculo confiável; cobertura explica a falta de estatística e foto. */
 class DataCoverageTest extends ScoutTestCase
@@ -225,5 +228,29 @@ class DataCoverageTest extends ScoutTestCase
         Storage::disk('media')->put($path, ob_get_clean());
         $this->actingAs($this->user('leitor'));
         $this->get(route('player.photo', $p))->assertOk(); // imagem comum em cache é servida; a silhueta-padrão (hash acima) vira 404 → iniciais
+    }
+
+    public function test_scout_scope_enriches_everyone_except_pending_review_and_button_dispatches(): void
+    {
+        $y = now(config('scout.display_timezone'))->format('Y');
+        $partial = Player::create(['name' => 'Parcial com CBF', 'is_priority' => true]);
+        PlayerSeasonStat::create(['player_id' => $partial->id, 'provider' => 'cbf', 'competition_key' => 'k', 'competition_name' => 'X', 'season' => $y, 'appearances' => 3, 'fetched_at' => now()]);
+        Player::create(['name' => 'Recente', 'enriched_at' => now()->subDay()]);
+        $pending = Player::create(['name' => 'Na fila de revisão']);
+        IdentityCandidate::create(['player_id' => $pending->id, 'provider' => 'transfermarkt', 'external_id' => '1', 'kind' => 'escolher', 'status' => 'pendente', 'score' => 80, 'label' => 'x']);
+        Player::create(['name' => 'Base nunca tentada']);
+        DataSource::updateOrCreate(['key' => 'transfermarkt'], ['name' => 'Transfermarkt', 'kind' => 'nao_oficial', 'enabled' => true]);
+
+        $this->artisan('scout:enrich transfermarkt --scope=scout --dry-run')
+            ->expectsOutputToContain('Parcial com CBF')->expectsOutputToContain('Base nunca tentada')
+            ->doesntExpectOutputToContain('Na fila de revisão')->doesntExpectOutputToContain('Recente')->assertSuccessful();
+        $this->artisan('scout:enrich transfermarkt --scope=cobertura --dry-run')->doesntExpectOutputToContain('Parcial com CBF')->assertSuccessful();
+
+        Queue::fake();
+        $admin = $this->user('admin', ['app_authentication_secret' => 'JBSWY3DPEHPK3PXP']);
+        $this->actingAs($admin);
+        Livewire::test(CoberturaDados::class)->assertSee('Enriquecimento: 3 de 4')
+            ->callAction('fix', [], ['correcao' => 'enriquecer'])->assertHasNoActionErrors();
+        Queue::assertPushed(RunArtisanSync::class, fn ($j) => $j->command === 'scout:enrich' && $j->params['--scope'] === 'scout' && $j->params['--actor'] === 'user:'.$admin->id);
     }
 }
