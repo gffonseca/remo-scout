@@ -26,7 +26,7 @@ class CollectorController extends Controller
 
         return response()->json([
             'season' => $season,
-            'interval_ms' => max(800, (int) ($sources['cbf_atletas']->min_interval_ms ?? 1500)),
+            'interval_ms' => max(2500, (int) ($sources['cbf_atletas']->min_interval_ms ?? 2500)), // CBF responde 429 abaixo disso
             'cbf_atletas' => $on('cbf_atletas') ? [
                 'competitions' => collect(config('scout.collector_competitions'))->map(fn ($label, $slug) => ['slug' => $slug, 'label' => $label, 'season' => $season])->values(),
                 'max_details' => 150,

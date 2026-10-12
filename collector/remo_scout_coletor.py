@@ -23,7 +23,7 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
 CBF_SITE = "https://www.cbf.com.br"
 CBF_API = "https://www.cbf.com.br/api/cbf"
@@ -84,6 +84,11 @@ class Http:
                 if e.code in (404, 410):
                     return None
                 log("CBF HTTP %s em %s (tentativa %d)" % (e.code, url, attempt + 1))
+                if e.code == 429:  # limite de taxa: respeita Retry-After e desacelera o resto da execução
+                    ra = e.headers.get("Retry-After") if e.headers else None
+                    time.sleep(min(int(ra), 300) if ra and ra.isdigit() else 60)
+                    self.interval = min(self.interval * 1.5, 10.0)
+                    continue
             except (urllib.error.URLError, socket.timeout, ConnectionError) as e:
                 log("CBF falha de conexão em %s: %s (tentativa %d)" % (url, e, attempt + 1))
             time.sleep(5 * (attempt + 1))
