@@ -88,7 +88,7 @@ class CoberturaDados extends Page
         'checar' => ['label' => 'Verificar URLs de foto (200)', 'command' => 'scout:photos', 'params' => ['--check' => true, '--apply' => true, '--limit' => 200],
             'help' => 'Confere até 200 URLs externas (host permitido, resposta, tipo, tamanho) e grava o estado. Não apaga URL.'],
         'convergir_previa' => ['label' => 'Prévia: ligar por CBF × Transfermarkt (60)', 'command' => 'scout:identities-converge', 'params' => ['--search' => true, '--limit' => 60],
-            'help' => 'Para atletas sem nascimento no cadastro que têm registro CBF provável: confere se exatamente um candidato do Transfermarkt tem o MESMO nascimento da CBF e o mesmo clube do cadastro. Só mostra o resultado (nada é ligado); busca no Transfermarkt quem ainda não tem candidatos.'],
+            'help' => 'Para atletas sem nascimento no cadastro: liga só se houver UM candidato do Transfermarkt no clube do cadastro e UM registro CBF do mesmo clube com o MESMO nascimento e nome compatível. Só mostra o resultado (nada é ligado); busca no Transfermarkt quem ainda não tem candidatos.'],
         'convergir' => ['label' => 'Aplicar ligação CBF × Transfermarkt', 'command' => 'scout:identities-converge', 'params' => ['--apply' => true, '--limit' => 60],
             'help' => 'Liga os atletas marcados "ligar" na prévia: grava o nascimento (fonte CBF), confirma o ID CBF e o vínculo do Transfermarkt e fecha os itens na fila de identidades. Tudo num lote que pode ser desfeito.'],
         'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],

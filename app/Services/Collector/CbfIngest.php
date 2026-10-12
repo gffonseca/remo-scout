@@ -10,6 +10,7 @@ use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerSeasonStat;
 use App\Models\SyncRun;
+use App\Services\IdentityConvergence;
 use App\Services\PlayerEnrichment;
 use App\Support\ClubResolver;
 use App\Support\NameMatcher;
@@ -72,16 +73,51 @@ class CbfIngest
         return ['recebidos' => count($rows), 'novos' => $created, 'atualizados' => $updated, 'vinculados' => $linked, 'descartados' => $discarded];
     }
 
-    /** Ids CBF dos atletas do scout cujo detalhe (nascimento, foto, totais) está ausente ou velho. Prioritários primeiro. */
+    /**
+     * Ids CBF cujo detalhe (nascimento, foto, totais) está ausente ou velho. Primeiro os ligados ao scout (prioritários antes);
+     * depois, registros ainda livres que podem confirmar identidade por convergência: mesmo clube de um atleta do scout sem
+     * nascimento e nome compatível. Para esses só o nascimento é usado; nada vai ao cadastro sem a ligação.
+     */
     public static function pendingDetails(int $limit = 150): array
     {
-        return CbfAthlete::query()
+        $limit = max(1, min($limit, 500));
+        $linked = CbfAthlete::query()
             ->join('players', 'players.id', '=', 'cbf_athletes.player_id')
             ->whereNull('players.deleted_at')
             ->where(fn ($q) => $q->whereNull('cbf_athletes.detail_fetched_at')->orWhere('cbf_athletes.detail_fetched_at', '<', now()->subDays(14)))
             ->orderByDesc('players.is_priority')->orderBy('cbf_athletes.detail_fetched_at')
-            ->limit(max(1, min($limit, 500)))
+            ->limit($limit)
             ->pluck('cbf_athletes.cbf_id')->all();
+        if (count($linked) >= $limit) {
+            return $linked;
+        }
+
+        return array_values(array_unique(array_merge($linked, static::convergenceCandidates($limit - count($linked)))));
+    }
+
+    /** Registros CBF livres, sem detalhe, do clube de atletas do scout sem nascimento e com nome compatível. */
+    public static function convergenceCandidates(int $limit): array
+    {
+        $byClub = Player::query()->whereNull('birth_date')->whereNotNull('current_club_id')->whereNot(fn ($w) => $w->provisional())
+            ->orderByDesc('is_priority')->get(['id', 'name', 'full_name', 'current_club_id', 'is_priority'])->groupBy('current_club_id');
+        if ($byClub->isEmpty()) {
+            return [];
+        }
+        $ids = [];
+        CbfAthlete::query()->whereNull('player_id')->whereNull('detail_fetched_at')->whereIn('club_id', $byClub->keys())
+            ->orderBy('cbf_id')->get(['cbf_id', 'name', 'nickname', 'club_id'])
+            ->each(function (CbfAthlete $a) use ($byClub, &$ids) {
+                foreach ($byClub[$a->club_id] as $p) {
+                    $score = max(NameMatcher::score($p->name, $a->nickname), NameMatcher::score($p->name, $a->name), NameMatcher::score($p->full_name, $a->name));
+                    if ($score >= IdentityConvergence::CBF_NAME_MIN) {
+                        $ids[$a->cbf_id] = $p->is_priority ? 0 : 1;
+                        break;
+                    }
+                }
+            });
+        asort($ids);
+
+        return array_map('strval', array_slice(array_keys($ids), 0, $limit)); // chave numérica vira int no PHP
     }
 
     public static function athleteDetail(array $raw, SyncRun $run): array
