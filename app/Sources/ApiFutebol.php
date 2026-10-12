@@ -350,19 +350,24 @@ class ApiFutebol
         if ($ext) {
             return $ext->player;
         }
-        // tenta casar com atleta do mesmo clube (nome igual/compatível) que ainda não tenha id deste provedor
-        $candidates = $club ? Player::where('current_club_id', $club->id)
-            ->whereDoesntHave('externalIds', fn ($q) => $q->where('provider', self::PROVIDER))->get(['id', 'name']) : collect();
-        $hits = $candidates->filter(fn ($p) => NameMatcher::score($p->name, $name) >= 95);
-        if ($hits->count() === 1) {
-            $player = Player::find($hits->first()->id);
-            $run->updated++;
-        } else {
-            $player = Player::create(['name' => $name, 'current_club_id' => $club?->id, 'data_origin' => 'provedor',
-                'notes' => 'Criado a partir de escalação (API Futebol). Completar identidade.']);
-            $run->created++;
+        // F14: a escalação só traz nome; sem nascimento não há vínculo automático com o cadastro do scout.
+        // As atuações ficam num cadastro provisório. Se houver um atleta do scout no mesmo clube com nome
+        // compatível, abre-se a revisão "mesclar" em "Identidades a revisar".
+        $player = Player::create(['name' => $name, 'current_club_id' => $club?->id, 'data_origin' => 'provedor',
+            'notes' => 'Cadastro provisório criado a partir de escalação (API Futebol). Completar identidade ou mesclar.']);
+        $run->created++;
+        PlayerExternalId::create(['player_id' => $player->id, 'provider' => self::PROVIDER, 'external_id' => $aid,
+            'verified' => false, 'link_method' => 'cadastro_provisorio']);
+        $hits = $club ? Player::where('current_club_id', $club->id)->where('id', '!=', $player->id)
+            ->where('data_origin', '!=', 'provedor')->get(['id', 'name', 'full_name'])
+            ->filter(fn ($p) => max(NameMatcher::score($p->name, $name), NameMatcher::score($p->full_name, $name)) >= 88) : collect();
+        foreach ($hits->take(3) as $h) {
+            \App\Models\IdentityCandidate::updateOrCreate(['player_id' => $h->id, 'provider' => self::PROVIDER, 'external_id' => $aid], [
+                'kind' => 'mesclar', 'status' => 'pendente', 'shadow_player_id' => $player->id, 'score' => NameMatcher::score($h->name, $name),
+                'label' => "{$name} — ".($club?->name ?? 'sem clube').' (escalação API Futebol)',
+                'evidence' => 'Mesmo clube e nome compatível; a fonte não informa nascimento. Confirmar move as atuações para o cadastro do scout.',
+            ]);
         }
-        PlayerExternalId::create(['player_id' => $player->id, 'provider' => self::PROVIDER, 'external_id' => $aid, 'verified' => false]);
 
         return $player;
     }

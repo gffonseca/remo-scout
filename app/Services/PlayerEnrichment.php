@@ -51,7 +51,8 @@ class PlayerEnrichment
             return ['r' => $r, 'score' => max(0, min(130, $total)), 'club_ok' => $clubScore >= 50];
         })->sortByDesc('score')->values();
 
-        return static::decide($p, Transfermarkt::PROVIDER, $scored, fn ($r) => $r['name'].' — '.($r['club']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?').' · '.($r['age'] ?? '?').' anos', fn ($r) => (string) $r['id']);
+        return static::decide($p, Transfermarkt::PROVIDER, $scored, fn ($r) => $r['name'].' — '.($r['club']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?').' · '.($r['age'] ?? '?').' anos', fn ($r) => (string) $r['id'],
+            fn ($r) => $tm->profile((string) $r['id'])['dateOfBirth'] ?? null);
     }
 
     /** @return array{status:string,message:string} */
@@ -75,39 +76,53 @@ class PlayerEnrichment
             return ['r' => $r, 'score' => max(0, min(130, $total)), 'club_ok' => $clubScore >= 50];
         })->sortByDesc('score')->values();
 
-        return static::decide($p, Sofascore::PROVIDER, $scored, fn ($r) => ($r['name'] ?? '?').' — '.($r['team']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?'), fn ($r) => (string) $r['id']);
+        return static::decide($p, Sofascore::PROVIDER, $scored, fn ($r) => ($r['name'] ?? '?').' — '.($r['team']['name'] ?? 'sem clube').' · '.($r['position'] ?? '?'), fn ($r) => (string) $r['id'],
+            fn ($r) => isset($r['dateOfBirthTimestamp']) ? \Illuminate\Support\Carbon::createFromTimestampUTC((int) $r['dateOfBirthTimestamp'])->toDateString() : null);
     }
 
-    private static function decide(Player $p, string $provider, $scored, callable $label, callable $idOf): array
+    /**
+     * F14: vínculo automático só com nome compatível E data de nascimento igual à do cadastro.
+     * Sem nascimento no cadastro (ou na fonte), ou com divergência, os candidatos vão para "Identidades a revisar".
+     */
+    private static function decide(Player $p, string $provider, $scored, callable $label, callable $idOf, ?callable $dobOf = null): array
     {
         if ($scored->isEmpty()) {
             return ['status' => 'sem_resultado', 'message' => 'Nenhum resultado na fonte para "'.$p->name.'".'];
         }
         $top = $scored->first();
         $second = $scored->get(1);
-        $strong = ($top['score'] >= 100 && $top['club_ok'] && (! $second || $top['score'] - $second['score'] >= 15))
-            // resultado único, nome compatível e sem clube local para contradizer (idade, quando conhecida, já penaliza no score)
-            || (! $second && $top['score'] >= 88 && ! $p->current_club_id);
-        if ($strong) {
-            return static::attach($p, $provider, $idOf($top['r']), 'Vínculo automático (nome + clube)');
+        $distinct = ! $second || $top['score'] - $second['score'] >= 15;
+        $evidence = null;
+        if ($top['score'] >= 88 && $distinct && $p->birth_date && $dobOf) {
+            $dob = $dobOf($top['r']);
+            $dob = $dob ? substr((string) $dob, 0, 10) : null;
+            if ($dob === $p->birth_date->toDateString()) {
+                return static::attach($p, $provider, $idOf($top['r']), 'Vínculo automático (nome + nascimento '.$p->birth_date->format('d/m/Y').')', 'nome_nascimento');
+            }
+            $evidence = $dob ? 'Nascimento na fonte '.\Illuminate\Support\Carbon::parse($dob)->format('d/m/Y').' ≠ cadastro '.$p->birth_date->format('d/m/Y') : 'Fonte não informa nascimento';
+        } elseif (! $p->birth_date) {
+            $evidence = 'Cadastro sem data de nascimento: vínculo só por revisão humana.';
         }
         foreach ($scored->take(6) as $c) {
             IdentityCandidate::updateOrCreate(
                 ['player_id' => $p->id, 'provider' => $provider, 'external_id' => $idOf($c['r'])],
-                ['label' => mb_substr($label($c['r']), 0, 250), 'details' => $c['r'], 'score' => $c['score'], 'status' => 'pendente'],
+                ['label' => mb_substr($label($c['r']), 0, 250), 'details' => $c['r'], 'score' => $c['score'], 'status' => 'pendente', 'kind' => 'escolher',
+                    'evidence' => $c === $top ? $evidence : null],
             );
         }
 
-        return ['status' => 'revisar', 'message' => 'Correspondência ambígua: '.min(6, $scored->count()).' candidato(s) aguardando escolha.'];
+        return ['status' => 'revisar', 'message' => min(6, $scored->count()).' candidato(s) em "Identidades a revisar"'.($evidence ? " ({$evidence})" : '').'.'];
     }
 
-    private static function attach(Player $p, string $provider, string $externalId, string $how): array
+    private static function attach(Player $p, string $provider, string $externalId, string $how, string $method = 'manual'): array
     {
         $existing = PlayerExternalId::where('provider', $provider)->where('external_id', $externalId)->first();
         if ($existing && $existing->player_id !== $p->id) {
             return ['status' => 'conflito', 'message' => "Este id já está vinculado a outro atleta ({$existing->player?->name}). Verifique possível duplicata."];
         }
-        PlayerExternalId::updateOrCreate(['provider' => $provider, 'external_id' => $externalId], ['player_id' => $p->id, 'verified' => str_contains($how, 'manual'), 'verified_by' => str_contains($how, 'manual') ? auth()->id() : null]);
+        // Só chega aqui com escolha humana (manual) ou nome + nascimento: ambos são vínculos confirmados.
+        PlayerExternalId::updateOrCreate(['provider' => $provider, 'external_id' => $externalId],
+            ['player_id' => $p->id, 'verified' => true, 'verified_by' => $method === 'manual' ? auth()->id() : null, 'link_method' => $method, 'evidence' => $how]);
         IdentityCandidate::where('player_id', $p->id)->where('provider', $provider)->update(['status' => 'descartado']);
         IdentityCandidate::where('player_id', $p->id)->where('provider', $provider)->where('external_id', $externalId)->update(['status' => 'vinculado']);
 

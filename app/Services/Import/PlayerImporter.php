@@ -460,13 +460,7 @@ class PlayerImporter
      */
     private static function referencedBy(string $table, string $id, array $ignoreBatch = []): array
     {
-        static $fks = [];
-        $fks[$table] ??= DB::select("
-            select kcu.table_name as tbl, kcu.column_name as col
-            from information_schema.referential_constraints rc
-            join information_schema.key_column_usage kcu on kcu.constraint_name = rc.constraint_name and kcu.constraint_schema = rc.constraint_schema
-            join information_schema.key_column_usage pk on pk.constraint_name = rc.unique_constraint_name and pk.constraint_schema = rc.unique_constraint_schema
-            where pk.table_name = ? and kcu.constraint_schema = current_schema()", [$table]);
+        $fks = [$table => \App\Support\ForeignKeys::referencing($table)];
         $hits = [];
         foreach ($fks[$table] as $fk) {
             $q = DB::table($fk->tbl)->where($fk->col, $id);

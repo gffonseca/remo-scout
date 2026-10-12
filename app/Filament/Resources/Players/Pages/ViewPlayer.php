@@ -77,13 +77,18 @@ class ViewPlayer extends ViewRecord
                     ->schema([
                         \Filament\Forms\Components\Radio::make('candidate')->label('Qual destes é o atleta?')->required()
                             ->options(fn () => \App\Models\IdentityCandidate::where('player_id', $p->id)->where('status', 'pendente')->orderByDesc('score')
-                                ->get()->mapWithKeys(fn ($c) => [$c->id => '['.$c->provider.'] '.$c->label.' · aderência '.$c->score])),
+                                ->get()->mapWithKeys(fn ($c) => [$c->id => '['.$c->provider.' · '.$c->kindLabel().'] '.$c->label.($c->evidence ? ' — '.$c->evidence : '')])),
                     ])
-                    ->action(function (array $data) use ($p) {
+                    ->action(function (array $data) {
                         $c = \App\Models\IdentityCandidate::findOrFail($data['candidate']);
-                        $res = $c->provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p, $c->external_id) : \App\Services\PlayerEnrichment::linkSofascore($p, $c->external_id);
-                        Notification::make()->title($res['message'])->{$res['status'] === 'vinculado' ? 'success' : 'warning'}()->send();
-                        if ($res['status'] === 'vinculado') {
+                        try {
+                            Notification::make()->success()->title(\App\Services\IdentityReview::confirm($c, auth()->user()))->send();
+                        } catch (\RuntimeException $e) {
+                            Notification::make()->danger()->title($e->getMessage())->send();
+
+                            return;
+                        }
+                        if (in_array($c->provider, ['transfermarkt', 'sofascore'], true) && $c->kind === 'escolher') {
                             $this->runSource($c->provider);
                         }
                     }),
