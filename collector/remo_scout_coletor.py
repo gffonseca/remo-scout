@@ -23,7 +23,7 @@ import time
 import urllib.error
 import urllib.request
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
 CBF_SITE = "https://www.cbf.com.br"
 CBF_API = "https://www.cbf.com.br/api/cbf"
@@ -139,12 +139,13 @@ def run_athletes(http, scout, plan, season, max_pages):
             if not cid:
                 notes.append("%s: competição não encontrada na CBF" % comp["label"])
                 continue
-            page, total, sent = 1, 1, 0
+            page, total, sent, failed = 1, 1, 0, []
             while page <= total and page <= max_pages:
                 body = http.get("%s/atletas/campeonato/%s/pagina/%d" % (CBF_API, cid, page))
-                if body is None:
-                    notes.append("%s: falha na página %d" % (comp["label"], page))
-                    break
+                if body is None:  # CBF instável (504): registra e segue para a próxima página
+                    failed.append(page)
+                    page += 1
+                    continue
                 data = json.loads(body)
                 meta = (data.get("meta") or [{}])[0]
                 total = int(meta.get("total") or 1)
@@ -154,7 +155,10 @@ def run_athletes(http, scout, plan, season, max_pages):
                                                             "competition": {"slug": comp["slug"], "label": comp["label"], "season": comp.get("season", season), "cbf_competition_id": cid}})
                     sent += len(rows)
                 page += 1
-            log("%s (%s): %d atletas enviados, %d páginas" % (comp["label"], cid, sent, min(total, max_pages)))
+            if failed:
+                notes.append("%s: páginas sem resposta da CBF: %s" % (comp["label"], ", ".join(map(str, failed))))
+            log("%s (%s): %d atletas enviados, %d páginas%s" % (comp["label"], cid, sent, min(total, max_pages),
+                                                             (" — falharam: %s" % failed) if failed else ""))
             notes.append("%s: %d atletas" % (comp["label"], sent))
 
         ids = scout.call("GET", "cbf_atletas/pendentes?limit=%d" % int(cfg.get("max_details", 150))).get("ids", []) if not scout.dry else []
