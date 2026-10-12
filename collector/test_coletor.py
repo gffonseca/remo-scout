@@ -78,5 +78,31 @@ class CollectorTest(unittest.TestCase):
         self.assertEqual(scout.posts[-1][2]["manifest"][SLUG], {"label": "Série D", "found": False})
 
 
+class TasksTest(unittest.TestCase):
+    def test_fetches_only_allowed_urls_and_follows_server_rounds(self):
+        fetched = []
+
+        class S(FakeScout):
+            def call(self, method, path, payload=None):
+                self.posts.append((method, path, payload))
+                if path == "tarefas":
+                    return {"interval_ms": 2500, "tarefas": [{"id": "t1", "requests": [
+                        {"url": "https://api.sofascore.com/api/v1/search/all", "query": {"q": "João"}},
+                        {"url": "https://evil.test/api/v1/x", "query": {}}]}]}
+                rnd = len([p for p in self.posts if p[1] == "tarefas/t1"])
+                return {"status": "aguardando_coletor", "requests": [{"url": "https://api.sofascore.com/api/v1/player/9", "query": {}}]} if rnd == 1 \
+                    else {"status": "concluida", "result": "ok"}
+
+        orig = c.fetch_status
+        c.fetch_status = lambda url, interval, last: (fetched.append(url), (200, "{}"))[1]
+        try:
+            scout = S()
+            c.run_tasks(scout)
+        finally:
+            c.fetch_status = orig
+        self.assertEqual(fetched, ["https://api.sofascore.com/api/v1/search/all?q=Jo%C3%A3o", "https://api.sofascore.com/api/v1/player/9"])
+        self.assertEqual(len([p for p in scout.posts if p[1] == "tarefas/t1"]), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -24,7 +24,7 @@ class DataSourcesSeeder extends Seeder
         $sources = [
             ['api_futebol', 'API Futebol', 'api_comercial', true, true, 'API_FUTEBOL_KEY', 'https://api.api-futebol.com.br', 400, 2000, 'Plano atual: Série A, B, C, D e Copa do Brasil (Paraense, Copa Verde e Nordeste fora do plano).'],
             ['transfermarkt', 'Transfermarkt (transfermarkt-api)', 'nao_oficial', true, false, null, 'https://transfermarkt-api.fly.dev', 2500, 600, $na.' Instância pública fly.dev sem garantia; trocar base_url por instância própria quando possível.'],
-            ['sofascore', 'Sofascore (endpoints internos)', 'nao_oficial', true, false, null, 'https://api.sofascore.com', 2500, 600, $na.' Sofascore declara não oferecer API; pode bloquear IPs de servidor.'],
+            ['sofascore', 'Sofascore (endpoints internos)', 'nao_oficial', true, false, null, 'https://api.sofascore.com', 2500, 600, $na.' Sofascore declara não oferecer API e bloqueia IP de servidor: buscado sob demanda pelo coletor do Mac (tarefas a cada 15 min), com intervalo de 2,5 s e kill switch.'],
             ['sumula_fpf', 'Súmulas FPF (PDF)', 'documento_publico', true, false, null, 'https://www.fpfpara.com.br/files/sumulas', 2000, null, 'Documento público; uso interno, sem redistribuição.'],
             ['sumula_cbf', 'Súmulas CBF (PDF)', 'documento_publico', true, false, null, 'https://conteudo.cbf.com.br/sumulas', 2000, null, 'Documento público; uso interno. Termos da CBF restringem cópia de dados.'],
             ['cbf_atletas', 'CBF — atletas por campeonato', 'nao_oficial', true, false, null, 'https://www.cbf.com.br', 3000, 500, $na.' A API interna expõe CPF: o campo é descartado na entrada e nunca gravado.'],
@@ -44,7 +44,8 @@ class DataSourcesSeeder extends Seeder
             $s->fill(['name' => $name, 'kind' => $kind, 'requires_credential' => $cred, 'credential_env' => $env, 'notes' => $notes,
                 'terms_note' => $kind === 'nao_oficial' ? $na : null,
                 // CBF recusa IP fora do Brasil: coleta pelo coletor local (Mac Mini), que envia para a API /api/coletor.
-                'transport' => in_array($key, ['cbf_atletas', 'cbf_intermediarios'], true) ? 'coletor_local' : ($key === 'bid_cbf' ? 'consulta_manual' : 'direto')]);
+                // Sofascore recusa IP de servidor: sob demanda pelo coletor do Mac (decisão do Gustavo, Bloco 2).
+                'transport' => in_array($key, ['cbf_atletas', 'cbf_intermediarios', 'sofascore'], true) ? 'coletor_local' : ($key === 'bid_cbf' ? 'consulta_manual' : 'direto')]);
             if ($isNew) {
                 $s->fill(['enabled' => $enabled, 'base_url' => $url, 'min_interval_ms' => $interval, 'daily_quota' => $quota]);
             }

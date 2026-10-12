@@ -29,6 +29,17 @@ class ViewPlayer extends ViewRecord
     {
         /** @var Player $p */
         $p = $this->getRecord()->fresh(['currentClub', 'externalIds']);
+        if ($provider === 'sofascore' && \App\Models\DataSource::where('key', 'sofascore')->value('transport') === 'coletor_local') {
+            $t = \App\Services\Collector\SofascoreTasks::request($p, auth()->id());
+            match ($t->status) {
+                'concluida' => Notification::make()->success()->title($t->result)->send(),
+                'falhou' => Notification::make()->danger()->title('Sofascore: '.$t->result)->send(),
+                default => Notification::make()->info()->title('Pedido enviado ao coletor do Mac')
+                    ->body('O Sofascore recusa servidor; o Mac Mini busca em até ~15 min (precisa estar ligado). Recarregue o perfil depois.')->send(),
+            };
+
+            return;
+        }
         try {
             $link = $provider === 'transfermarkt' ? \App\Services\PlayerEnrichment::linkTransfermarkt($p) : \App\Services\PlayerEnrichment::linkSofascore($p);
             if (! in_array($link['status'], ['vinculado', 'ja_vinculado'], true)) {

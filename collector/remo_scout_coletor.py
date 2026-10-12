@@ -22,6 +22,7 @@ import socket
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 VERSION = "1.1.0"
@@ -252,20 +253,73 @@ def run_intermediaries(http, scout, plan, max_pages):
         log("cbf_intermediarios: %s" % json.dumps(res, ensure_ascii=False))
 
 
+SOFA_ALLOWED = re.compile(r"^https://api\.sofascore\.com/api/v1/[A-Za-z0-9/_\-]+$")
+
+
+def fetch_status(url, interval, last):
+    """GET simples devolvendo (status, corpo); respeita o intervalo mínimo entre chamadas."""
+    wait = interval - (time.time() - last[0])
+    if wait > 0:
+        time.sleep(wait)
+    last[0] = time.time()
+    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json", "Accept-Language": "pt-BR"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.status, r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, None
+    except (urllib.error.URLError, socket.timeout, ConnectionError):
+        return 0, None
+
+
+def run_tasks(scout, max_rounds=12):
+    """Tarefas sob demanda (Sofascore): busca só os endereços que o servidor pediu e devolve; o servidor decide tudo."""
+    res = scout.call("GET", "tarefas")
+    tasks, interval, last, n = res.get("tarefas") or [], max(2.5, int(res.get("interval_ms", 2500)) / 1000.0), [0.0], 0
+    for task in tasks:
+        reqs = task.get("requests") or []
+        for _ in range(max_rounds):
+            reqs = [r for r in reqs if SOFA_ALLOWED.match(r.get("url", ""))]
+            if not reqs:
+                break
+            answers = []
+            for r in reqs:
+                q = r.get("query") or {}
+                url = r["url"] + ("?" + urllib.parse.urlencode(q) if q else "")
+                status, body = fetch_status(url, interval, last)
+                n += 1
+                answers.append({"url": r["url"], "query": q, "status": status, "body": body})
+            out = scout.call("POST", "tarefas/" + task["id"], {"responses": answers})
+            if out.get("status") != "aguardando_coletor":
+                log("tarefa %s: %s — %s" % (task["id"], out.get("status"), out.get("result")))
+                break
+            reqs = out.get("requests") or []
+    if tasks:
+        log("tarefas: %d atendidas, %d chamadas ao Sofascore" % (len(tasks), n))
+
+
 def main():
     ap = argparse.ArgumentParser(description="Coletor local da CBF para o REMO SCOUT")
-    ap.add_argument("--so", choices=["atletas", "intermediarios"])
+    ap.add_argument("--so", choices=["atletas", "intermediarios", "tarefas"])
     ap.add_argument("--paginas", type=int, default=1000, help="limite de páginas por lista (teste)")
     ap.add_argument("--dry-run", action="store_true", help="coleta mas não envia")
     args = ap.parse_args()
     base, token = load_config()
     scout = Scout(base, token, args.dry_run)
+    if args.so == "tarefas":  # modo leve (a cada 15 min): só tarefas sob demanda, sem plano da CBF
+        try:
+            run_tasks(scout)
+            return 0
+        except Exception as e:
+            log("ERRO em tarefas: %s" % e)
+            return 1
     plan = scout.call("GET", "plano")
     http = Http(int(plan.get("interval_ms", 1500)))
     season = str(plan.get("season"))
     log("início — coletor %s, temporada %s" % (VERSION, season))
     ok = True
-    for name, fn in (("atletas", lambda: run_athletes(http, scout, plan, season, args.paginas)),
+    for name, fn in (("tarefas", lambda: run_tasks(scout)),
+                     ("atletas", lambda: run_athletes(http, scout, plan, season, args.paginas)),
                      ("intermediarios", lambda: run_intermediaries(http, scout, plan, args.paginas))):
         if args.so and args.so != name:
             continue

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CollectorBatch;
+use App\Models\CollectorTask;
+use App\Services\Collector\SofascoreTasks;
 use App\Models\DataSource;
 use App\Models\SyncRun;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -106,6 +108,37 @@ class CollectorController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /** Tarefas sob demanda (Sofascore) com os endereços que o servidor precisa que o Mac busque. */
+    public function tasks(): JsonResponse
+    {
+        if (! DataSource::where('key', SofascoreTasks::SOURCE)->value('enabled')) {
+            return response()->json(['tarefas' => [], 'interval_ms' => 2500]);
+        }
+        $tasks = CollectorTask::where('source', SofascoreTasks::SOURCE)->where('status', 'aguardando_coletor')->orderBy('updated_at')->limit(20)->get()
+            ->map(fn ($t) => ['id' => $t->id, 'source' => $t->source, 'requests' => static::requestsOf($t)]);
+
+        return response()->json(['tarefas' => $tasks, 'interval_ms' => max(2500, (int) DataSource::where('key', SofascoreTasks::SOURCE)->value('min_interval_ms'))]);
+    }
+
+    public function taskResult(Request $request, string $task): JsonResponse
+    {
+        abort_unless(DataSource::where('key', SofascoreTasks::SOURCE)->value('enabled'), 423, 'Fonte desligada no CIFUT Remo (kill switch).');
+        $t = CollectorTask::findOrFail($task);
+        $in = $request->validate(['responses' => 'required|array|max:10', 'responses.*.url' => 'required|string|max:500', 'responses.*.query' => 'nullable|array',
+            'responses.*.status' => 'required|integer|min:0|max:599', 'responses.*.body' => 'nullable|string|max:3000000']);
+        $responses = array_values(array_filter($in['responses'], fn ($r) => SofascoreTasks::allowed($r['url'])));
+        $t = SofascoreTasks::receive($t, $responses);
+
+        return response()->json(['status' => $t->status, 'requests' => static::requestsOf($t), 'result' => $t->result]);
+    }
+
+    private static function requestsOf(CollectorTask $t): array
+    {
+        return $t->status === 'aguardando_coletor'
+            ? collect($t->pending_paths ?? [])->filter(fn ($r) => SofascoreTasks::allowed($r['url']))->values()->all()
+            : [];
     }
 
     public function pending(Request $request): JsonResponse

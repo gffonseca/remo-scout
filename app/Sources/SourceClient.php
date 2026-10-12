@@ -28,6 +28,9 @@ class SourceClient
 
     public const MAX_INLINE_WAIT = 60;
 
+    /** Marca no cache de uma resposta 404 entregue pelo coletor. */
+    public const NOT_FOUND = "\0nao_encontrado";
+
     /** Substituível em teste para não dormir de verdade. @var (\Closure(float): void)|null */
     public static ?\Closure $sleeper = null;
 
@@ -72,6 +75,17 @@ class SourceClient
             throw new SourceException("Fonte {$s->name} aguardando credencial", 'credencial');
         }
         $url = $this->url($s, $path);
+        if ($s->transport === 'coletor_local') {
+            // Fonte buscada pelo Mac (IP brasileiro / fonte que recusa servidor): só lê o que o coletor entregou.
+            $hit = Cache::get(static::cacheKey($s, $url, $query));
+            if ($hit === self::NOT_FOUND) {
+                throw new SourceException('Não encontrado na fonte', 'nao_encontrado', 404);
+            }
+            if (is_string($hit)) {
+                return $hit;
+            }
+            throw new CollectorPending($url, $query);
+        }
         $cacheKey = $cacheSeconds ? static::cacheKey($s, $url, $query) : null;
         if ($cacheKey && is_string($hit = Cache::get($cacheKey))) {
             return $hit;

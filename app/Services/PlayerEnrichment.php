@@ -248,6 +248,8 @@ class PlayerEnrichment
                 }
                 try {
                     $st = $sf->seasonStats($id, (int) $ut['uniqueTournament']['id'], (int) $season['id']);
+                } catch (\App\Sources\CollectorPending $e) {
+                    throw $e; // pedido ao coletor do Mac: a tarefa continua na próxima rodada
                 } catch (SourceException $e) {
                     continue;
                 }

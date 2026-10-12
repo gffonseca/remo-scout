@@ -64,7 +64,9 @@ class DataSourceResource extends Resource
         return $table->defaultSort('kind')
             ->columns([
                 TextColumn::make('name')->label('Fonte')->weight('bold')->wrap()
-                    ->description(fn (DataSource $s) => (['coletor_local' => 'Via coletor local (Mac Mini, diário 06:20). ', 'consulta_manual' => 'Consulta assistida (sem coleta automática). '][$s->transport] ?? '').$s->notes),
+                    ->description(fn (DataSource $s) => (['coletor_local' => $s->key === 'sofascore' ? '' : 'Via coletor local (Mac Mini, diário 06:20). ', 'consulta_manual' => 'Consulta assistida (sem coleta automática). '][$s->transport] ?? '')
+                        .($s->key === 'sofascore' ? 'Sob demanda pelo Mac (tarefas a cada 15 min): '.\App\Models\CollectorTask::where('source', 'sofascore')->where('status', 'aguardando_coletor')->count().' aguardando. ' : '')
+                        .$s->notes),
                 TextColumn::make('kind')->label('Tipo')->badge()->formatStateUsing(fn ($state, DataSource $s) => $s->kindLabel())
                     ->color(fn ($state) => ['nao_oficial' => 'warning', 'api_comercial' => 'info', 'documento_publico' => 'success', 'oficial_credenciado' => 'primary'][$state] ?? 'gray'),
                 ToggleColumn::make('enabled')->label('Ativa')->disabled(fn () => ! auth()->user()->isCoordinator()),

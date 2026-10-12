@@ -47,6 +47,14 @@ class EnrichPlayers extends Command
                 $run->note('Prazo da execução atingido; continua na próxima.');
                 break;
             }
+            if ($source->transport === 'coletor_local') { // Sofascore: pedido ao coletor do Mac, concluído nas próximas rodadas
+                $t = \App\Services\Collector\SofascoreTasks::request($p, $this->option('user') ? (int) $this->option('user') : null);
+                $run->note("{$p->name}: ".($t->status === 'aguardando_coletor' ? 'pedido enviado ao coletor do Mac' : ($t->result ?? $t->status)));
+                $t->status === 'falhou' ? $run->errors++ : $run->updated++;
+                $run->save();
+
+                continue;
+            }
             try {
                 $link = $provider === 'transfermarkt' ? PlayerEnrichment::linkTransfermarkt($p) : PlayerEnrichment::linkSofascore($p);
                 $run->requests_made++;
