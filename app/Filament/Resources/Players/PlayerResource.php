@@ -394,6 +394,13 @@ class PlayerResource extends Resource
             ->filtersFormColumns(4)
             ->recordActions([
                 ViewAction::make()->label('Abrir'),
+                \Filament\Actions\Action::make('pin')->label('Comparar')->icon(\Filament\Support\Icons\Heroicon::OutlinedScale)->iconButton()
+                    ->tooltip(fn (Player $r) => \App\Services\Comparator::isPinned(auth()->user(), $r) ? 'Retirar do comparador' : 'Fixar no comparador')
+                    ->color(fn (Player $r) => \App\Services\Comparator::isPinned(auth()->user(), $r) ? 'primary' : 'gray')
+                    ->action(function (Player $r) {
+                        $res = \App\Services\Comparator::toggle(auth()->user(), $r);
+                        \Filament\Notifications\Notification::make()->title($res['message'])->{$res['ok'] ? 'success' : 'warning'}()->send();
+                    }),
                 EditAction::make()->iconButton(),
             ])
             ->toolbarActions([

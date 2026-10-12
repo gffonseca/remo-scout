@@ -120,6 +120,13 @@ class ViewPlayer extends ViewRecord
                 Action::make('ogolSearch')->label('Buscar no ogol')->icon(Heroicon::OutlinedMagnifyingGlass)
                     ->url(fn () => $p->ogol_url ?: 'https://www.ogol.com.br/pesquisa?search_txt='.urlencode($p->name))->openUrlInNewTab(),
             ])->label('Pesquisar fora')->icon(Heroicon::OutlinedGlobeAlt)->button()->color('gray'),
+            Action::make('pin')->icon(Heroicon::OutlinedScale)->color('gray')
+                ->label(fn () => \App\Services\Comparator::isPinned(auth()->user(), $p) ? 'Retirar do comparador' : 'Fixar no comparador')
+                ->action(function () use ($p) {
+                    $r = \App\Services\Comparator::toggle(auth()->user(), $p);
+                    Notification::make()->title($r['message'])->{$r['ok'] ? 'success' : 'warning'}()
+                        ->actions([Action::make('open')->label('Abrir comparador')->url(\App\Filament\Pages\Comparador::getUrl())])->send();
+                }),
             EditAction::make()->label('Editar'),
         ];
     }
