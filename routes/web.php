@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\PlayerPhotoController;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RequireMfaForAdmins;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -18,3 +19,7 @@ Route::middleware([SetUpPanel::class.':scout', 'auth', AuthenticateSession::clas
         Route::get('shortlist/{need}.{format}', [ExportController::class, 'shortlistSheet'])->name('export.shortlist');
         Route::get('pesquisa/{need}.csv', [ExportController::class, 'needSearchSheet'])->name('export.need-search');
     });
+
+// Foto do atleta servida pelo CIFUT (mesma política de acesso; o navegador não depende do host da fonte).
+Route::middleware([SetUpPanel::class.':scout', 'auth', AuthenticateSession::class, EnsureUserIsActive::class])
+    ->get('foto/atleta/{player}', [PlayerPhotoController::class, 'show'])->name('player.photo');
