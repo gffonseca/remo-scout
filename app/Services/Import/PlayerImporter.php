@@ -12,6 +12,7 @@ use App\Models\MarketObservation;
 use App\Models\Player;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Support\MoneyParser;
 use Illuminate\Support\Str;
 
 /**
@@ -153,19 +154,36 @@ class PlayerImporter
                 $data['__agent'] = ['name' => Str::limit($v, 150, ''), 'phone' => trim((string) $get('agent_phone')) ?: null, 'email' => filter_var(trim((string) $get('agent_email')), FILTER_VALIDATE_EMAIL) ?: null];
             }
             if ($allowFinancial) {
-                $smin = static::parseMoney($get('salary_min'));
-                $smax = static::parseMoney($get('salary_max'));
-                if ($smin !== null || $smax !== null) {
-                    if ($smin !== null && $smax !== null && $smax < $smin) {
-                        [$smin, $smax] = [$smax, $smin];
+                // Dinheiro (F02): só entra o que foi lido sem ambiguidade; o resto fica na prévia para revisão.
+                $money = function (string $field, string $label) use ($get, &$msgs): ?array {
+                    $r = MoneyParser::parse($get($field));
+                    if ($r['status'] === 'vazio') {
+                        return null;
+                    }
+                    $msgs[] = $label.': '.MoneyParser::describe($r);
+
+                    return $r['status'] === 'ok' ? $r : null;
+                };
+                $smin = $money('salary_min', 'salário mín.');
+                $smax = $money('salary_max', 'salário máx.');
+                if ($smin && $smax && $smin['currency'] !== $smax['currency']) {
+                    $msgs[] = 'faixa salarial com moedas diferentes não importada';
+                    $smin = $smax = null;
+                }
+                if ($smin || $smax) {
+                    [$lo, $hi] = [$smin['value'] ?? null, $smax['value'] ?? null];
+                    if ($lo !== null && $hi !== null && $hi < $lo) {
+                        [$lo, $hi] = [$hi, $lo];
                         $msgs[] = 'faixa salarial invertida corrigida';
                     }
-                    $data['salary_min'] = $smin;
-                    $data['salary_max'] = $smax;
+                    $data['salary_min'] = $lo;
+                    $data['salary_max'] = $hi;
+                    $data['salary_currency'] = ($smin ?? $smax)['currency'];
                     $data['salary_observed_on'] = now()->toDateString();
                 }
-                if (($ap = static::parseMoney($get('asking_price'))) !== null) {
-                    $data['asking_price'] = $ap;
+                if ($ap = $money('asking_price', 'pedida')) {
+                    $data['asking_price'] = $ap['value'];
+                    $data['asking_price_currency'] = $ap['currency'];
                 }
             }
             $ms = Str::of((string) $get('market_status'))->lower()->ascii()->toString();
@@ -202,8 +220,11 @@ class PlayerImporter
             if ($cEnd || $cStatus) {
                 $data['__contract'] = ['contract_end' => $cEnd?->toDateString(), 'status' => $cStatus ?? 'vigente'];
             }
-            if ($allowFinancial && ($mv = static::parseMoney($get('market_value'))) !== null) {
-                $data['__market_value'] = $mv;
+            if ($allowFinancial && ($mvr = MoneyParser::parse($get('market_value')))['status'] !== 'vazio') {
+                $msgs[] = 'valor de mercado: '.MoneyParser::describe($mvr);
+                if ($mvr['status'] === 'ok') {
+                    $data['__market_value'] = ['amount' => $mvr['value'], 'currency' => $mvr['currency']];
+                }
             }
 
             // Correspondência com cadastro existente
@@ -286,7 +307,7 @@ class PlayerImporter
                 }
                 if (isset($d['__market_value'])) {
                     MarketObservation::create([
-                        'player_id' => $player->id, 'kind' => 'valor_mercado', 'amount' => $d['__market_value'], 'currency' => 'BRL',
+                        'player_id' => $player->id, 'kind' => 'valor_mercado', 'amount' => $d['__market_value']['amount'], 'currency' => $d['__market_value']['currency'],
                         'confirmation' => 'nao_verificado', 'source_label' => 'Planilha: '.$filename, 'observed_on' => now()->toDateString(),
                         'import_batch_id' => $batch->id, 'author_id' => $userId,
                     ]);
@@ -395,32 +416,11 @@ class PlayerImporter
         };
     }
 
-    /** "R$ 1.250.000,00" | "1,2 mi" | 1250000 → decimal; ambíguo → null. */
+    /** Valor monetário inequívoco (pt-BR) ou null. Detalhes e motivo em MoneyParser::parse(). */
     public static function parseMoney(mixed $v): ?float
     {
-        if (is_int($v) || is_float($v)) {
-            return $v >= 0 ? (float) $v : null;
-        }
-        $s = Str::of((string) $v)->lower()->ascii()->trim()->toString();
-        if ($s === '') {
-            return null;
-        }
-        $mult = 1;
-        if (preg_match('/\b(mil|k)\b/', $s)) {
-            $mult = 1_000;
-        } elseif (preg_match('/\b(mi|mi\.|milhao|milhoes|mm)\b/', $s)) {
-            $mult = 1_000_000;
-        }
-        $num = preg_replace('/[^0-9,\.]/', '', $s);
-        if ($num === '') {
-            return null;
-        }
-        if (str_contains($num, ',')) {
-            $num = str_replace(['.', ','], ['', '.'], $num);
-        } elseif (substr_count($num, '.') > 1) {
-            $num = str_replace('.', '', $num);
-        }
+        $r = MoneyParser::parse($v);
 
-        return is_numeric($num) ? round((float) $num * $mult, 2) : null;
+        return $r['status'] === 'ok' ? $r['value'] : null;
     }
 }
