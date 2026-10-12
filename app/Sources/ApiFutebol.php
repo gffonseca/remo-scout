@@ -91,10 +91,9 @@ class ApiFutebol
                 continue;
             }
             $finished = array_filter($list, fn ($m) => ($m['status'] ?? '') === 'finalizado');
-            $known = Fixture::where('provider', self::PROVIDER)->whereIn('external_id', array_map(fn ($m) => (string) $m['partida_id'], $finished))
-                ->whereNotNull('fetched_at')->pluck('external_id')->all();
-            $pending = array_filter($finished, fn ($m) => ! in_array((string) $m['partida_id'], $known, true));
-            $run->note("{$compName} {$season}: ".count($finished).' finalizadas, '.count($pending).' a processar');
+            [$pending, $refresh] = static::selectForFetch($finished);
+            $run->note("{$compName} {$season}: ".count($finished).' finalizadas, '.count($pending).' novas, '.count($refresh).' a reconsultar (parciais/recentes)');
+            $pending = array_merge($pending, $refresh); // novas primeiro; reconsultas usam o saldo restante
             foreach ($pending as $m) {
                 if ($budget <= 0) {
                     $run->note('Limite de chamadas desta execução atingido; continua na próxima.');
@@ -119,9 +118,54 @@ class ApiFutebol
         \App\Services\SeasonStatsAggregator::rebuildProvider(self::PROVIDER);
     }
 
+    /** Reconsulta parciais por até 30 dias e recentes por 3 dias, no máximo a cada 6 h (F08). */
+    public const REFRESH_PARTIAL_DAYS = 30;
+
+    public const REFRESH_RECENT_DAYS = 3;
+
+    public const REFRESH_TTL_HOURS = 6;
+
+    /**
+     * Separa partidas finalizadas em novas (nunca buscadas) e a reconsultar: dado parcial ainda na janela,
+     * ou jogo recente (correções de súmula/escalação costumam chegar depois). Completas antigas não gastam cota.
+     *
+     * @return array{0: list<array>, 1: list<array>}
+     */
+    public static function selectForFetch(array $finished): array
+    {
+        $known = Fixture::where('provider', self::PROVIDER)->whereIn('external_id', array_map(fn ($m) => (string) $m['partida_id'], $finished))
+            ->whereNotNull('fetched_at')->get(['external_id', 'data_quality', 'played_on', 'fetched_at'])->keyBy('external_id');
+        $new = $refresh = [];
+        foreach ($finished as $m) {
+            $f = $known->get((string) $m['partida_id']);
+            if (! $f) {
+                $new[] = $m;
+
+                continue;
+            }
+            $stale = $f->fetched_at->lt(now()->subHours(self::REFRESH_TTL_HOURS));
+            $played = $f->played_on;
+            $partialInWindow = $f->data_quality !== 'completo' && (! $played || $played->gte(now()->subDays(self::REFRESH_PARTIAL_DAYS)));
+            $recent = $played && $played->gte(now()->subDays(self::REFRESH_RECENT_DAYS));
+            if ($stale && ($partialInWindow || $recent)) {
+                $refresh[] = $m;
+            }
+        }
+
+        return [$new, $refresh];
+    }
+
     public function ingestMatch(array $d, ?Competition $competition, string $compName, string $season, SyncRun $run): Fixture
     {
-        return DB::transaction(function () use ($d, $competition, $compName, $season, $run) {
+        $hash = hash('sha256', json_encode($d));
+        $existing = Fixture::where('provider', self::PROVIDER)->where('external_id', (string) $d['partida_id'])->first();
+        if ($existing && $existing->payload_hash === $hash) {
+            $existing->update(['fetched_at' => now()]); // conferido, sem mudança na fonte
+
+            return $existing;
+        }
+
+        return DB::transaction(function () use ($d, $competition, $compName, $season, $run, $hash) {
             $home = ClubResolver::resolve(self::PROVIDER, (string) ($d['time_mandante']['time_id'] ?? ''), $d['time_mandante']['nome_popular'] ?? null, true);
             $away = ClubResolver::resolve(self::PROVIDER, (string) ($d['time_visitante']['time_id'] ?? ''), $d['time_visitante']['nome_popular'] ?? null, true);
             static::crest($home, $d['time_mandante']['escudo'] ?? null);
@@ -136,7 +180,7 @@ class ApiFutebol
                 'home_formation' => $d['escalacoes']['mandante']['esquema_tatico'] ?? null,
                 'away_formation' => $d['escalacoes']['visitante']['esquema_tatico'] ?? null,
                 'source_url' => 'https://api.api-futebol.com.br/v1/partidas/'.$d['partida_id'],
-                'payload_hash' => hash('sha256', json_encode($d)), 'fetched_at' => now(),
+                'payload_hash' => $hash, 'fetched_at' => now(),
             ]);
 
             // Qualidade: sem substituições registradas ou gols listados ≠ placar → minutos indeterminados (null), nunca 90 presumido.
@@ -215,8 +259,10 @@ class ApiFutebol
                         }
                     }
                 }
+                $seen = [];
                 foreach ($rows as $aid => $r) {
                     $player = $this->resolvePlayer($aid, $r['name'], $club, $run);
+                    $seen[] = $player->id;
                     $minutes = ! $complete ? ($r['used'] ? null : 0)
                         : ($r['used'] && $r['in'] !== null ? max(0, min(90, (int) ($r['out'] ?? 90)) - $r['in']) : ($r['used'] ? null : 0));
                     Appearance::updateOrCreate(['fixture_id' => $fixture->id, 'player_id' => $player->id], [
@@ -226,6 +272,11 @@ class ApiFutebol
                         'own_goals' => $r['og'], 'yellow_cards' => $r['y'], 'red_cards' => $r['r'],
                     ]);
                 }
+                // Reconciliação: quem saiu da escalação corrigida deste lado deixa de constar na partida.
+                // Só para o lado cuja escalação veio na resposta (escalação ausente não apaga nada).
+                Appearance::where('fixture_id', $fixture->id)->where('provider', self::PROVIDER)
+                    ->when($club, fn ($q) => $q->where('club_id', $club->id), fn ($q) => $q->whereNull('club_id'))
+                    ->whereNotIn('player_id', $seen)->delete();
             }
 
             return $fixture;

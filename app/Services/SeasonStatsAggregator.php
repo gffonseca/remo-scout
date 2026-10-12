@@ -26,16 +26,21 @@ class SeasonStatsAggregator
             ->get();
 
         $now = now();
+        $kept = [];
         foreach ($rows as $r) {
-            \App\Models\PlayerSeasonStat::updateOrCreate(
+            $kept[] = \App\Models\PlayerSeasonStat::updateOrCreate(
                 ['player_id' => $r->player_id, 'provider' => $provider, 'competition_key' => $r->comp, 'season' => $r->season, 'club_name' => $r->club_name],
                 [
                     'competition_name' => $r->comp, 'appearances' => $r->apps, 'starts' => $r->starts, 'minutes' => $r->minutes,
                     'goals' => $r->goals, 'yellow_cards' => $r->yellows, 'red_cards' => $r->reds,
                     'extra' => ['banco_sem_entrar' => (int) $r->unused_bench], 'fetched_at' => $now,
                 ]
-            );
+            )->id;
         }
+        // Remove totais que não têm mais partidas por trás (escalação corrigida, partida reconciliada).
+        \App\Models\PlayerSeasonStat::where('provider', $provider)
+            ->when($playerIds, fn ($q) => $q->whereIn('player_id', $playerIds))
+            ->whereNotIn('id', $kept)->delete();
 
         return $rows->count();
     }
