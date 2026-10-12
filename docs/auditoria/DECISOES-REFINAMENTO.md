@@ -45,6 +45,13 @@ Decisões tomadas por Gustavo em sessões de Q&A em 12/10/2026. Este arquivo é 
 | Faixa salarial × orçamento | Quatro estados: **Dentro** (faixa inteira ≤ teto), **Intersecta** (parte acima do teto: negociar), **Acima** e **Desconhecido** (sem faixa). O menor valor nunca vira orçamento confirmado. |
 | Layout no estilo FM (todos aprovados) | Colunas e filtros salvos por usuário; comparador fixo (3–5 atletas); planejador de elenco por posição; paleta de comandos (Ctrl+K) com ações. |
 
+## Premissas assumidas na implementação (revisar)
+
+- **Validade de avaliação de papel: 12 meses** a partir da data da observação (`SCOUT_ASSESSMENT_VALID_MONTHS`). Vencida, deixa de confirmar requisito e aparece como Pendente "reavaliar". Ajustável sem código.
+- **Avaliação "geral" (sem fase) e avaliação de fase específica não se substituem** nos requisitos, nos dois sentidos.
+- **Nível consolidado do atleta** = melhor nível entre as avaliações mais recentes de cada papel+fase; uma avaliação antiga mais alta não supera a reavaliação mais recente.
+- **Fases antigas** (`transicao_ofensiva` → com posse; `transicao_defensiva` → sem posse; `geral`/outras → sem fase), com o valor original anotado no início da evidência.
+
 ## Limites que continuam valendo
 
 - Não comprar serviços, não enviar mensagens nem publicar em nome do Gustavo, nada que mexa em dinheiro.

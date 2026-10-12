@@ -25,7 +25,7 @@
 <h2>Papéis táticos</h2>
 @if ($player->roleAssessments->isEmpty())<p class="muted">Não avaliado (sem classificação registrada).</p>@else
 <table><tr><th>Papel</th><th>Nível</th><th>Tipo</th><th>Confiança</th><th>Período</th><th>Evidência</th><th>Autor/data</th></tr>
-@foreach ($player->roleAssessments as $a)<tr><td>{{ $a->tacticalRole->name }}<br><span class="muted">{{ $a->tacticalRole->position_group }} · v{{ $a->role_version }}</span></td><td>{{ $a->level->getLabel() }}</td><td>{{ $a->kind->getLabel() }}</td><td>{{ $a->confidence->getLabel() }}</td><td>{{ $a->period_label ?? '—' }}</td><td>{{ $a->evidence }}</td><td>{{ $a->author?->name }}<br>{{ $a->updated_at->format('d/m/Y') }}</td></tr>@endforeach
+@foreach ($player->roleAssessments as $a)<tr><td>{{ $a->tacticalRole->name }}<br><span class="muted">{{ $a->tacticalRole->position_group }} · v{{ $a->role_version }}</span></td><td>{{ $a->level->getLabel() }}</td><td>{{ $a->kind->getLabel() }}<br><span class="muted">{{ \App\Enums\GamePhase::label($a->phase) }}</span></td><td>{{ $a->confidence->getLabel() }}</td><td>{{ $a->period_label ?? '—' }}</td><td>{{ $a->evidence }}</td><td>{{ $a->author?->name }}<br>{{ $a->referenceDate()->format('d/m/Y') }}@if ($a->isExpired()) <span class="muted">(vencida)</span>@endif</td></tr>@endforeach
 </table>@endif
 
 <h2>Especialidades</h2>

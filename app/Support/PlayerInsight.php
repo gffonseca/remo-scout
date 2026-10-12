@@ -7,29 +7,45 @@ use App\Models\Player;
 
 /**
  * Indicadores de síntese do atleta (substituem "capacidade/potencial" de jogos por evidência real):
- * - nível atual = melhor nível observado em papel (classificação consolidada); fallback: último relatório submetido;
- * - potencial = melhor nível em avaliações do tipo "potencial";
+ * - nível atual = melhor nível observado (avaliação mais recente por papel+fase); fallback: último relatório OBSERVADO;
+ * - potencial = idem para avaliações/relatórios do tipo "potencial" (nunca se mistura com o atual);
  * - recomendação = parecer predominante nos relatórios submetidos;
- * - conhecimento = cobertura de evidências (relatórios, vídeos, dados básicos).
+ * - conhecimento = cobertura de evidências (observadores distintos, vídeos, dados básicos).
  * Nada é calculado a partir de ausência de dado: sem evidência → "não observado"/"sem observação".
  */
 class PlayerInsight
 {
+    /**
+     * Melhor nível entre as avaliações MAIS RECENTES de cada papel+fase do tipo pedido (F10).
+     * Uma avaliação antiga mais alta não supera a reavaliação mais recente do mesmo papel/fase.
+     */
     public static function bestLevel($assessments, string $kind): ?Level
     {
-        return collect($assessments)->filter(fn ($a) => $a->kind?->value === $kind && $a->level?->rank())
+        return collect($assessments)->filter(fn ($a) => $a->kind?->value === $kind)
+            ->sortByDesc(fn ($a) => [($a->observed_on ?? $a->created_at)?->timestamp ?? 0, $a->created_at?->timestamp ?? 0, (string) $a->id])
+            ->unique(fn ($a) => $a->tactical_role_id.'|'.($a->phase?->value ?? 'geral'))
+            ->filter(fn ($a) => $a->level?->rank())
             ->sortByDesc(fn ($a) => $a->level->rank())->first()?->level;
     }
 
+    /**
+     * Nível atual = somente evidência observada: avaliação de papel do tipo "observado" ou, na falta dela,
+     * o relatório submetido mais recente do tipo "observado". Potencial nunca vira nível atual.
+     */
     public static function currentLevel(Player $p): ?Level
     {
         return static::bestLevel($p->roleAssessments, 'observado')
-            ?? collect($p->submittedReports ?? [])->first(fn ($r) => $r->level?->rank())?->level;
+            ?? collect($p->submittedReports ?? [])
+                ->filter(fn ($r) => ($r->assessment_type?->value ?? $r->assessment_type) === 'observado' && $r->level?->rank())
+                ->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->first()?->level;
     }
 
     public static function potentialLevel(Player $p): ?Level
     {
-        return static::bestLevel($p->roleAssessments, 'potencial');
+        return static::bestLevel($p->roleAssessments, 'potencial')
+            ?? collect($p->submittedReports ?? [])
+                ->filter(fn ($r) => ($r->assessment_type?->value ?? $r->assessment_type) === 'potencial' && $r->level?->rank())
+                ->sortByDesc(fn ($r) => $r->submitted_at?->timestamp ?? 0)->first()?->level;
     }
 
     /** @return array{label:string,color:string} */
@@ -50,7 +66,8 @@ class PlayerInsight
     /** @return array{label:string,color:string,score:int} */
     public static function knowledge(Player $p): array
     {
-        $reports = collect($p->submittedReports ?? [])->count();
+        // Conhecimento cresce com observadores distintos, não com repetição do mesmo autor.
+        $reports = collect($p->submittedReports ?? [])->pluck('author_id')->unique()->count();
         $videos = (int) ($p->video_references_count ?? $p->videoReferences()->count());
         $basics = (int) ($p->birth_date !== null) + (int) ($p->primary_position !== null) + (int) ($p->current_club_id !== null);
         $score = min($reports, 3) * 2 + min($videos, 2) + $basics; // 0..11

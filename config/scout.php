@@ -28,6 +28,9 @@ return [
         // Fora de propósito: Sub-17/Sub-15/Sub-13 (todos menores de idade) e feminino.
     ],
 
+    // Avaliação de papel mais antiga que isso deixa de confirmar requisito (vira Pendente: "avaliação vencida").
+    'assessment_valid_months' => (int) env('SCOUT_ASSESSMENT_VALID_MONTHS', 12),
+
     'credentials' => [
         'API_FUTEBOL_KEY' => env('API_FUTEBOL_KEY'),
         'API_FOOTBALL_KEY' => env('API_FOOTBALL_KEY'),

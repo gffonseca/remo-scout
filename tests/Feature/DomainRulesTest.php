@@ -87,7 +87,7 @@ class DomainRulesTest extends ScoutTestCase
         $old = Player::create(['name' => 'Veterano', 'primary_position' => 'LE', 'birth_date' => now()->subYears(34)->toDateString(), 'preferred_foot' => 'esquerdo']);
         $ok = Player::create(['name' => 'Ideal', 'primary_position' => 'LE', 'birth_date' => now()->subYears(24)->toDateString(), 'preferred_foot' => 'esquerdo']);
         $this->assertStringStartsWith('Pendente', RequirementCheck::summary($need, $unknown));
-        $this->assertStringStartsWith('Reprova', RequirementCheck::summary($need, $old));
+        $this->assertStringStartsWith('Não atende', RequirementCheck::summary($need, $old));
         $this->assertSame('Atende', RequirementCheck::summary($need, $ok));
     }
 

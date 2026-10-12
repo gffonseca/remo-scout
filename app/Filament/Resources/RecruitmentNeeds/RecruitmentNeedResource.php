@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RecruitmentNeeds;
 
 use App\Enums\Foot;
+use App\Enums\GamePhase;
 use App\Enums\Horizon;
 use App\Enums\Level;
 use App\Enums\NeedStatus;
@@ -16,7 +17,9 @@ use App\Models\User;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -61,22 +64,40 @@ class RecruitmentNeedResource extends Resource
                     ->placeholder('ex.: Lateral esquerdo que progride e sustenta duelos'),
                 Select::make('status')->label('Status')->options(NeedStatus::class)->default('aberta')->required(),
                 Select::make('position')->label('Posição')->options(Position::options())->required()->searchable(),
-                Select::make('tactical_role_id')->label('Papel tático desejado')->searchable()
+                Select::make('tactical_role_id')->label('Papel principal (busca)')->searchable()
+                    ->helperText('Usado na busca de candidatos. Níveis exigidos ficam em "Requisitos por papel e fase".')
                     ->options(fn () => TacticalRole::query()->where('status', '!=', 'arquivado')->orderBy('position_group')->orderBy('name')->get()
                         ->groupBy('position_group')->map(fn ($g) => $g->pluck('name', 'id'))->toArray()),
                 Select::make('specialties')->label('Especialidades desejadas')->relationship('specialties', 'name')->multiple()->preload(),
                 Select::make('preferred_foot')->label('Pé')->options(Foot::class)->placeholder('Indiferente'),
                 TextInput::make('age_min')->label('Idade mínima')->numeric()->minValue(15)->maxValue(45),
                 TextInput::make('age_max')->label('Idade máxima')->numeric()->minValue(15)->maxValue(45)->gte('age_min'),
-                Select::make('target_level')->label('Nível mínimo desejado')->options(collect(Level::cases())->reject(fn ($l) => $l === Level::NaoObservado)->mapWithKeys(fn ($l) => [$l->value => $l->getLabel()])),
+                Select::make('target_level')->label('Nível mínimo (papel principal, geral)')->options(collect(Level::cases())->reject(fn ($l) => $l === Level::NaoObservado)->mapWithKeys(fn ($l) => [$l->value => $l->getLabel()]))
+                    ->helperText('Atalho: vira requisito obrigatório "geral" do papel principal. Para exigir por fase, use a seção abaixo.'),
                 Select::make('priority')->label('Prioridade')->options(Priority::class)->default('media')->required(),
                 Select::make('horizon')->label('Horizonte')->options(Horizon::class)->default('proxima_janela')->required(),
                 TextInput::make('window_label')->label('Janela/temporada')->placeholder('ex.: Janela jan/2027'),
                 Select::make('owner_id')->label('Responsável')->options(fn () => User::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->default(fn () => auth()->id()),
             ]),
+            Section::make('Requisitos por papel e fase')
+                ->description('Nível OBSERVADO mínimo por papel e fase. Potencial não conta; avaliação de outra fase não substitui; avaliação vencida fica pendente.')
+                ->schema([
+                    Repeater::make('roleRequirements')->relationship()->hiddenLabel()->defaultItems(0)->columns(4)
+                        ->addActionLabel('Adicionar requisito de papel')
+                        ->schema([
+                            Select::make('tactical_role_id')->label('Papel')->required()->searchable()
+                                ->options(fn () => TacticalRole::query()->where('status', '!=', 'arquivado')->orderBy('position_group')->orderBy('name')->get()
+                                    ->groupBy('position_group')->map(fn ($g) => $g->pluck('name', 'id'))->toArray()),
+                            Select::make('phase')->label('Fase')->options(collect(GamePhase::cases())->mapWithKeys(fn ($p) => [$p->value => $p->getLabel()]))
+                                ->placeholder('Geral (sem fase)'),
+                            Select::make('min_level')->label('Nível mínimo observado')->required()
+                                ->options(collect(Level::cases())->reject(fn ($l) => $l === Level::NaoObservado)->mapWithKeys(fn ($l) => [$l->value => $l->getLabel()])),
+                            Toggle::make('is_mandatory')->label('Obrigatório')->default(true)->inline(false),
+                        ]),
+                ]),
             Section::make('Requisitos')->columns(2)->schema([
                 TagsInput::make('mandatory_requirements')->label('Obrigatórios')->placeholder('Enter para adicionar')
-                    ->helperText('Requisito obrigatório reprovado não é compensado por ranking.'),
+                    ->helperText('Ficam Pendentes para cada candidato até coordenador/admin confirmar com evidência (link ou anexo). Obrigatório não atendido não é compensado por ranking.'),
                 TagsInput::make('desirable_requirements')->label('Desejáveis')->placeholder('Enter para adicionar'),
                 Textarea::make('context')->label('Contexto (modelo de jogo, referência no elenco, alternativas)')->rows(3)->columnSpanFull(),
             ]),

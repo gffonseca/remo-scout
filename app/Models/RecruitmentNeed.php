@@ -47,6 +47,17 @@ class RecruitmentNeed extends Model
         return $this->belongsToMany(Specialty::class)->withPivot('is_mandatory');
     }
 
+    /** Requisitos de nível observado por papel e fase. */
+    public function roleRequirements(): HasMany
+    {
+        return $this->hasMany(NeedRoleRequirement::class);
+    }
+
+    public function requirementChecks(): HasMany
+    {
+        return $this->hasMany(NeedRequirementCheck::class);
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
