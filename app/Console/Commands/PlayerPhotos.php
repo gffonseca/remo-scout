@@ -26,6 +26,9 @@ class PlayerPhotos extends Command
 
     public const MAX_BYTES = 3_000_000;
 
+    /** Imagens-padrão das fontes ("sem foto"): não contam como foto. API-Football: silhueta cinza de 5.192 bytes. */
+    public const GENERIC_SHA1 = ['36b77a4cbb148a934845ea569155cd023083fd77'];
+
     public function handle(): int
     {
         if ($batch = $this->option('revert')) {
@@ -112,7 +115,7 @@ class PlayerPhotos extends Command
             return $no('nao_imagem');
         }
 
-        return strlen($body) < 1500 ? $no('generica') : ['state' => 'ok', 'body' => $body, 'mime' => $type];
+        return strlen($body) < 1500 || in_array(sha1($body), self::GENERIC_SHA1, true) ? $no('generica') : ['state' => 'ok', 'body' => $body, 'mime' => $type];
     }
 
     private function check(bool $apply, string $actor): void
