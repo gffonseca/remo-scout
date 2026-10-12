@@ -210,6 +210,12 @@ class SourceClient
         return $ts === false ? null : max(0, $ts - time());
     }
 
+    /** Para provedores que sinalizam erro dentro de uma resposta HTTP 200 (ex.: API-Football "errors"). */
+    public function reportFailure(string $msg, string $health = 'degradado'): void
+    {
+        $this->fail($this->source->fresh(), $msg, $health);
+    }
+
     private function fail(DataSource $s, string $msg, string $health, ?CarbonInterface $openUntil = null): void
     {
         Log::warning('[fonte] '.$s->key.' '.$msg);

@@ -237,6 +237,13 @@ class Player extends Model
         return $this->belongsTo(ImportBatch::class);
     }
 
+    /** Cadastro provisório criado automaticamente a partir de escalação/partida (ainda não é atleta do scout). */
+    public function scopeProvisional(Builder $q): Builder
+    {
+        return $q->where('data_origin', 'provedor')
+            ->whereHas('externalIds', fn ($x) => $x->where('link_method', 'cadastro_provisorio'));
+    }
+
     public function scopeWithPosition(Builder $q, string $code): Builder
     {
         return $q->where(fn ($w) => $w->where('primary_position', $code)->orWhereJsonContains('positions', $code));

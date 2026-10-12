@@ -102,6 +102,13 @@ class DataSourceResource extends Resource
                             RunArtisanSync::dispatch('scout:sync-api-futebol', ['--max' => 300, '--user' => auth()->id()]);
                             Notification::make()->success()->title('Sincronização enviada ao worker')->body('Acompanhe em Execuções.')->send();
                         }),
+                    Action::make('syncApiFootball')->label('Sincronizar partidas agora')->icon(Heroicon::OutlinedArrowPath)
+                        ->visible(fn (DataSource $r) => $r->key === 'api_football' && auth()->user()->isCoordinator())
+                        ->requiresConfirmation()->modalDescription('Série A, B, Copa do Brasil, Série C e Nordeste da temporada atual; até 400 partidas por execução (1 chamada por partida).')
+                        ->action(function () {
+                            RunArtisanSync::dispatch('scout:sync-api-football', ['--max' => 400, '--user' => auth()->id()]);
+                            Notification::make()->success()->title('Sincronização enviada ao worker')->body('Acompanhe em Execuções.')->send();
+                        }),
                     Action::make('syncSquads')->label('Atualizar elencos agora')->icon(Heroicon::OutlinedUserGroup)
                         ->visible(fn (DataSource $r) => $r->key === 'dados_futebol' && auth()->user()->isCoordinator())
                         ->requiresConfirmation()->modalDescription('Remo e clubes dos atletas prioritários (até 40 clubes, cerca de 2 chamadas por clube). Só retrato de elenco; não altera cadastro.')

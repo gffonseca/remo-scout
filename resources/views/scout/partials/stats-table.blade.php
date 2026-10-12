@@ -2,7 +2,8 @@
 <div class="sc-muted" style="margin:.35rem 0 .2rem"><strong>{{ SV::providerLabel($prov) }}</strong>@if (SV::providerNote($prov)) · {{ SV::providerNote($prov) }}@endif
     · coletado em {{ $fetched ? $fetched->timezone(config('scout.display_timezone'))->format('d/m/Y') : 'data não registrada' }}</div>
 <table class="sc-stats">
-    <thead><tr><th>Competição</th><th>Clube</th><th>Temp.</th><th title="Jogos em que entrou">J</th><th title="Titular">Tit</th><th title="Minutos">Min</th><th title="Gols">G</th><th title="Assistências">A</th><th title="Gols por 90 min (só com minutos completos)">G/90</th><th title="Cartões amarelos/vermelhos">Cart.</th>@if ($prov === 'sofascore')<th title="Nota Sofascore (proprietária)">Nota</th>@endif</tr></thead>
+    <thead><tr><th>Competição</th><th>Clube</th><th>Temp.</th><th title="Jogos em que entrou">J</th><th title="Titular">Tit</th><th title="Minutos">Min</th><th title="Gols">G</th><th title="Assistências">A</th><th title="Gols por 90 min (só com minutos completos)">G/90</th><th title="Cartões amarelos/vermelhos">Cart.</th>@if ($prov === 'sofascore')<th title="Nota Sofascore (proprietária)">Nota</th>@endif
+        @if ($prov === 'api_football')<th title="Nota API-Football (proprietária), média ponderada por minutos">Nota</th><th title="Finalizações (no alvo)">Fin</th><th title="Passes decisivos">PD</th><th title="Desarmes / interceptações">Des/Int</th><th title="Duelos ganhos / disputados">Duelos</th>@endif</tr></thead>
     <tbody>
     @foreach ($rows as $r)
         @php $g90 = SV::goalsPer90($r); @endphp
@@ -17,6 +18,14 @@
             <td>@if ($g90 !== null){{ number_format($g90, 2, ',', '') }}@if (SV::smallSample($r))<span title="Amostra pequena (menos de {{ config('scout.min_minutes_ranking') }} min)" style="cursor:help">*</span>@endif @else — @endif</td>
             <td>{{ ($r->yellow_cards ?? '—').'/'.($r->red_cards ?? '—') }}</td>
             @if ($prov === 'sofascore')<td>{{ $r->rating !== null ? number_format((float) $r->rating, 2, ',', '') : '—' }}</td>@endif
+            @if ($prov === 'api_football')
+                @php $e = $r->extra['estatistica'] ?? []; $v = fn ($k) => array_key_exists($k, $e) ? $e[$k] : null; @endphp
+                <td>{{ $r->rating !== null ? number_format((float) $r->rating, 2, ',', '') : '—' }}</td>
+                <td>{{ $v('finalizacoes') ?? '—' }}@if ($v('finalizacoes_no_alvo') !== null) ({{ $v('finalizacoes_no_alvo') }})@endif</td>
+                <td>{{ $v('passes_decisivos') ?? '—' }}</td>
+                <td>{{ ($v('desarmes') ?? '—').'/'.($v('interceptacoes') ?? '—') }}</td>
+                <td>{{ $v('duelos') !== null ? ($v('duelos_ganhos') ?? '?').'/'.$v('duelos') : '—' }}</td>
+            @endif
         </tr>
     @endforeach
     </tbody>

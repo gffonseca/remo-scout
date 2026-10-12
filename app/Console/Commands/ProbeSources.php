@@ -16,6 +16,7 @@ class ProbeSources extends Command
 
     private const PROBES = [
         'api_futebol' => '/v1/campeonatos/10',
+        'api_football' => '/status',
         'dados_futebol' => '/v1/me',
         'sportmonks' => 'https://api.sportmonks.com/v3/my/leagues',
         'transfermarkt' => '/players/search/Ziyech',

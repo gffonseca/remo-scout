@@ -383,6 +383,10 @@ class PlayerResource extends Resource
                     ->options(fn () => Specialty::query()->where('status', '!=', 'arquivado')->orderBy('name')->pluck('name', 'id'))
                     ->query(fn (Builder $query, array $data) => $query->when($data['values'] ?? [], fn ($q, $ids) => $q->whereHas('specialtyAssessments', fn ($a) => $a->whereIn('specialty_id', $ids)->where('level', '!=', 'nao_observado')))),
                 SelectFilter::make('data_origin')->label('Origem')->options(DataOrigin::class),
+                \Filament\Tables\Filters\TernaryFilter::make('provisional')->label('Provisórios de partidas')
+                    ->placeholder('Mostrar todos')->trueLabel('Só provisórios')->falseLabel('Ocultar')->default(false)
+                    ->queries(true: fn (Builder $q) => $q->provisional(), false: fn (Builder $q) => $q->whereNot(fn ($w) => $w->provisional()),
+                        blank: fn (Builder $q) => $q),
                 Filter::make('no_reports')->label('Sem relatório submetido')->toggle()
                     ->query(fn (Builder $query) => $query->whereDoesntHave('scoutingReports', fn ($r) => $r->where('status', 'submetido'))),
                 TrashedFilter::make(),

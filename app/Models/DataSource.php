@@ -47,6 +47,7 @@ class DataSource extends Model
         return match ($this->key) {
             'api_futebol', 'dados_futebol' => ['Authorization' => 'Bearer '.$c],
             'sportmonks' => ['Authorization' => $c],
+            'api_football' => ['x-apisports-key' => $c],
             default => [],
         };
     }
