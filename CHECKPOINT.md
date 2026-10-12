@@ -1,6 +1,6 @@
 # CHECKPOINT — REMO SCOUT
 
-Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 2 do refinamento concluído na branch `refino`).
+Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 3 do refinamento concluído; deploy autorizado).
 
 ## Decisões vigentes (ver docs/PROMPT-v2.md §2)
 - Usuários: Gustavo (admin/piloto), Rafael (coordenador), 2 analistas (a contratar), Executivo de Futebol (leitor; financeiro por permissão).
@@ -66,3 +66,10 @@ Atualize a cada sessão. Última atualização: 12/10/2026 (Bloco 2 do refinamen
   - decidir a renovação da API-Football até 12/11.
 - Pendência do Rafael: conferir a cobertura da API Futebol e da CBF (botão na tela de fontes).
 - Próximo: Bloco 3 (fluxo de mercado e layout) e Bloco 4 (notícias via Claude API, operação, ensaio de restauração no Mac Mini, piloto).
+
+## 12/10/2026 — Bloco 3 do refinamento (fluxo de mercado e layout)
+- Blocos 1+2 publicados (PR #1, `b7de4b3`). Sincronizações das 3 fontes conferidas pelos logs: sem erro.
+- Entregue: F11 (pesquisa da necessidade + orçamento em 4 estados), comparador fixo, watchlist com alertas no sino, F22 (catálogo A–D por fase + calibração),
+  preferências de tabela por usuário, perfil em abas, Ctrl+K com atalhos e planejador de elenco (com/sem posse, carências, cenários).
+- Revisão independente: 4 achados (2 médios), todos corrigidos. Detalhes em docs/auditoria/BLOCO-3-ENTREGA.md.
+- Próximo: Bloco 4 — notícias via Claude API (aguarda chave e teto do Gustavo), F19 operação, ensaio de restauração no Mac Mini, F21, piloto.
