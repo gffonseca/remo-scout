@@ -57,19 +57,29 @@ class PlayerPhotos extends Command
     /** Estado de uma URL externa: ok | quebrada | bloqueada | generica | nao_imagem | host_nao_permitido. */
     public static function probe(string $url): string
     {
+        return self::fetch($url)['state'];
+    }
+
+    /**
+     * Baixa a imagem com as mesmas travas da verificação (host permitido, https, sem redirecionamento externo, limite de tamanho).
+     *
+     * @return array{state:string, body:?string, mime:?string}
+     */
+    public static function fetch(string $url): array
+    {
+        $no = fn (string $state) => ['state' => $state, 'body' => null, 'mime' => null];
         $host = parse_url($url, PHP_URL_HOST);
         if (parse_url($url, PHP_URL_SCHEME) !== 'https' || ! in_array($host, self::ALLOWED_HOSTS, true)) {
-            return 'host_nao_permitido';
+            return $no('host_nao_permitido');
         }
         if (str_contains($url, 'default')) {
-            return 'generica'; // Transfermarkt usa "default.jpg" para quem não tem foto
+            return $no('generica'); // Transfermarkt usa "default.jpg" para quem não tem foto
         }
-        // redirecionamento só para host permitido e https (sem SSRF); corpo lido até o limite
         for ($hop = 0; $hop <= 2; $hop++) {
             try {
                 $res = Http::timeout(15)->withOptions(['allow_redirects' => false, 'stream' => true, 'protocols' => ['https']])->get($url);
             } catch (\Throwable) {
-                return 'quebrada';
+                return $no('quebrada');
             }
             if (! $res->redirect()) {
                 break;
@@ -77,19 +87,19 @@ class PlayerPhotos extends Command
             $next = $res->header('Location');
             $url = $next ? (str_starts_with($next, '/') ? 'https://'.$host.$next : $next) : '';
             if (parse_url($url, PHP_URL_SCHEME) !== 'https' || ! in_array($host = parse_url($url, PHP_URL_HOST), self::ALLOWED_HOSTS, true)) {
-                return 'host_nao_permitido';
+                return $no('host_nao_permitido');
             }
             if ($hop === 2) {
-                return 'quebrada';
+                return $no('quebrada');
             }
         }
         if (in_array($res->status(), [401, 403, 429], true)) {
-            return 'bloqueada'; // a fonte recusa o servidor; o navegador pode conseguir (fallback nas iniciais)
+            return $no('bloqueada');
         }
         if (! $res->successful()) {
-            return 'quebrada';
+            return $no('quebrada');
         }
-        $type = strtolower((string) $res->header('Content-Type'));
+        $type = strtolower(trim(explode(';', (string) $res->header('Content-Type'))[0]));
         $stream = $res->toPsrResponse()->getBody();
         if ($stream->isSeekable()) {
             $stream->rewind();
@@ -98,14 +108,11 @@ class PlayerPhotos extends Command
         while (! $stream->eof() && strlen($body) <= self::MAX_BYTES) {
             $body .= $stream->read(65536);
         }
-        if (strlen($body) > self::MAX_BYTES) {
-            return 'nao_imagem'; // grande demais para foto de perfil
-        }
-        if (! str_starts_with($type, 'image/') || @getimagesizefromstring($body) === false) {
-            return 'nao_imagem';
+        if (strlen($body) > self::MAX_BYTES || ! str_starts_with($type, 'image/') || @getimagesizefromstring($body) === false) {
+            return $no('nao_imagem');
         }
 
-        return strlen($body) < 1500 ? 'generica' : 'ok';
+        return strlen($body) < 1500 ? $no('generica') : ['state' => 'ok', 'body' => $body, 'mime' => $type];
     }
 
     private function check(bool $apply, string $actor): void

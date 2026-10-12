@@ -16,6 +16,7 @@ use App\Services\DataCoverage;
 use App\Services\PhotoBackfill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 /** Fotos da API-Football chegam ao cadastro com vínculo confiável; cobertura explica a falta de estatística e foto. */
 class DataCoverageTest extends ScoutTestCase
@@ -103,7 +104,7 @@ class DataCoverageTest extends ScoutTestCase
         $this->assertStringStartsWith('data:image/svg+xml;base64,', $p->avatarUrl());
         $this->assertStringContainsString('JS', base64_decode(substr($p->avatarUrl(), 26)));
         $p->update(['photo_status' => 'bloqueada']); // servidor recusado ≠ navegador recusado: ainda tenta, com fallback
-        $this->assertSame('https://media.api-sports.io/404.png', $p->fresh()->photoUrl());
+        $this->assertTrue($p->fresh()->hasPhoto());
     }
 
     public function test_manual_upload_records_origin_and_is_not_replaced_by_source_photo(): void
@@ -170,5 +171,31 @@ class DataCoverageTest extends ScoutTestCase
         $batch = DB::table('data_fix_changes')->where('kind', 'photo_check')->value('batch');
         $this->artisan("scout:photos --revert={$batch}")->expectsOutputToContain('Revertidas: 1')->assertSuccessful();
         $this->assertNull($p->fresh()->photo_status);
+    }
+
+    public function test_photo_route_serves_from_cache_and_never_exposes_source_host(): void
+    {
+        Storage::fake('media');
+        $img = imagecreatetruecolor(120, 120);
+        for ($i = 0; $i < 3000; $i++) {
+            imagesetpixel($img, random_int(0, 119), random_int(0, 119), random_int(0, 0xFFFFFF));
+        }
+        ob_start();
+        imagepng($img);
+        $png = ob_get_clean();
+        Http::fake(['media.api-sports.io/*' => Http::response($png, 200, ['Content-Type' => 'image/png'])]);
+        $p = Player::create(['name' => 'Servida', 'photo_url' => 'https://media.api-sports.io/football/players/1.png']);
+        $none = Player::create(['name' => 'Sem foto']);
+        $evil = Player::create(['name' => 'Host ruim', 'photo_url' => 'https://exemplo.com/x.png']);
+
+        $this->get(route('player.photo', $p))->assertRedirect(); // sem login: não serve
+        $this->actingAs($this->user('leitor'));
+        $this->get(route('player.photo', $p))->assertOk()->assertHeader('content-type', 'image/png');
+        Http::assertSentCount(1);
+        $this->get(route('player.photo', $p))->assertOk(); // segunda vez vem do bucket
+        Http::assertSentCount(1);
+        $this->get(route('player.photo', $none))->assertNotFound();
+        $this->get(route('player.photo', $evil))->assertNotFound();
+        $this->assertStringContainsString('/foto/atleta/', $p->photoUrl());
     }
 }

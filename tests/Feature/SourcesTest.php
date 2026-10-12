@@ -214,11 +214,12 @@ class SourcesTest extends ScoutTestCase
         Storage::fake('media');
         $club = Club::create(['name' => 'Clube Foto', 'country' => 'Brasil', 'crest_url' => 'https://example.test/c.png']);
         $p = Player::create(['name' => 'Atleta Foto', 'photo_url' => 'https://example.test/p.jpg']);
-        $this->assertSame('https://example.test/p.jpg', $p->photoUrl());
+        $external = $p->photoUrl(); // foto sempre servida pelo CIFUT; a versão muda quando a origem muda
+        $this->assertStringContainsString('/foto/atleta/'.$p->id, $external);
         $this->assertSame('https://example.test/c.png', $club->crestUrl());
         $p->update(['photo_path' => 'players/x.jpg']);
         $club->update(['crest_path' => 'crests/x.png']);
-        $this->assertStringContainsString('players/x.jpg', $p->fresh()->photoUrl());
+        $this->assertNotSame($external, $p->fresh()->photoUrl());
         $this->assertStringContainsString('crests/x.png', $club->fresh()->crestUrl());
         $this->assertSame('', Media::crestTag(null));
     }
