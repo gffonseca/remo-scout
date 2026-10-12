@@ -13,7 +13,8 @@ class DataSourcesSeeder extends Seeder
         'api_futebol' => ['expected_refresh_hours' => 30],
         'api_football' => ['expected_refresh_hours' => 30],
         'dados_futebol' => ['monthly_quota' => 30000, 'expected_refresh_hours' => 192], // elencos: semanal
-        'cbf_atletas' => ['expected_refresh_hours' => 30], // coletor do Mac diário às 06:20
+        'cbf_atletas' => ['expected_refresh_hours' => 30],
+        'football_data' => ['expected_refresh_hours' => 192], // coletor do Mac diário às 06:20
     ];
 
     public function run(): void
@@ -28,6 +29,7 @@ class DataSourcesSeeder extends Seeder
             ['cbf_atletas', 'CBF — atletas por campeonato', 'nao_oficial', true, false, null, 'https://www.cbf.com.br', 3000, 500, $na.' A API interna expõe CPF: o campo é descartado na entrada e nunca gravado.'],
             ['cbf_intermediarios', 'CBF — intermediários cadastrados', 'documento_publico', true, false, null, 'https://intermediario.cbf.com.br', 3000, 300, 'Registro público de intermediários; alimenta o cadastro de empresários.'],
             ['bid_cbf', 'BID CBF (Boletim Informativo Diário)', 'documento_publico', true, false, null, 'https://bid.cbf.com.br', 3000, null, 'Registros e transferências oficiais, com foto e histórico. A consulta exige CAPTCHA de imagem: sem coleta automática (não contornamos controle de acesso). Uso: consulta assistida no perfil do atleta, registrada como observação contratual com data, link e autor.'],
+            ['football_data', 'football-data.co.uk (resultados e odds)', 'documento_publico', true, false, null, 'https://football-data.co.uk', 3000, 50, 'CSV público de resultados e odds de fechamento. Brasil: só Série A (2012→). Sem atletas. Uso: força dos clubes segundo o mercado (contexto do time), não avaliação individual.'],
             ['cbf_parceiros', 'CBF — API de parceiros', 'oficial_credenciado', false, true, 'CBF_PARTNER_CREDENTIAL', 'https://campeonatos.cbf.com.br', 1000, null, 'Exige credencial oficial solicitada pelo clube.'],
             ['api_football', 'API-Football', 'api_comercial', false, true, 'API_FOOTBALL_KEY', 'https://v3.football.api-sports.io', 300, 75000, 'Plano Pro assinado em 12/10/2026 (7.500/dia; pré-pago até 12/11/2026, sem renovação automática). Cobertura 2026 medida em 6 jogos por competição: estatística individual Série A 6/6, Série B 6/6, Copa do Brasil 3/6 (fases finais); escalação Série C 5/6 e Nordeste 6/6; Série D, Paraense e Copa Norte praticamente sem escalação; Copa Verde sem jogos de 2026.'],
             ['dados_futebol', 'Dados Futebol', 'api_comercial', true, true, 'DADOS_FUTEBOL_KEY', 'https://api.dadosfutebol.com.br', 1000, 1000, 'Plano Pro (1.000/dia, 30.000/mês). Útil para elenco atual (clube, camisa), artilharia e estatística coletiva. Estatística é só por time e com cobertura irregular; posição e idade dos atletas não são confiáveis. Não serve para avaliação individual.'],

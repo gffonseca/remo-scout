@@ -109,6 +109,13 @@ class DataSourceResource extends Resource
                             RunArtisanSync::dispatch('scout:sync-api-football', ['--max' => 400, '--user' => auth()->id()]);
                             Notification::make()->success()->title('Sincronização enviada ao worker')->body('Acompanhe em Execuções.')->send();
                         }),
+                    Action::make('syncFootballData')->label('Importar agora')->icon(Heroicon::OutlinedArrowDownTray)
+                        ->visible(fn (DataSource $r) => $r->key === 'football_data' && auth()->user()->isCoordinator())
+                        ->requiresConfirmation()->modalDescription('Baixa o CSV da Série A (1 chamada) e atualiza a força dos clubes desde 2022.')
+                        ->action(function () {
+                            RunArtisanSync::dispatch('scout:sync-football-data', ['--user' => auth()->id()]);
+                            Notification::make()->success()->title('Importação enviada ao worker')->send();
+                        }),
                     Action::make('syncSquads')->label('Atualizar elencos agora')->icon(Heroicon::OutlinedUserGroup)
                         ->visible(fn (DataSource $r) => $r->key === 'dados_futebol' && auth()->user()->isCoordinator())
                         ->requiresConfirmation()->modalDescription('Remo e clubes dos atletas prioritários (até 40 clubes, cerca de 2 chamadas por clube). Só retrato de elenco; não altera cadastro.')
