@@ -197,4 +197,15 @@ class StatsClubIdentityTest extends ScoutTestCase
         $this->actingAs($this->user('coordenador'));
         Livewire::test(CoberturaDados::class)->assertActionHidden('fix', ['correcao' => 'clubes'])->call('revertBatch', 'x')->assertForbidden();
     }
+
+    public function test_coverage_cache_holds_only_plain_arrays(): void
+    {
+        Player::create(['name' => 'Cache']);
+        $this->actingAs($this->user('leitor'));
+        $this->get(\App\Filament\Pages\CoberturaDados::getUrl())->assertOk();
+        $cached = \Illuminate\Support\Facades\Cache::get('coverage.rows');
+        $this->assertIsArray($cached);
+        $this->assertIsArray($cached[0]); // serializable_classes=false em produção: objeto viraria __PHP_Incomplete_Class
+        $this->get(\App\Filament\Pages\CoberturaDados::getUrl())->assertOk()->assertSee('Cache');
+    }
 }

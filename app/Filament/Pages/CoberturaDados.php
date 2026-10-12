@@ -99,7 +99,8 @@ class CoberturaDados extends Page
 
     public function data(): array
     {
-        $rows = Cache::remember('coverage.rows', 60, fn () => DataCoverage::rows()); // cada clique de filtro não refaz a consulta
+        // cada clique de filtro não refaz a consulta; o cache guarda só arrays (o cache de produção não desserializa objetos)
+        $rows = collect(Cache::remember('coverage.rows', 60, fn () => DataCoverage::rows()->map(fn ($r) => (array) $r)->all()))->map(fn ($r) => (object) $r);
         $field = $this->tipo === 'foto' ? 'photo_reason' : 'stats_state';
         $list = $rows->when($this->tipo === 'foto', fn ($c) => $c->whereNotNull('photo_reason'), fn ($c) => $c->whereIn('stats_state', array_merge(DataCoverage::MISSING, ['parcial', 'desatualizado'])))
             ->when($this->motivo, fn ($c) => $c->where($field, $this->motivo))
