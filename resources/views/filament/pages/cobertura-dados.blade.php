@@ -60,6 +60,16 @@
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoPreview'] }} atleta(s) recebem a foto da API-Football (vínculo confiável, sem foto)</span><span class="v">{{ ($this->fixAction)(['correcao' => 'fotos']) }}</span></div>
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoToCheck'] }} URL(s) externas ainda não verificadas</span><span class="v">{{ ($this->fixAction)(['correcao' => 'checar']) }}</span></div>
         <div class="sc-row"><span class="k">Enriquecimento: {{ $d['toEnrich'] }} de {{ $d['total'] }} atleta(s) do scout sem consulta ao Transfermarkt nos últimos 14 dias</span><span class="v">{{ ($this->fixAction)(['correcao' => 'enriquecer']) }}</span></div>
+        @php $cc = $d['cbfConfirm']; $ccRows = collect($cc['rows'] ?? []); @endphp
+        <div class="sc-row"><span class="k">Vínculos CBF na fila com "mesmo clube de inscrição e nome compatível": {{ $d['cbfConfirmable'] }} @if ($cc) · última {{ $cc['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($cc['at'])->timezone($tz)->format('d/m H:i') }}: {{ $ccRows->where('decision', 'confirmar')->count() }} confirmados · {{ $ccRows->where('decision', 'fila')->count() }} ficaram na fila @endif</span>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'confirmar_cbf']) }}</span></div>
+        @if ($ccRows->where('decision', 'fila')->isNotEmpty())
+            <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver os que ficaram na fila ({{ $ccRows->where('decision', 'fila')->count() }})</summary>
+                @foreach ($ccRows->where('decision', 'fila') as $i => $r)
+                    <div class="sc-row" wire:key="cc-{{ $i }}"><span class="k"><strong>{{ $r['player'] }}</strong> · {{ $r['cbf'] }} <span class="sc-muted">— {{ $r['reason'] }}</span></span></div>
+                @endforeach
+            </details>
+        @endif
         @php $cv = $d['convergence']; $cvRows = collect($cv['rows'] ?? []); @endphp
         <div class="sc-row"><span class="k">Identidades sem nascimento: ligação quando CBF e Transfermarkt concordam (nascimento + clube)@if ($cv) · última {{ $cv['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($cv['at'])->timezone($tz)->format('d/m H:i') }}: {{ $cvRows->where('decision', 'ligar')->count() }} ligar · {{ $cvRows->where('decision', 'fila')->count() }} seguem na fila · {{ $cvRows->where('decision', 'erro')->count() }} erro(s)@endif</span>
             <span class="v">{{ ($this->fixAction)(['correcao' => 'convergir_previa']) }} @if ($cv && ! $cv['applied'] && $cvRows->where('decision', 'ligar')->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'convergir']) }}@endif</span></div>

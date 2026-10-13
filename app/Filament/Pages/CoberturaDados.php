@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Console\Commands\IdentitiesConfirmCbf;
 use App\Console\Commands\IdentitiesConverge;
 use App\Jobs\RunArtisanSync;
 use App\Models\Club;
+use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Services\DataCoverage;
 use App\Services\DataFix;
@@ -91,6 +93,8 @@ class CoberturaDados extends Page
             'help' => 'Para atletas sem nascimento no cadastro: liga só se houver UM candidato do Transfermarkt no clube do cadastro e UM registro CBF do mesmo clube com o MESMO nascimento e nome compatível. Só mostra o resultado (nada é ligado); busca no Transfermarkt quem ainda não tem candidatos.'],
         'convergir' => ['label' => 'Aplicar ligação CBF × Transfermarkt', 'command' => 'scout:identities-converge', 'params' => ['--apply' => true, '--limit' => 60],
             'help' => 'Liga os atletas marcados "ligar" na prévia: grava o nascimento (fonte CBF), confirma o ID CBF e o vínculo do Transfermarkt e fecha os itens na fila de identidades. Tudo num lote que pode ser desfeito.'],
+        'confirmar_cbf' => ['label' => 'Confirmar vínculos CBF (mesmo clube + nome)', 'command' => 'scout:identities-confirm-cbf', 'params' => ['--apply' => true],
+            'help' => 'Decisão do Gustavo (12/10/2026): confirma todos os vínculos CBF prováveis da fila com a constatação "mesmo clube de inscrição e nome compatível". Ficam de fora nascimento divergente do cadastro, registro ligado a outro cadastro e ID CBF já usado. Foto, nascimento e totais chegam na próxima busca de detalhes da CBF.'],
         'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],
             'help' => 'Para até 40 atletas do scout (watchlist → necessidades abertas → lista prioritária → demais; quem nunca foi tentado primeiro): vincula só por nome + nascimento (o resto vai para "Identidades a revisar") e traz perfil, carreira por temporada, valor de mercado e contrato observados. Fonte não oficial; dado divergente vira revisão, não sobrescrita. Leva até 20 min; o resultado fica em "Histórico de importações".'],
     ];
@@ -127,6 +131,8 @@ class CoberturaDados extends Page
             'toEnrich' => Player::whereIn('id', $rows->pluck('id'))->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))->count(),
             'photoToCheck' => Player::whereNotNull('photo_url')->whereNull('photo_path')->whereNull('photo_checked_at')->count(),
             'batches' => DataCoverage::batches(),
+            'cbfConfirmable' => IdentityCandidate::where('provider', 'cbf')->where('kind', 'confirmar')->where('status', 'pendente')->where('evidence', 'like', 'Mesmo clube%nome compatível%')->count(),
+            'cbfConfirm' => Cache::get(IdentitiesConfirmCbf::CACHE),
             'convergence' => Cache::get(IdentitiesConverge::CACHE),
             'runs' => DataCoverage::sourceRuns(),
             'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_STATES,
