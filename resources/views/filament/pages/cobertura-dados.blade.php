@@ -71,6 +71,16 @@
                 @endforeach
             </details>
         @endif
+        @php $mc = $d['mergeConfirm']; $mcRows = collect($mc['rows'] ?? []); @endphp
+        <div class="sc-row"><span class="k">Provisórios na fila com "Mesmo clube e nome compatível": {{ $d['mergeConfirmable'] }} @if ($mc) · última {{ $mc['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($mc['at'])->timezone($tz)->format('d/m H:i') }}: {{ $mcRows->where('decision', 'confirmar')->count() }} fundidos · {{ $mcRows->where('decision', 'fila')->count() }} ficaram na fila @endif</span>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'confirmar_mesclas']) }}</span></div>
+        @if ($mcRows->where('decision', 'fila')->isNotEmpty())
+            <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver os que ficaram na fila ({{ $mcRows->where('decision', 'fila')->count() }})</summary>
+                @foreach ($mcRows->where('decision', 'fila') as $i => $r)
+                    <div class="sc-row" wire:key="mc-{{ $i }}"><span class="k"><strong>{{ $r['label'] }}</strong> <span class="sc-muted">— {{ $r['reason'] }}</span></span></div>
+                @endforeach
+            </details>
+        @endif
         @php $dd = $d['dedup']; $ddRows = collect($dd['rows'] ?? []); @endphp
         <div class="sc-row"><span class="k">Cadastros duplicados do mesmo atleta @if ($dd) · última {{ $dd['applied'] ? 'fusão' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($dd['at'])->timezone($tz)->format('d/m H:i') }}: {{ $ddRows->count() }} par(es) @endif</span>
             <span class="v">{{ ($this->fixAction)(['correcao' => 'duplicados_previa']) }} @if ($dd && ! $dd['applied'] && $ddRows->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'duplicados']) }}@endif</span></div>

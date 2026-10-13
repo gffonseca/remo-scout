@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Console\Commands\IdentitiesConfirmCbf;
+use App\Console\Commands\IdentitiesConfirmMerge;
 use App\Console\Commands\IdentitiesConverge;
 use App\Console\Commands\PlayersDedup;
 use App\Jobs\RunArtisanSync;
@@ -104,6 +105,8 @@ class CoberturaDados extends Page
             'help' => 'Lista pares do mesmo atleta: mesmo clube + mesmo nascimento + nome compatível, ou duplicado apontado pela convergência CBF × Transfermarkt. Nada é gravado.'],
         'duplicados' => ['label' => 'Fundir cadastros duplicados', 'command' => 'scout:players-dedup', 'params' => ['--apply' => true],
             'help' => 'Autorizado pelo Gustavo (12/10/2026): move as referências do duplicado para o cadastro mantido, completa campos vazios e arquiva o duplicado (não apaga). Tudo num lote reversível.'],
+        'confirmar_mesclas' => ['label' => 'Fundir provisórios (mesmo clube + nome)', 'command' => 'scout:identities-confirm-merge', 'params' => ['--apply' => true],
+            'help' => 'Pedido do Gustavo (13/10/2026): confirma os itens "Mesclar cadastro provisório" com "Mesmo clube e nome compatível". O provisório (de escalação) é fundido no cadastro do scout: atuações e vínculos passam para o cadastro, o provisório é arquivado (não apagado). Nascimento divergente fica na fila. Lote reversível.'],
         'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],
             'help' => 'Para até 40 atletas do scout (watchlist → necessidades abertas → lista prioritária → demais; quem nunca foi tentado primeiro): vincula só por nome + nascimento (o resto vai para "Identidades a revisar") e traz perfil, carreira por temporada, valor de mercado e contrato observados. Fonte não oficial; dado divergente vira revisão, não sobrescrita. Leva até 20 min; o resultado fica em "Histórico de importações".'],
     ];
@@ -145,6 +148,8 @@ class CoberturaDados extends Page
             'cbfConfirmable' => IdentityCandidate::where('provider', 'cbf')->where('kind', 'confirmar')->where('status', 'pendente')->where('evidence', 'like', 'Mesmo clube%nome compatível%')->count(),
             'cbfConfirm' => Cache::get(IdentitiesConfirmCbf::CACHE),
             'dedup' => Cache::get(PlayersDedup::CACHE),
+            'mergeConfirmable' => IdentityCandidate::where('kind', 'mesclar')->where('status', 'pendente')->where('evidence', 'like', 'Mesmo clube e nome compatível%')->count(),
+            'mergeConfirm' => Cache::get(IdentitiesConfirmMerge::CACHE),
             'convergence' => Cache::get(IdentitiesConverge::CACHE),
             'runs' => DataCoverage::sourceRuns(),
             'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_STATES,
