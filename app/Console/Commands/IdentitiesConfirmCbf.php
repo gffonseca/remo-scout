@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 /** Confirma em lote os vínculos CBF "mesmo clube de inscrição e nome compatível" (decisão do Gustavo). Sem --apply é prévia. */
 class IdentitiesConfirmCbf extends Command
 {
-    protected $signature = 'scout:identities-confirm-cbf {--apply} {--actor=} {--revert=}';
+    protected $signature = 'scout:identities-confirm-cbf {--apply} {--divergentes : inclui nascimento divergente (decisão do Gustavo, 12/10/2026); adota o nascimento da CBF} {--actor=} {--revert=}';
 
     protected $description = 'Confirma em lote vínculos CBF prováveis (mesmo clube + nome compatível), com prévia e reversão';
 
@@ -24,7 +24,7 @@ class IdentitiesConfirmCbf extends Command
 
             return self::SUCCESS;
         }
-        $rows = CbfBulkConfirm::evaluate();
+        $rows = CbfBulkConfirm::evaluate((bool) $this->option('divergentes'));
         $actor = $this->option('actor') ?: 'cli';
         $userId = str_starts_with($actor, 'user:') ? (int) substr($actor, 5) : null;
         $res = $this->option('apply') ? CbfBulkConfirm::apply($rows, $userId, $actor) : null;
