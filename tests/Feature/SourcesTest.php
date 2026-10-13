@@ -124,7 +124,7 @@ class SourcesTest extends ScoutTestCase
         } catch (SourceException $e) {
             $this->assertSame('desativada', $e->kind);
         }
-        $tm->update(['enabled' => true, 'daily_quota' => 1, 'used_today' => 1, 'quota_date' => now()->toDateString()]);
+        $tm->update(['enabled' => true, 'daily_quota' => 1, 'used_today' => 1, 'quota_date' => DataSource::quotaDay()]);
         try {
             SourceClient::for('transfermarkt')->getJson('/players/search/x');
             $this->fail('deveria respeitar cota');

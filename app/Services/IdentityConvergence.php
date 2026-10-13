@@ -89,7 +89,7 @@ class IdentityConvergence
                 ->values();
             if ($cbf->count() !== 1) {
                 $rows[] = $row + ['decision' => 'fila', 'reason' => $cbf->isEmpty()
-                    ? 'Transfermarkt indica nascimento '.Carbon::parse($hit['birth'])->format('d/m/Y').', sem registro CBF do clube que confirme.'
+                    ? 'Transfermarkt indica nascimento '.Carbon::parse($hit['birth'])->format('d/m/Y').', sem registro CBF do clube que confirme ('.static::cbfDiagnosis($p, $hit['birth']).').'
                     : 'Mais de um registro CBF do clube com esse nascimento.'];
 
                 continue;
@@ -106,6 +106,28 @@ class IdentityConvergence
         }
 
         return $rows;
+    }
+
+    /** Por que a CBF não confirmou: ajuda a separar falta de detalhe, clube duplicado e homônimo. */
+    private static function cbfDiagnosis(Player $p, string $birth): string
+    {
+        $compatible = fn (CbfAthlete $a) => max(NameMatcher::score($p->name, $a->nickname), NameMatcher::score($p->name, $a->name), NameMatcher::score($p->full_name, $a->name)) >= self::CBF_NAME_MIN;
+        $named = CbfAthlete::where('club_id', $p->current_club_id)->get(['cbf_id', 'name', 'nickname', 'birth_date', 'player_id', 'detail_fetched_at'])->filter($compatible);
+        $elsewhere = CbfAthlete::whereDate('birth_date', $birth)->where(fn ($q) => $q->whereNull('club_id')->orWhere('club_id', '!=', $p->current_club_id))
+            ->with('club:id,name')->get(['cbf_id', 'name', 'nickname', 'club_id', 'club_name'])->filter($compatible);
+        $parts = [];
+        if ($named->isEmpty()) {
+            $parts[] = 'nenhum registro do clube com nome compatível';
+        } else {
+            $parts[] = $named->count().' do clube com nome compatível: '.$named->take(3)->map(fn ($a) => ($a->nickname ?: $a->name).' — '
+                .($a->birth_date ? Carbon::parse($a->birth_date)->format('d/m/Y') : ($a->detail_fetched_at ? 'CBF sem nascimento' : 'detalhe não buscado'))
+                .($a->player_id && $a->player_id !== $p->id ? ', ligado a outro atleta' : ''))->implode('; ');
+        }
+        if ($elsewhere->isNotEmpty()) {
+            $parts[] = 'mesmo nascimento e nome em outro clube: '.$elsewhere->take(2)->map(fn ($a) => ($a->nickname ?: $a->name).' ('.($a->club?->name ?? $a->club_name ?? 'sem clube').')')->implode('; ');
+        }
+
+        return implode(' · ', $parts);
     }
 
     private static function clubMatches(Player $p, mixed $clubId, ?string $clubName, Transfermarkt $tm): bool
