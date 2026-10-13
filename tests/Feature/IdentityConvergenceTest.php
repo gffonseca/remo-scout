@@ -139,6 +139,8 @@ class IdentityConvergenceTest extends ScoutTestCase
         CbfAthlete::create(['cbf_id' => '7003', 'name' => 'Japa Souza', 'nickname' => 'Japa', 'club_id' => $other->id]); // outro clube
         CbfAthlete::create(['cbf_id' => '7004', 'name' => 'Japa Lima', 'nickname' => 'Japa', 'club_id' => $this->club->id, 'detail_fetched_at' => now()]); // já tem detalhe
 
+        $this->assertSame([], CbfIngest::pendingDetails(50)); // sem candidato do Transfermarkt: não busca
+        IdentityCandidate::create(['player_id' => $p->id, 'provider' => 'transfermarkt', 'external_id' => '1', 'kind' => 'escolher', 'status' => 'pendente', 'score' => 90, 'label' => 'TM']);
         $this->assertSame(['7001'], CbfIngest::pendingDetails(50));
         $p->update(['birth_date' => '2000-01-01']);
         $this->assertSame([], CbfIngest::pendingDetails(50)); // com nascimento, não precisa
