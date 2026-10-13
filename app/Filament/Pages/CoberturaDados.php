@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Console\Commands\IdentitiesConfirmCbf;
 use App\Console\Commands\IdentitiesConverge;
+use App\Console\Commands\PlayersDedup;
 use App\Jobs\RunArtisanSync;
 use App\Models\Club;
 use App\Models\IdentityCandidate;
@@ -72,7 +73,7 @@ class CoberturaDados extends Page
             ->visible(fn () => auth()->user()->isAdmin())
             ->requiresConfirmation()
             ->modalHeading(fn (array $arguments) => self::FIXES[$arguments['correcao'] ?? '']['label'] ?? '')
-            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(in_array($arguments['correcao'] ?? '', ['enriquecer', 'enriquecer_nascimento', 'convergir_previa'], true) ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
+            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(in_array($arguments['correcao'] ?? '', ['enriquecer', 'enriquecer_nascimento', 'convergir_previa', 'duplicados_previa'], true) ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
             ->action(function (array $arguments) {
                 abort_unless(auth()->user()->isAdmin(), 403);
                 $fix = self::FIXES[$arguments['correcao'] ?? ''] ?? abort(404);
@@ -99,6 +100,10 @@ class CoberturaDados extends Page
             'help' => 'Decisão do Gustavo (12/10/2026): confirma também os vínculos CBF com nascimento diferente do cadastro e passa a usar o nascimento da CBF. O nascimento anterior fica no lote e volta com "Desfazer".'],
         'enriquecer_nascimento' => ['label' => 'Re-tentar Transfermarkt com nascimento (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'nascimento', '--limit' => 40],
             'help' => 'Atletas que ganharam nascimento (ex.: vínculo CBF confirmado) e ainda têm candidatos do Transfermarkt na fila: nova busca liga automaticamente quando nome e nascimento conferem e então traz perfil, carreira, valor e contrato.'],
+        'duplicados_previa' => ['label' => 'Prévia: cadastros duplicados', 'command' => 'scout:players-dedup', 'params' => [],
+            'help' => 'Lista pares do mesmo atleta: mesmo clube + mesmo nascimento + nome compatível, ou duplicado apontado pela convergência CBF × Transfermarkt. Nada é gravado.'],
+        'duplicados' => ['label' => 'Fundir cadastros duplicados', 'command' => 'scout:players-dedup', 'params' => ['--apply' => true],
+            'help' => 'Autorizado pelo Gustavo (12/10/2026): move as referências do duplicado para o cadastro mantido, completa campos vazios e arquiva o duplicado (não apaga). Tudo num lote reversível.'],
         'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],
             'help' => 'Para até 40 atletas do scout (watchlist → necessidades abertas → lista prioritária → demais; quem nunca foi tentado primeiro): vincula só por nome + nascimento (o resto vai para "Identidades a revisar") e traz perfil, carreira por temporada, valor de mercado e contrato observados. Fonte não oficial; dado divergente vira revisão, não sobrescrita. Leva até 20 min; o resultado fica em "Histórico de importações".'],
     ];
@@ -139,6 +144,7 @@ class CoberturaDados extends Page
             'batches' => DataCoverage::batches(),
             'cbfConfirmable' => IdentityCandidate::where('provider', 'cbf')->where('kind', 'confirmar')->where('status', 'pendente')->where('evidence', 'like', 'Mesmo clube%nome compatível%')->count(),
             'cbfConfirm' => Cache::get(IdentitiesConfirmCbf::CACHE),
+            'dedup' => Cache::get(PlayersDedup::CACHE),
             'convergence' => Cache::get(IdentitiesConverge::CACHE),
             'runs' => DataCoverage::sourceRuns(),
             'reasons' => $this->tipo === 'foto' ? DataCoverage::PHOTO_REASONS : DataCoverage::STATS_STATES,

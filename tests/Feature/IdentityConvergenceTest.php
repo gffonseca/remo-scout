@@ -145,4 +145,16 @@ class IdentityConvergenceTest extends ScoutTestCase
         $p->update(['birth_date' => '2000-01-01']);
         $this->assertSame([], CbfIngest::pendingDetails(50)); // com nascimento, não precisa
     }
+
+    public function test_cbf_record_on_another_cadastro_is_flagged_as_duplicate(): void
+    {
+        $this->fakeProfiles();
+        $p = $this->athlete('Japa', '9001', null, [101 => 'Vila Nova Futebol Clube (GO)']);
+        $twin = Player::create(['name' => 'Japa', 'current_club_id' => $this->club->id]);
+        CbfAthlete::where('cbf_id', '9001')->update(['player_id' => $twin->id, 'birth_date' => '2001-05-10', 'link_status' => 'confirmado']);
+        $this->artisan('scout:identities-converge')->assertSuccessful();
+        $row = collect(Cache::get(IdentitiesConverge::CACHE)['rows'])->firstWhere('player_id', $p->id);
+        $this->assertSame('duplicado', $row['decision']);
+        $this->assertSame($twin->id, $row['duplicate_of']);
+    }
 }
