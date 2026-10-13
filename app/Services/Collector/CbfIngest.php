@@ -74,25 +74,24 @@ class CbfIngest
     }
 
     /**
-     * Ids CBF cujo detalhe (nascimento, foto, totais) está ausente ou velho. Primeiro os ligados ao scout (prioritários antes);
-     * depois, registros ainda livres que podem confirmar identidade por convergência: mesmo clube de um atleta do scout sem
+     * Ids CBF cujo detalhe (nascimento, foto, totais) está ausente ou velho. Até metade do lote para registros ainda livres
+     * que podem confirmar identidade por convergência: mesmo clube de um atleta do scout sem
      * nascimento e nome compatível. Para esses só o nascimento é usado; nada vai ao cadastro sem a ligação.
      */
     public static function pendingDetails(int $limit = 150): array
     {
         $limit = max(1, min($limit, 500));
+        // convergência primeiro: são poucos e destravam identidade; o restante do lote vai para os já ligados
+        $convergence = static::convergenceCandidates(intdiv($limit, 2));
         $linked = CbfAthlete::query()
             ->join('players', 'players.id', '=', 'cbf_athletes.player_id')
             ->whereNull('players.deleted_at')
             ->where(fn ($q) => $q->whereNull('cbf_athletes.detail_fetched_at')->orWhere('cbf_athletes.detail_fetched_at', '<', now()->subDays(14)))
             ->orderByDesc('players.is_priority')->orderBy('cbf_athletes.detail_fetched_at')
-            ->limit($limit)
+            ->limit($limit - count($convergence))
             ->pluck('cbf_athletes.cbf_id')->all();
-        if (count($linked) >= $limit) {
-            return $linked;
-        }
 
-        return array_values(array_unique(array_merge($linked, static::convergenceCandidates($limit - count($linked)))));
+        return array_values(array_unique(array_merge($convergence, $linked)));
     }
 
     /** Registros CBF livres, sem detalhe, do clube de atletas do scout sem nascimento (com candidato do Transfermarkt na fila) e nome compatível. */

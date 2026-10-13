@@ -121,13 +121,24 @@ class IdentityConvergence
         } else {
             $parts[] = $named->count().' do clube com nome compatível: '.$named->take(3)->map(fn ($a) => ($a->nickname ?: $a->name).' — '
                 .($a->birth_date ? Carbon::parse($a->birth_date)->format('d/m/Y') : ($a->detail_fetched_at ? 'CBF sem nascimento' : 'detalhe não buscado'))
-                .($a->player_id && $a->player_id !== $p->id ? ', ligado a outro atleta' : ''))->implode('; ');
+                .($a->player_id && $a->player_id !== $p->id ? ', ligado a outro cadastro: '.static::describe($a->player_id) : ''))->implode('; ');
         }
         if ($elsewhere->isNotEmpty()) {
             $parts[] = 'mesmo nascimento e nome em outro clube: '.$elsewhere->take(2)->map(fn ($a) => ($a->nickname ?: $a->name).' ('.($a->club?->name ?? $a->club_name ?? 'sem clube').')')->implode('; ');
         }
 
         return implode(' · ', $parts);
+    }
+
+    private static function describe(string $playerId): string
+    {
+        $o = Player::withTrashed()->with('currentClub:id,name')->find($playerId, ['id', 'name', 'data_origin', 'current_club_id', 'birth_date', 'deleted_at']);
+        if (! $o) {
+            return 'inexistente';
+        }
+        $origin = $o->data_origin instanceof \BackedEnum ? $o->data_origin->value : (string) $o->data_origin;
+
+        return '"'.$o->name.'" ('.($origin === 'provedor' ? 'provisório' : 'cadastro do scout').($o->currentClub ? ', '.$o->currentClub->name : '').($o->deleted_at ? ', excluído' : '').', id '.substr($o->id, -6).')';
     }
 
     private static function clubMatches(Player $p, mixed $clubId, ?string $clubName, Transfermarkt $tm): bool
