@@ -87,6 +87,19 @@ class IdentityConvergence
                 ->where(fn ($q) => $q->whereNull('player_id')->orWhere('player_id', $p->id))->get()
                 ->filter(fn (CbfAthlete $a) => max(NameMatcher::score($p->name, $a->nickname), NameMatcher::score($p->name, $a->name), NameMatcher::score($p->full_name, $a->name)) >= self::CBF_NAME_MIN)
                 ->values();
+            if ($cbf->isEmpty()) {
+                // mesmo nascimento e nome no clube, mas o registro CBF está em OUTRO cadastro: é o mesmo atleta duplicado
+                $dup = CbfAthlete::where('club_id', $p->current_club_id)->whereDate('birth_date', $hit['birth'])
+                    ->whereNotNull('player_id')->where('player_id', '!=', $p->id)->get()
+                    ->filter(fn (CbfAthlete $a) => max(NameMatcher::score($p->name, $a->nickname), NameMatcher::score($p->name, $a->name), NameMatcher::score($p->full_name, $a->name)) >= self::CBF_NAME_MIN)
+                    ->values();
+                if ($dup->count() === 1 && Player::whereKey($dup[0]->player_id)->exists()) {
+                    $rows[] = $row + ['decision' => 'duplicado', 'duplicate_of' => $dup[0]->player_id,
+                        'reason' => 'Cadastro duplicado: Transfermarkt e CBF dão nascimento '.Carbon::parse($hit['birth'])->format('d/m/Y').' no mesmo clube, mas o registro CBF está em '.static::describe($dup[0]->player_id).'.'];
+
+                    continue;
+                }
+            }
             if ($cbf->count() !== 1) {
                 $rows[] = $row + ['decision' => 'fila', 'reason' => $cbf->isEmpty()
                     ? 'Transfermarkt indica nascimento '.Carbon::parse($hit['birth'])->format('d/m/Y').', sem registro CBF do clube que confirme ('.static::cbfDiagnosis($p, $hit['birth']).').'

@@ -71,14 +71,24 @@
                 @endforeach
             </details>
         @endif
+        @php $dd = $d['dedup']; $ddRows = collect($dd['rows'] ?? []); @endphp
+        <div class="sc-row"><span class="k">Cadastros duplicados do mesmo atleta @if ($dd) · última {{ $dd['applied'] ? 'fusão' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($dd['at'])->timezone($tz)->format('d/m H:i') }}: {{ $ddRows->count() }} par(es) @endif</span>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'duplicados_previa']) }} @if ($dd && ! $dd['applied'] && $ddRows->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'duplicados']) }}@endif</span></div>
+        @if ($ddRows->isNotEmpty())
+            <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver os pares ({{ $ddRows->count() }})</summary>
+                @foreach ($ddRows as $i => $r)
+                    <div class="sc-row" wire:key="dd-{{ $i }}"><span class="k"><strong>{{ $r['drop'] }}</strong> → {{ $r['keep'] }} <span class="sc-muted">— {{ $r['rule'] }}</span></span></div>
+                @endforeach
+            </details>
+        @endif
         @php $cv = $d['convergence']; $cvRows = collect($cv['rows'] ?? []); @endphp
         <div class="sc-row"><span class="k">Identidades sem nascimento: ligação quando CBF e Transfermarkt concordam (nascimento + clube)@if ($cv) · última {{ $cv['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($cv['at'])->timezone($tz)->format('d/m H:i') }}: {{ $cvRows->where('decision', 'ligar')->count() }} ligar · {{ $cvRows->where('decision', 'fila')->count() }} seguem na fila · {{ $cvRows->where('decision', 'erro')->count() }} erro(s)@endif</span>
             <span class="v">{{ ($this->fixAction)(['correcao' => 'convergir_previa']) }} @if ($cv && ! $cv['applied'] && $cvRows->where('decision', 'ligar')->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'convergir']) }}@endif</span></div>
         @if ($cvRows->isNotEmpty())
             <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver a {{ $cv['applied'] ? 'aplicação' : 'prévia' }} atleta a atleta ({{ $cvRows->count() }})</summary>
-                @foreach ($cvRows->sortBy(fn ($r) => ['ligar' => 0, 'erro' => 1, 'fila' => 2][$r['decision']] ?? 3) as $r)
+                @foreach ($cvRows->sortBy(fn ($r) => ['ligar' => 0, 'duplicado' => 1, 'erro' => 2, 'fila' => 3][$r['decision']] ?? 4) as $r)
                     <div class="sc-row" wire:key="cv-{{ $r['player_id'] }}"><span class="k"><strong>{{ $r['player'] }}</strong> · {{ $r['club'] ?? '—' }}@if ($r['tm_label']) · TM: {{ $r['tm_label'] }}@endif <span class="sc-muted">— {{ $r['reason'] }}</span></span>
-                        <span class="v">{{ ['ligar' => 'Ligar', 'fila' => 'Fila', 'erro' => 'Erro'][$r['decision']] ?? $r['decision'] }}</span></div>
+                        <span class="v">{{ ['ligar' => 'Ligar', 'duplicado' => 'Duplicado', 'fila' => 'Fila', 'erro' => 'Erro'][$r['decision']] ?? $r['decision'] }}</span></div>
                 @endforeach
             </details>
         @endif
