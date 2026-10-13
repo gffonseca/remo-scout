@@ -19,11 +19,11 @@ use Illuminate\Support\Facades\DB;
 class CbfBulkConfirm
 {
     /** @return Collection<int, array{candidate:IdentityCandidate, player:string, cbf:string, decision:string, reason:string}> */
-    public static function evaluate(): Collection
+    public static function evaluate(bool $includeDivergent = false): Collection
     {
         return IdentityCandidate::with('player')->where('provider', 'cbf')->where('kind', 'confirmar')->where('status', 'pendente')
             ->where('evidence', 'like', 'Mesmo clube%nome compatível%')->orderBy('label')->get()
-            ->map(function (IdentityCandidate $c) {
+            ->map(function (IdentityCandidate $c) use ($includeDivergent) {
                 $p = $c->player;
                 $a = CbfAthlete::where('cbf_id', $c->external_id)->first();
                 $row = ['candidate' => $c, 'player' => $p?->name ?? '?', 'cbf' => $c->label];
@@ -38,7 +38,11 @@ class CbfBulkConfirm
                 }
                 $cbfBirth = $a->birth_date?->toDateString() ?? ($c->details['cbf_birth_date'] ?? null);
                 if ($p->birth_date && $cbfBirth && $p->birth_date->toDateString() !== $cbfBirth) {
-                    return $row + ['decision' => 'fila', 'reason' => 'Nascimento diverge: CBF '.Carbon::parse($cbfBirth)->format('d/m/Y').' × cadastro '.$p->birth_date->format('d/m/Y').'.'];
+                    $why = 'Nascimento diverge: CBF '.Carbon::parse($cbfBirth)->format('d/m/Y').' × cadastro '.$p->birth_date->format('d/m/Y').'.';
+
+                    return $includeDivergent
+                        ? $row + ['decision' => 'confirmar', 'reason' => $why.' Confirmado por decisão do Gustavo; cadastro passa a usar o nascimento da CBF.', 'birth' => $cbfBirth]
+                        : $row + ['decision' => 'fila', 'reason' => $why];
                 }
 
                 return $row + ['decision' => 'confirmar', 'reason' => 'Mesmo clube de inscrição e nome compatível.'];
@@ -65,10 +69,19 @@ class CbfBulkConfirm
                 $a = CbfAthlete::where('cbf_id', $c->external_id)->first();
                 $now = now()->toDateTimeString();
                 DataFix::apply($batch, 'identity_cbf', 'cbf_athletes', $a->id, ['player_id' => $p->id, 'link_status' => 'confirmado', 'detail_fetched_at' => null], $actor);
+                $src = $p->field_sources ?? [];
+                $change = [];
                 if (! $p->cbf_id) {
-                    $src = $p->field_sources ?? [];
                     $src['cbf_id'] = ['source' => 'cbf', 'at' => now()->toDateString(), 'reviewed_by' => $userId, 'method' => 'confirmacao_em_lote'];
-                    DataFix::apply($batch, 'identity_cbf', 'players', $p->id, ['cbf_id' => $a->cbf_id, 'field_sources' => json_encode($src)], $actor);
+                    $change['cbf_id'] = $a->cbf_id;
+                }
+                if (! empty($r['birth'])) { // divergente confirmado: vale o nascimento da CBF (o anterior fica no "antes" do lote)
+                    $src['birth_date'] = ['source' => 'cbf', 'at' => now()->toDateString(), 'reviewed_by' => $userId, 'method' => 'confirmacao_em_lote',
+                        'previous' => $p->birth_date?->toDateString()];
+                    $change['birth_date'] = $r['birth'];
+                }
+                if ($change) {
+                    DataFix::apply($batch, 'identity_cbf', 'players', $p->id, $change + ['field_sources' => json_encode($src)], $actor);
                 }
                 DataFix::apply($batch, 'identity_cbf', 'identity_candidates', $c->id, ['status' => 'vinculado', 'decided_by' => $userId, 'decided_at' => $now,
                     'evidence' => trim(($c->evidence ?? '').' Confirmado em lote (mesmo clube de inscrição e nome compatível).')], $actor);

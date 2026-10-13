@@ -66,4 +66,18 @@ class CbfBulkConfirmTest extends ScoutTestCase
         $this->actingAs($this->user('coordenador'));
         Livewire::test(CoberturaDados::class)->assertActionHidden('fix', ['correcao' => 'confirmar_cbf']);
     }
+
+    public function test_divergent_birth_confirmed_on_request_adopts_cbf_date_and_reverts(): void
+    {
+        $p = $this->probable('Huguinho', '601', '2007-04-06', '2007-06-04', 'Mesmo clube e nome compatível. Nascimento CBF: 04/06/2007 · cadastro: 06/04/2007.');
+        $this->artisan('scout:identities-confirm-cbf --apply')->expectsOutputToContain('APLICADO: 0')->assertSuccessful();
+        $this->artisan('scout:identities-confirm-cbf --apply --divergentes')->expectsOutputToContain('APLICADO: 1')->assertSuccessful();
+        $this->assertSame('2007-06-04', $p->fresh()->birth_date->toDateString());
+        $this->assertSame('601', $p->fresh()->cbf_id);
+        $this->assertSame('2007-04-06', $p->fresh()->field_sources['birth_date']['previous']);
+        $batch = DB::table('data_fix_changes')->where('kind', 'identity_cbf')->latest('id')->value('batch');
+        $this->artisan("scout:identities-confirm-cbf --revert={$batch}")->assertSuccessful();
+        $this->assertSame('2007-04-06', $p->fresh()->birth_date->toDateString());
+        $this->assertNull($p->fresh()->cbf_id);
+    }
 }

@@ -60,9 +60,10 @@
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoPreview'] }} atleta(s) recebem a foto da API-Football (vínculo confiável, sem foto)</span><span class="v">{{ ($this->fixAction)(['correcao' => 'fotos']) }}</span></div>
         <div class="sc-row"><span class="k">Fotos: {{ $d['photoToCheck'] }} URL(s) externas ainda não verificadas</span><span class="v">{{ ($this->fixAction)(['correcao' => 'checar']) }}</span></div>
         <div class="sc-row"><span class="k">Enriquecimento: {{ $d['toEnrich'] }} de {{ $d['total'] }} atleta(s) do scout sem consulta ao Transfermarkt nos últimos 14 dias</span><span class="v">{{ ($this->fixAction)(['correcao' => 'enriquecer']) }}</span></div>
+        <div class="sc-row"><span class="k">Com nascimento e candidatos do Transfermarkt na fila: {{ $d['toRetryBirth'] }} atleta(s) do scout</span><span class="v">{{ ($this->fixAction)(['correcao' => 'enriquecer_nascimento']) }}</span></div>
         @php $cc = $d['cbfConfirm']; $ccRows = collect($cc['rows'] ?? []); @endphp
         <div class="sc-row"><span class="k">Vínculos CBF na fila com "mesmo clube de inscrição e nome compatível": {{ $d['cbfConfirmable'] }} @if ($cc) · última {{ $cc['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($cc['at'])->timezone($tz)->format('d/m H:i') }}: {{ $ccRows->where('decision', 'confirmar')->count() }} confirmados · {{ $ccRows->where('decision', 'fila')->count() }} ficaram na fila @endif</span>
-            <span class="v">{{ ($this->fixAction)(['correcao' => 'confirmar_cbf']) }}</span></div>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'confirmar_cbf']) }} @if ($ccRows->where('decision', 'fila')->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'confirmar_cbf_divergentes']) }}@endif</span></div>
         @if ($ccRows->where('decision', 'fila')->isNotEmpty())
             <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver os que ficaram na fila ({{ $ccRows->where('decision', 'fila')->count() }})</summary>
                 @foreach ($ccRows->where('decision', 'fila') as $i => $r)
