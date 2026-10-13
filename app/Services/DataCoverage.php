@@ -82,6 +82,9 @@ class DataCoverage
                   bool_or(s.recent and (s.minutes is null and coalesce(s.appearances, 0) > 0
                       or coalesce((s.extra->>'participacao_indeterminada')::int, 0) > 0)) as recent_partial,
                   bool_or(s.recent and s.fetched_at >= now() - interval '30 days') as recent_fresh,
+                  -- alguma fonte com a temporada completa (minutos, sem participação indeterminada): total CBF sem minutos não rebaixa
+                  bool_or(s.recent and s.minutes is not null and coalesce((s.extra->>'participacao_indeterminada')::int, 0) = 0
+                      and s.fetched_at >= now() - interval '30 days') as recent_complete_fresh,
                   count(*) as n, max(s.fetched_at) as last_fetch
                 from (select *, (case when substring(season from '(\d{2,4})\D*$') ~ '^\d{2}$' then 2000 + substring(season from '(\d{2,4})\D*$')::int
                         else substring(season from '(\d{2,4})\D*$')::int end) >= ? as recent from player_season_stats) s
@@ -103,6 +106,7 @@ class DataCoverage
                                  from player_external_ids group by player_id)
             select p.id, p.name, c.name as club, p.is_priority as priority, st.last_fetch,
               case
+                when st.recent_complete_fresh then 'disponivel'
                 when st.has_recent and st.recent_partial then 'parcial'
                 when st.has_recent and st.recent_fresh then 'disponivel'
                 when st.n > 0 then 'desatualizado'

@@ -136,6 +136,9 @@ class DataCoverageTest extends ScoutTestCase
         $stat(Player::create(['name' => 'Disponível']), ['season' => $y, 'appearances' => 3, 'minutes' => 270]);
         $stat(Player::create(['name' => 'Temporada 25/26']), ['season' => substr((string) ($y - 1), 2).'/'.substr($y, 2), 'appearances' => 3, 'minutes' => 270]);
         $stat(Player::create(['name' => 'Parcial']), ['season' => $y, 'appearances' => 3, 'minutes' => null]);
+        $both = Player::create(['name' => 'CBF sem minutos e TM completo']);
+        $stat($both, ['season' => $y, 'appearances' => 3, 'minutes' => null]);
+        $stat($both, ['season' => $y, 'appearances' => 3, 'minutes' => 250, 'provider' => 'transfermarkt']);
         $stat(Player::create(['name' => 'Antigo']), ['season' => '2019', 'appearances' => 30, 'minutes' => 2500]);
         $stat(Player::create(['name' => 'Coleta velha']), ['season' => $y, 'appearances' => 3, 'minutes' => 270, 'fetched_at' => now()->subDays(45)]);
         $review = Player::create(['name' => 'Em revisão', 'current_club_id' => $covered->id]);
@@ -150,6 +153,7 @@ class DataCoverageTest extends ScoutTestCase
         $this->assertSame('disponivel', $r['Disponível']->stats_state);
         $this->assertSame('disponivel', $r['Temporada 25/26']->stats_state); // rótulo com 2 dígitos não some
         $this->assertSame('parcial', $r['Parcial']->stats_state);
+        $this->assertSame('disponivel', $r['CBF sem minutos e TM completo']->stats_state); // total CBF sem minutos não rebaixa
         $this->assertSame('desatualizado', $r['Antigo']->stats_state);
         $this->assertSame('desatualizado', $r['Coleta velha']->stats_state);
         $this->assertSame('identidade_pendente', $r['Em revisão']->stats_state);
@@ -178,7 +182,7 @@ class DataCoverageTest extends ScoutTestCase
         $this->assertSame('falha_bloqueio', DataCoverage::rows()->keyBy('name')['Aguardando']->stats_state); // fonte pausada ≠ não jogou
 
         $this->actingAs($this->user('leitor'));
-        $this->get(CoberturaDados::getUrl(['motivo' => 'fora_cobertura']))->assertOk()->assertSee('Clube sem partidas')->assertSee('Denominador: 16 atletas');
+        $this->get(CoberturaDados::getUrl(['motivo' => 'fora_cobertura']))->assertOk()->assertSee('Clube sem partidas')->assertSee('Denominador: 17 atletas');
     }
 
     public function test_photo_check_batch_can_be_reverted_despite_timestamp_format(): void
