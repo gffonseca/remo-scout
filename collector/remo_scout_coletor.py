@@ -25,7 +25,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36"
 CBF_SITE = "https://www.cbf.com.br"
 CBF_API = "https://www.cbf.com.br/api/cbf"
@@ -195,27 +195,48 @@ def run_athletes(http, scout, plan, season, max_pages):
                                                                (" — falharam: %s" % failed) if failed else ""))
             notes.append("%s: %d atletas" % (comp["label"], sent))
 
-        ids = scout.call("GET", "cbf_atletas/pendentes?limit=%d" % int(cfg.get("max_details", 150))).get("ids", []) if not scout.dry else []
-        batch, done = [], 0
-        for aid in ids:
-            body = http.get("%s/atletas/%s" % (CBF_API, re.sub(r"\D", "", str(aid))))
-            if body:
-                d = scrub(json.loads(body))
-                d.pop("jogos", None)  # súmulas por jogo não são usadas aqui
-                batch.append(d)
-            if len(batch) >= 10:
-                send_details(scout, run, batch)
-                done += len(batch)
-                batch = []
-        if batch:
-            send_details(scout, run, batch)
-            done += len(batch)
-        log("detalhes enviados: %d de %d pedidos" % (done, len(ids)))
-        notes.append("detalhes: %d de %d" % (done, len(ids)))
+        fetch_details(http, scout, run, int(cfg.get("max_details", 150)), notes)
     finally:
         res = scout.call("POST", "cbf_atletas/fim", {"run_id": run, "requests_made": http.requests, "errors": http.errors - errors_before,
                                                      "messages": notes[:50], "manifest": manifest})
         log("cbf_atletas: %s" % json.dumps(res, ensure_ascii=False))
+
+
+def fetch_details(http, scout, run, limit, notes):
+    """Detalhe (nascimento, foto, totais) dos atletas que o REMO SCOUT pedir: ligados ao scout e candidatos de convergência."""
+    ids = scout.call("GET", "cbf_atletas/pendentes?limit=%d" % limit).get("ids", []) if not scout.dry else []
+    batch, done = [], 0
+    for aid in ids:
+        body = http.get("%s/atletas/%s" % (CBF_API, re.sub(r"\D", "", str(aid))))
+        if body:
+            d = scrub(json.loads(body))
+            d.pop("jogos", None)  # súmulas por jogo não são usadas aqui
+            batch.append(d)
+        if len(batch) >= 10:
+            send_details(scout, run, batch)
+            done += len(batch)
+            batch = []
+    if batch:
+        send_details(scout, run, batch)
+        done += len(batch)
+    log("detalhes enviados: %d de %d pedidos" % (done, len(ids)))
+    notes.append("detalhes: %d de %d" % (done, len(ids)))
+
+
+def run_details_only(http, scout, plan, limit):
+    """Só os detalhes pendentes, sem reler as listas (uso manual: --so detalhes)."""
+    cfg = plan.get("cbf_atletas")
+    if not cfg:
+        log("cbf_atletas desligada no REMO SCOUT; pulando")
+        return
+    run, _ = start(scout, "cbf_atletas")
+    notes = ["somente detalhes"]
+    errors_before = http.errors
+    try:
+        fetch_details(http, scout, run, limit or int(cfg.get("max_details", 150)), notes)
+    finally:
+        res = scout.call("POST", "cbf_atletas/fim", {"run_id": run, "requests_made": http.requests, "errors": http.errors - errors_before, "messages": notes[:50]})
+        log("cbf_atletas (detalhes): %s" % json.dumps(res, ensure_ascii=False))
 
 
 def send_details(scout, run, batch):
@@ -305,7 +326,8 @@ def run_tasks(scout, max_rounds=12):
 
 def main():
     ap = argparse.ArgumentParser(description="Coletor local da CBF para o REMO SCOUT")
-    ap.add_argument("--so", choices=["atletas", "intermediarios", "tarefas"])
+    ap.add_argument("--so", choices=["atletas", "intermediarios", "tarefas", "detalhes"])
+    ap.add_argument("--max", type=int, default=0, help="--so detalhes: quantos detalhes pedir (até 500)")
     ap.add_argument("--paginas", type=int, default=1000, help="limite de páginas por lista (teste)")
     ap.add_argument("--dry-run", action="store_true", help="coleta mas não envia")
     args = ap.parse_args()
@@ -322,6 +344,14 @@ def main():
     http = Http(int(plan.get("interval_ms", 1500)))
     season = str(plan.get("season"))
     log("início — coletor %s, temporada %s" % (VERSION, season))
+    if args.so == "detalhes":
+        try:
+            run_details_only(http, scout, plan, args.max)
+            log("fim — %d requisições à CBF, %d falhas" % (http.requests, http.errors))
+            return 0
+        except Exception as e:
+            log("ERRO em detalhes: %s" % e)
+            return 1
     ok = True
     for name, fn in (("tarefas", lambda: run_tasks(scout)),
                      ("atletas", lambda: run_athletes(http, scout, plan, season, args.paginas)),

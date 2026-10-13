@@ -95,10 +95,12 @@ class CbfIngest
         return array_values(array_unique(array_merge($linked, static::convergenceCandidates($limit - count($linked)))));
     }
 
-    /** Registros CBF livres, sem detalhe, do clube de atletas do scout sem nascimento e com nome compatível. */
+    /** Registros CBF livres, sem detalhe, do clube de atletas do scout sem nascimento (com candidato do Transfermarkt na fila) e nome compatível. */
     public static function convergenceCandidates(int $limit): array
     {
+        // só quem já tem candidato do Transfermarkt na fila: sem ele, o nascimento da CBF não teria com quem convergir
         $byClub = Player::query()->whereNull('birth_date')->whereNotNull('current_club_id')->whereNot(fn ($w) => $w->provisional())
+            ->whereHas('identityCandidates', fn ($c) => $c->where('provider', 'transfermarkt')->where('status', 'pendente'))
             ->orderByDesc('is_priority')->get(['id', 'name', 'full_name', 'current_club_id', 'is_priority'])->groupBy('current_club_id');
         if ($byClub->isEmpty()) {
             return [];
