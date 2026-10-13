@@ -19,7 +19,7 @@ class EnrichPlayers extends Command
     /** Prioridade de cada atleta na fila (só exibição; nunca vai ao modelo, que é salvo depois). @var array<string,string> */
     private array $ranks = [];
 
-    protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing|cobertura|scout} {--limit=30} {--user=} {--actor= : user:<id> (botões da tela)} {--dry-run : só lista quem seria processado, sem chamar a fonte}';
+    protected $signature = 'scout:enrich {provider : transfermarkt|sofascore} {--scope=priority : priority|shortlist|missing|cobertura|scout|nascimento} {--limit=30} {--user=} {--actor= : user:<id> (botões da tela)} {--dry-run : só lista quem seria processado, sem chamar a fonte}';
 
     protected $description = 'Vincula e enriquece atletas por fonte externa (sob demanda, em lote pequeno)';
 
@@ -98,6 +98,14 @@ class EnrichPlayers extends Command
         $q = Player::query()->with(['currentClub', 'externalIds'])
             ->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))
             ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider)->where('external_id', 'like', 'nao-encontrado%'));
+        if ($this->option('scope') === 'nascimento') {
+            // ganharam nascimento (ex.: vínculo CBF confirmado) e têm candidatos pendentes: nova busca resolve por nome + nascimento.
+            // Não depende de enriched_at (a coleta da CBF também o atualiza). Uso sob demanda.
+            return Player::query()->with(['currentClub', 'externalIds'])->whereNotNull('birth_date')->whereNot(fn ($w) => $w->provisional())
+                ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider))
+                ->whereHas('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
+                ->orderByDesc('is_priority')->orderBy('enriched_at')->limit((int) $this->option('limit'))->get();
+        }
         if (in_array($this->option('scope'), ['cobertura', 'scout'], true)) {
             $states = DataCoverage::rows()->keyBy('id');
             // cobertura: só quem está sem estatística utilizável. scout: todos os atletas do scout (perfil, carreira, valor, contrato),
@@ -108,16 +116,9 @@ class EnrichPlayers extends Command
             $needs = ProspectCase::whereHas('need', fn ($n) => $n->where('status', 'aberta'))->pluck('player_id')->flip();
             $order = ['watchlist', 'necessidade aberta', 'lista prioritária', 'base'];
 
-            // quem ganhou nascimento (ex.: CBF confirmada) volta à fila mesmo com candidatos pendentes e tentativa recente:
-            // agora o vínculo automático por nome + nascimento pode resolver sozinho
-            $retry = Player::query()->with(['currentClub', 'externalIds'])->whereIn('id', $ids)->whereNotNull('birth_date')
-                ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider))
-                ->whereHas('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
-                ->where(fn ($w) => $w->whereNull('enriched_at')->orWhereColumn('enriched_at', '<', 'updated_at')->orWhere('enriched_at', '<', now()->subDay()));
-
             return $q->whereIn('id', $ids)
                 ->whereDoesntHave('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
-                ->get()->merge($retry->get())->unique('id')
+                ->get()
                 ->each(function ($p) use ($watch, $needs) {
                     $this->ranks[$p->id] = $watch->has($p->id) ? 'watchlist' : ($needs->has($p->id) ? 'necessidade aberta' : ($p->is_priority ? 'lista prioritária' : 'base'));
                 })

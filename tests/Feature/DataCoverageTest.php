@@ -248,8 +248,9 @@ class DataCoverageTest extends ScoutTestCase
         DataSource::updateOrCreate(['key' => 'transfermarkt'], ['name' => 'Transfermarkt', 'kind' => 'nao_oficial', 'enabled' => true]);
 
         $this->artisan('scout:enrich transfermarkt --scope=scout --dry-run')
-            ->expectsOutputToContain('Parcial com CBF')->expectsOutputToContain('Base nunca tentada')->expectsOutputToContain('Ganhou nascimento')
+            ->expectsOutputToContain('Parcial com CBF')->expectsOutputToContain('Base nunca tentada')->doesntExpectOutputToContain('Ganhou nascimento')
             ->doesntExpectOutputToContain('Na fila de revisão')->doesntExpectOutputToContain('Recente')->assertSuccessful();
+        $this->artisan('scout:enrich transfermarkt --scope=nascimento --dry-run')->expectsOutputToContain('Ganhou nascimento')->doesntExpectOutputToContain('Na fila de revisão')->assertSuccessful();
         $this->artisan('scout:enrich transfermarkt --scope=cobertura --dry-run')->doesntExpectOutputToContain('Parcial com CBF')->assertSuccessful();
 
         Queue::fake();

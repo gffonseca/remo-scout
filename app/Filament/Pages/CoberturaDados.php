@@ -72,13 +72,13 @@ class CoberturaDados extends Page
             ->visible(fn () => auth()->user()->isAdmin())
             ->requiresConfirmation()
             ->modalHeading(fn (array $arguments) => self::FIXES[$arguments['correcao'] ?? '']['label'] ?? '')
-            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(in_array($arguments['correcao'] ?? '', ['enriquecer', 'convergir_previa'], true) ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
+            ->modalDescription(fn (array $arguments) => (self::FIXES[$arguments['correcao'] ?? '']['help'] ?? '').(in_array($arguments['correcao'] ?? '', ['enriquecer', 'enriquecer_nascimento', 'convergir_previa'], true) ? ' Roda no worker em segundo plano.' : ' Roda no worker em segundo plano; o lote aparece em "Lotes de correção" e pode ser desfeito.'))
             ->action(function (array $arguments) {
                 abort_unless(auth()->user()->isAdmin(), 403);
                 $fix = self::FIXES[$arguments['correcao'] ?? ''] ?? abort(404);
                 RunArtisanSync::dispatch($fix['command'], $fix['params'] + ['--actor' => 'user:'.auth()->id()]);
                 Cache::forget('coverage.rows');
-                Notification::make()->success()->title(($arguments['correcao'] ?? '') === 'enriquecer' ? 'Enriquecimento enviado ao worker' : 'Correção enviada ao worker')->body('Atualize a página em alguns minutos para ver o lote.')->send();
+                Notification::make()->success()->title(str_starts_with($arguments['correcao'] ?? '', 'enriquecer') ? 'Enriquecimento enviado ao worker' : 'Correção enviada ao worker')->body('Atualize a página em alguns minutos para ver o lote.')->send();
             });
     }
 
@@ -97,6 +97,8 @@ class CoberturaDados extends Page
             'help' => 'Decisão do Gustavo (12/10/2026): confirma todos os vínculos CBF prováveis da fila com a constatação "mesmo clube de inscrição e nome compatível". Ficam de fora nascimento divergente do cadastro, registro ligado a outro cadastro e ID CBF já usado. Foto, nascimento e totais chegam na próxima busca de detalhes da CBF.'],
         'confirmar_cbf_divergentes' => ['label' => 'Confirmar também os divergentes', 'command' => 'scout:identities-confirm-cbf', 'params' => ['--apply' => true, '--divergentes' => true],
             'help' => 'Decisão do Gustavo (12/10/2026): confirma também os vínculos CBF com nascimento diferente do cadastro e passa a usar o nascimento da CBF. O nascimento anterior fica no lote e volta com "Desfazer".'],
+        'enriquecer_nascimento' => ['label' => 'Re-tentar Transfermarkt com nascimento (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'nascimento', '--limit' => 40],
+            'help' => 'Atletas que ganharam nascimento (ex.: vínculo CBF confirmado) e ainda têm candidatos do Transfermarkt na fila: nova busca liga automaticamente quando nome e nascimento conferem e então traz perfil, carreira, valor e contrato.'],
         'enriquecer' => ['label' => 'Enriquecer no Transfermarkt (40)', 'command' => 'scout:enrich', 'params' => ['provider' => 'transfermarkt', '--scope' => 'scout', '--limit' => 40],
             'help' => 'Para até 40 atletas do scout (watchlist → necessidades abertas → lista prioritária → demais; quem nunca foi tentado primeiro): vincula só por nome + nascimento (o resto vai para "Identidades a revisar") e traz perfil, carreira por temporada, valor de mercado e contrato observados. Fonte não oficial; dado divergente vira revisão, não sobrescrita. Leva até 20 min; o resultado fica em "Histórico de importações".'],
     ];
@@ -130,6 +132,8 @@ class CoberturaDados extends Page
             'clubs' => DataCoverage::unresolvedClubs(),
             'clubPreview' => DataCoverage::clubBackfillPreview(),
             'photoPreview' => PhotoBackfill::candidates()->count(),
+            'toRetryBirth' => Player::whereIn('id', $rows->pluck('id'))->whereNotNull('birth_date')->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', 'transfermarkt'))
+                ->whereHas('identityCandidates', fn ($c) => $c->where('provider', 'transfermarkt')->where('status', 'pendente'))->count(),
             'toEnrich' => Player::whereIn('id', $rows->pluck('id'))->where(fn ($w) => $w->whereNull('enriched_at')->orWhere('enriched_at', '<', now()->subDays(14)))->count(),
             'photoToCheck' => Player::whereNotNull('photo_url')->whereNull('photo_path')->whereNull('photo_checked_at')->count(),
             'batches' => DataCoverage::batches(),
