@@ -241,17 +241,21 @@ class DataCoverageTest extends ScoutTestCase
         $pending = Player::create(['name' => 'Na fila de revisão']);
         IdentityCandidate::create(['player_id' => $pending->id, 'provider' => 'transfermarkt', 'external_id' => '1', 'kind' => 'escolher', 'status' => 'pendente', 'score' => 80, 'label' => 'x']);
         Player::create(['name' => 'Base nunca tentada']);
+        $gotBirth = Player::create(['name' => 'Ganhou nascimento', 'enriched_at' => now()->subHours(2)]);
+        IdentityCandidate::create(['player_id' => $gotBirth->id, 'provider' => 'transfermarkt', 'external_id' => '2', 'kind' => 'escolher', 'status' => 'pendente', 'score' => 80, 'label' => 'y']);
+        $this->travel(1)->minutes();
+        $gotBirth->update(['birth_date' => '2001-01-01']); // CBF confirmada trouxe o nascimento
         DataSource::updateOrCreate(['key' => 'transfermarkt'], ['name' => 'Transfermarkt', 'kind' => 'nao_oficial', 'enabled' => true]);
 
         $this->artisan('scout:enrich transfermarkt --scope=scout --dry-run')
-            ->expectsOutputToContain('Parcial com CBF')->expectsOutputToContain('Base nunca tentada')
+            ->expectsOutputToContain('Parcial com CBF')->expectsOutputToContain('Base nunca tentada')->expectsOutputToContain('Ganhou nascimento')
             ->doesntExpectOutputToContain('Na fila de revisão')->doesntExpectOutputToContain('Recente')->assertSuccessful();
         $this->artisan('scout:enrich transfermarkt --scope=cobertura --dry-run')->doesntExpectOutputToContain('Parcial com CBF')->assertSuccessful();
 
         Queue::fake();
         $admin = $this->user('admin', ['app_authentication_secret' => 'JBSWY3DPEHPK3PXP']);
         $this->actingAs($admin);
-        Livewire::test(CoberturaDados::class)->assertSee('Enriquecimento: 3 de 4')
+        Livewire::test(CoberturaDados::class)->assertSee('Enriquecimento: 3 de 5')
             ->callAction('fix', [], ['correcao' => 'enriquecer'])->assertHasNoActionErrors();
         Queue::assertPushed(RunArtisanSync::class, fn ($j) => $j->command === 'scout:enrich' && $j->params['--scope'] === 'scout' && $j->params['--actor'] === 'user:'.$admin->id);
     }
