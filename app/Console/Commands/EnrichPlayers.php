@@ -108,9 +108,16 @@ class EnrichPlayers extends Command
             $needs = ProspectCase::whereHas('need', fn ($n) => $n->where('status', 'aberta'))->pluck('player_id')->flip();
             $order = ['watchlist', 'necessidade aberta', 'lista prioritária', 'base'];
 
+            // quem ganhou nascimento (ex.: CBF confirmada) volta à fila mesmo com candidatos pendentes e tentativa recente:
+            // agora o vínculo automático por nome + nascimento pode resolver sozinho
+            $retry = Player::query()->with(['currentClub', 'externalIds'])->whereIn('id', $ids)->whereNotNull('birth_date')
+                ->whereDoesntHave('externalIds', fn ($e) => $e->where('provider', $provider))
+                ->whereHas('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
+                ->where(fn ($w) => $w->whereNull('enriched_at')->orWhereColumn('enriched_at', '<', 'updated_at')->orWhere('enriched_at', '<', now()->subDay()));
+
             return $q->whereIn('id', $ids)
                 ->whereDoesntHave('identityCandidates', fn ($c) => $c->where('provider', $provider)->where('status', 'pendente'))
-                ->get()
+                ->get()->merge($retry->get())->unique('id')
                 ->each(function ($p) use ($watch, $needs) {
                     $this->ranks[$p->id] = $watch->has($p->id) ? 'watchlist' : ($needs->has($p->id) ? 'necessidade aberta' : ($p->is_priority ? 'lista prioritária' : 'base'));
                 })
