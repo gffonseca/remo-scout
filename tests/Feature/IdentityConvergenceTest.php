@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\IdentitiesConverge;
 use App\Filament\Pages\CoberturaDados;
 use App\Jobs\RunArtisanSync;
 use App\Models\CbfAthlete;
@@ -12,6 +13,7 @@ use App\Models\PlayerExternalId;
 use App\Services\Collector\CbfIngest;
 use App\Sources\SourceClient;
 use Database\Seeders\DataSourcesSeeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -69,6 +71,8 @@ class IdentityConvergenceTest extends ScoutTestCase
         $this->artisan('scout:identities-converge')->expectsOutputToContain('PRÉVIA: 1 de 4')->assertSuccessful();
         $this->assertNull($ok->fresh()->birth_date); // prévia não grava
         $this->assertSame(0, PlayerExternalId::count());
+        $why = collect(Cache::get(IdentitiesConverge::CACHE)['rows'])->firstWhere('player', 'Sorriso')['reason'];
+        $this->assertStringContainsString('Sorriso — detalhe não buscado', $why); // diagnóstico: a CBF ainda não trouxe o nascimento
 
         $this->artisan('scout:identities-converge --apply --actor=user:1')->expectsOutputToContain('APLICADO: 1')->assertSuccessful();
         $p = $ok->fresh();
