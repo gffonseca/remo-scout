@@ -32,8 +32,9 @@ class IdentitiesConfirmMerge extends Command
         Cache::put(self::CACHE, ['at' => now()->toDateTimeString(), 'applied' => (bool) $res, 'batch' => $res['batch'] ?? null,
             'rows' => $rows->map(fn ($r) => ['label' => $r['label'], 'decision' => $r['decision'], 'reason' => $r['reason']])->values()->all()], now()->addDays(7));
         $ok = $rows->where('decision', 'confirmar')->count();
-        $this->line($res ? "APLICADO: {$res['merged']} provisório(s) fundido(s).".($res['batch'] ? " Lote {$res['batch']}." : '')
-            : "PRÉVIA: {$ok} de {$rows->count()} seriam fundidos. Nada foi gravado.");
+        $closing = $rows->where('decision', 'fechar')->count();
+        $this->line($res ? "APLICADO: {$res['merged']} provisório(s) fundido(s); ".($res['closed'] ?? 0).' item(ns) já fundido(s) fechado(s).'.($res['batch'] ? " Lote {$res['batch']}." : '')
+            : "PRÉVIA: {$ok} de {$rows->count()} seriam fundidos; {$closing} já fundido(s) seriam fechados. Nada foi gravado.");
         foreach ($rows->where('decision', 'fila') as $r) {
             $this->line("  fila: {$r['label']} — {$r['reason']}");
         }
