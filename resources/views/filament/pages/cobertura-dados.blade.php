@@ -73,7 +73,7 @@
         @endif
         @php $mc = $d['mergeConfirm']; $mcRows = collect($mc['rows'] ?? []); @endphp
         <div class="sc-row"><span class="k">Provisórios na fila com "Mesmo clube e nome compatível": {{ $d['mergeConfirmable'] }} @if ($mc) · última {{ $mc['applied'] ? 'aplicação' : 'prévia' }} {{ \Illuminate\Support\Carbon::parse($mc['at'])->timezone($tz)->format('d/m H:i') }}: {{ $mcRows->where('decision', 'confirmar')->count() }} fundidos · {{ $mcRows->where('decision', 'fila')->count() }} ficaram na fila @endif</span>
-            <span class="v">{{ ($this->fixAction)(['correcao' => 'confirmar_mesclas']) }}</span></div>
+            <span class="v">{{ ($this->fixAction)(['correcao' => 'confirmar_mesclas']) }} @if ($mcRows->where('decision', 'fila')->isNotEmpty()){{ ($this->fixAction)(['correcao' => 'confirmar_mesclas_divergentes']) }}@endif</span></div>
         @if ($mcRows->where('decision', 'fila')->isNotEmpty())
             <details style="margin:.3rem 0 .6rem"><summary class="sc-muted" style="cursor:pointer">Ver os que ficaram na fila ({{ $mcRows->where('decision', 'fila')->count() }})</summary>
                 @foreach ($mcRows->where('decision', 'fila') as $i => $r)

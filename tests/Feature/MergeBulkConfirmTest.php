@@ -57,4 +57,32 @@ class MergeBulkConfirmTest extends ScoutTestCase
         $this->assertSame(0, PlayerSeasonStat::where('player_id', $scout->id)->where('provider', 'api_football')->count());
         $this->assertSame('pendente', IdentityCandidate::where('external_id', '555')->value('status'));
     }
+
+    /** Decisão do Gustavo (14/10/2026): fundir também os divergentes, mantendo o nascimento do cadastro do scout. */
+    public function test_divergentes_merges_keeping_scout_birth_date_reversibly(): void
+    {
+        $club = Club::create(['name' => 'Vila Nova']);
+        $scout = Player::create(['name' => 'Igor', 'current_club_id' => $club->id, 'birth_date' => '2007-03-07']);
+        $shadow = Player::create(['name' => 'Igor', 'data_origin' => 'provedor', 'current_club_id' => $club->id, 'birth_date' => '1995-01-01', 'height_cm' => 178]);
+        IdentityCandidate::create(['player_id' => $scout->id, 'shadow_player_id' => $shadow->id, 'provider' => 'api_football', 'external_id' => '556', 'kind' => 'mesclar',
+            'status' => 'pendente', 'score' => 100, 'label' => 'Igor', 'evidence' => 'Mesmo clube e nome compatível; sem nascimento no provedor para confirmar.']);
+
+        $this->artisan('scout:identities-confirm-merge --apply')->expectsOutputToContain('APLICADO: 0')->assertSuccessful();
+        $this->assertNull($shadow->fresh()->deleted_at);
+
+        $this->artisan('scout:identities-confirm-merge --apply --divergentes')->expectsOutputToContain('APLICADO: 1')->assertSuccessful();
+        $this->assertSoftDeleted('players', ['id' => $shadow->id]);
+        $this->assertSame('2007-03-07', $scout->fresh()->birth_date->toDateString());
+        $this->assertSame(178, $scout->fresh()->height_cm);
+        $c = IdentityCandidate::where('external_id', '556')->first();
+        $this->assertSame('vinculado', $c->status);
+        $this->assertStringContainsString('mantendo o nascimento do cadastro', $c->evidence);
+
+        $batch = DB::table('data_fix_changes')->where('kind', 'dedup')->value('batch');
+        $this->artisan("scout:identities-confirm-merge --revert={$batch}")->assertSuccessful();
+        $this->assertNull($shadow->fresh()->deleted_at);
+        $this->assertSame('1995-01-01', $shadow->fresh()->birth_date->toDateString());
+        $this->assertNull($scout->fresh()->height_cm);
+        $this->assertSame('pendente', IdentityCandidate::where('external_id', '556')->value('status'));
+    }
 }

@@ -12,16 +12,17 @@ use Illuminate\Support\Facades\DB;
  * Confirmação em lote dos itens "Mesclar cadastro provisório" com a constatação "Mesmo clube e nome compatível"
  * (pedido do Gustavo, 13/10/2026). O provisório (criado por escalação) é fundido no cadastro do scout pelo caminho
  * reversível de DuplicatePlayers (referências movidas no lote, provisório arquivado). Fica na fila: nascimento do
- * provisório diferente do cadastro, provisório inexistente ou já fundido.
+ * provisório diferente do cadastro, provisório inexistente ou já fundido. Com $divergentes (decisão do Gustavo, 14/10/2026)
+ * o nascimento divergente também é fundido e prevalece o nascimento do cadastro do scout (o do provisório fica no arquivado).
  */
 class MergeBulkConfirm
 {
     /** @return Collection<int, array{candidate:IdentityCandidate, keep:?Player, drop:?Player, decision:string, reason:string, label:string}> */
-    public static function evaluate(): Collection
+    public static function evaluate(bool $divergentes = false): Collection
     {
         return IdentityCandidate::with(['player', 'shadow'])->where('kind', 'mesclar')->where('status', 'pendente')
             ->where('evidence', 'like', 'Mesmo clube e nome compatível%')->orderBy('label')->get()
-            ->map(function (IdentityCandidate $c) {
+            ->map(function (IdentityCandidate $c) use ($divergentes) {
                 $keep = $c->player;
                 $drop = $c->shadow;
                 $row = ['candidate' => $c, 'keep' => $keep, 'drop' => $drop, 'label' => ($keep?->name ?? '?').' ← '.$c->label];
@@ -29,7 +30,11 @@ class MergeBulkConfirm
                     return $row + ['decision' => 'fila', 'reason' => 'Cadastro ou provisório não existe mais.'];
                 }
                 if ($keep->birth_date && $drop->birth_date && $keep->birth_date->toDateString() !== $drop->birth_date->toDateString()) {
-                    return $row + ['decision' => 'fila', 'reason' => 'Nascimento diverge: provisório '.Carbon::parse($drop->birth_date)->format('d/m/Y').' × cadastro '.$keep->birth_date->format('d/m/Y').'.'];
+                    $diff = 'Nascimento diverge: provisório '.Carbon::parse($drop->birth_date)->format('d/m/Y').' × cadastro '.$keep->birth_date->format('d/m/Y').'.';
+
+                    return $divergentes
+                        ? $row + ['decision' => 'confirmar', 'reason' => $diff.' Fundido mantendo o nascimento do cadastro do scout.']
+                        : $row + ['decision' => 'fila', 'reason' => $diff];
                 }
 
                 return $row + ['decision' => 'confirmar', 'reason' => 'Mesmo clube e nome compatível.'];
@@ -56,8 +61,9 @@ class MergeBulkConfirm
                 foreach (DB::table('player_external_ids')->where('player_id', $r['keep']->id)->where('provider', $c->provider)->where('external_id', $c->external_id)->pluck('id') as $xid) {
                     DataFix::apply($res['batch'], 'dedup', 'player_external_ids', (string) $xid, ['verified' => true, 'verified_by' => $userId, 'link_method' => 'manual'], $actor);
                 }
+                $note = str_starts_with($r['reason'], 'Nascimento diverge') ? ' '.$r['reason'] : '';
                 DataFix::apply($res['batch'], 'dedup', 'identity_candidates', $c->id, ['status' => 'vinculado', 'decided_by' => $userId, 'decided_at' => $now,
-                    'evidence' => trim(($c->evidence ?? '').' Confirmado em lote (mesmo clube e nome compatível).')], $actor);
+                    'evidence' => trim(($c->evidence ?? '').' Confirmado em lote (mesmo clube e nome compatível).'.$note)], $actor);
             }
         });
         // estatística derivada das partidas: recalculada para quem recebeu atuações (derivado, recalculável)
