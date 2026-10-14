@@ -9,6 +9,7 @@ use App\Models\IdentityCandidate;
 use App\Models\Player;
 use App\Models\PlayerExternalId;
 use App\Models\PlayerSeasonStat;
+use App\Services\DuplicatePlayers;
 use App\Services\SeasonStatsAggregator;
 use Illuminate\Support\Facades\DB;
 
@@ -84,5 +85,32 @@ class MergeBulkConfirmTest extends ScoutTestCase
         $this->assertSame('1995-01-01', $shadow->fresh()->birth_date->toDateString());
         $this->assertNull($scout->fresh()->height_cm);
         $this->assertSame('pendente', IdentityCandidate::where('external_id', '556')->value('status'));
+    }
+
+    /** Item cujo provisório já foi fundido neste cadastro em lote anterior: fecha o item (reversível); outro destino fica na fila. */
+    public function test_closes_items_whose_provisional_was_already_merged_into_same_record(): void
+    {
+        $club = Club::create(['name' => 'Cuiabá']);
+        $scout = Player::create(['name' => 'Calebe Costa', 'current_club_id' => $club->id, 'birth_date' => '2003-06-07']);
+        $shadow = Player::create(['name' => 'Calebe', 'data_origin' => 'provedor', 'current_club_id' => $club->id, 'birth_date' => '2003-06-07']);
+        $c = IdentityCandidate::create(['player_id' => $scout->id, 'shadow_player_id' => $shadow->id, 'provider' => 'api_football', 'external_id' => '777', 'kind' => 'mesclar',
+            'status' => 'pendente', 'score' => 100, 'label' => 'Calebe', 'evidence' => 'Mesmo clube e nome compatível; sem nascimento no provedor para confirmar.']);
+        // fusão anterior (ex.: duplicados) que não fechou o item da fila
+        DuplicatePlayers::apply(collect([['keep' => $scout, 'drop' => $shadow, 'rule' => 'teste']]), null, 'cli');
+        $this->assertSame('pendente', $c->fresh()->status);
+
+        $other = Player::create(['name' => 'Outro', 'current_club_id' => $club->id]);
+        $gone = Player::create(['name' => 'Outro', 'data_origin' => 'provedor', 'current_club_id' => $club->id]);
+        DuplicatePlayers::apply(collect([['keep' => Player::create(['name' => 'Terceiro']), 'drop' => $gone, 'rule' => 'teste']]), null, 'cli');
+        IdentityCandidate::create(['player_id' => $other->id, 'shadow_player_id' => $gone->id, 'provider' => 'api_football', 'external_id' => '778', 'kind' => 'mesclar',
+            'status' => 'pendente', 'score' => 100, 'label' => 'Outro', 'evidence' => 'Mesmo clube e nome compatível; sem nascimento no provedor para confirmar.']);
+
+        $this->artisan('scout:identities-confirm-merge --apply')->expectsOutputToContain('1 item(ns) já fundido(s) fechado(s)')->assertSuccessful();
+        $this->assertSame('vinculado', $c->fresh()->status);
+        $this->assertSame('pendente', IdentityCandidate::where('external_id', '778')->value('status'));
+
+        $batch = DB::table('data_fix_changes')->where('table_name', 'identity_candidates')->value('batch');
+        $this->artisan("scout:identities-confirm-merge --revert={$batch}")->assertSuccessful();
+        $this->assertSame('pendente', $c->fresh()->status);
     }
 }

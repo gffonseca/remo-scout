@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AuditEvent;
 use App\Models\IdentityCandidate;
 use App\Models\Player;
 use Illuminate\Support\Carbon;
@@ -26,6 +27,9 @@ class MergeBulkConfirm
                 $keep = $c->player;
                 $drop = $c->shadow;
                 $row = ['candidate' => $c, 'keep' => $keep, 'drop' => $drop, 'label' => ($keep?->name ?? '?').' ← '.$c->label];
+                if ($keep && ! $drop && $c->shadow_player_id && static::mergedInto((string) $c->shadow_player_id) === (string) $keep->id) {
+                    return $row + ['decision' => 'fechar', 'reason' => 'Provisório já fundido neste cadastro em lote anterior; o item da fila é fechado.'];
+                }
                 if (! $keep || ! $drop || $keep->is($drop)) {
                     return $row + ['decision' => 'fila', 'reason' => 'Cadastro ou provisório não existe mais.'];
                 }
@@ -45,15 +49,23 @@ class MergeBulkConfirm
     public static function apply(Collection $rows, ?int $userId, string $actor): array
     {
         $todo = $rows->where('decision', 'confirmar')->values();
-        if ($todo->isEmpty()) {
+        $close = $rows->where('decision', 'fechar')->values();
+        if ($todo->isEmpty() && $close->isEmpty()) {
             return ['batch' => null, 'merged' => 0, 'kept_behind' => 0];
         }
         $pairs = $todo->map(fn ($r) => ['keep' => $r['keep'], 'drop' => $r['drop'], 'rule' => 'Mesclar provisório: mesmo clube e nome compatível (confirmação em lote)']);
-        $res = DuplicatePlayers::apply($pairs, $userId, $actor);
-        if (! $res['batch']) {
-            return $res;
-        }
+        $res = $todo->isEmpty() ? ['batch' => null, 'merged' => 0, 'kept_behind' => 0] : DuplicatePlayers::apply($pairs, $userId, $actor);
+        $res['batch'] ??= DataFix::newBatch('dedup');
         $now = now()->toDateTimeString();
+        // itens cujo provisório já foi fundido neste mesmo cadastro em lote anterior: só fecha o item da fila (reversível)
+        DB::transaction(function () use ($close, $res, $userId, $actor, $now) {
+            foreach ($close as $r) {
+                $c = $r['candidate'];
+                DataFix::apply($res['batch'], 'dedup', 'identity_candidates', $c->id, ['status' => 'vinculado', 'decided_by' => $userId, 'decided_at' => $now,
+                    'evidence' => trim(($c->evidence ?? '').' Fechado em lote: provisório já fundido neste cadastro.')], $actor);
+            }
+        });
+        $res['closed'] = $close->count();
         DB::transaction(function () use ($todo, $res, $userId, $actor, $now) {
             foreach ($todo as $r) {
                 $c = $r['candidate'];
@@ -70,6 +82,18 @@ class MergeBulkConfirm
         static::rebuildDerived($todo->map(fn ($r) => $r['keep']->id)->all());
 
         return $res;
+    }
+
+    /** Cadastro em que o provisório arquivado foi fundido (último evento de fusão), ou null. */
+    public static function mergedInto(string $playerId): ?string
+    {
+        if (! Player::withTrashed()->whereKey($playerId)->whereNotNull('deleted_at')->exists()) {
+            return null;
+        }
+        $id = AuditEvent::where('action', 'player_merge')->where('auditable_type', 'Player')
+            ->whereRaw("changes->>'from' = ?", [$playerId])->latest('created_at')->value('auditable_id');
+
+        return $id !== null ? (string) $id : null;
     }
 
     /** Totais derivados das partidas (100% recalculáveis das atuações): apagados e refeitos, como na fusão manual. */
