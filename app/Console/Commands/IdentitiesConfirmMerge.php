@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 /** Funde em lote os provisórios "Mesmo clube e nome compatível" da fila (pedido do Gustavo, 13/10/2026). Sem --apply é prévia. */
 class IdentitiesConfirmMerge extends Command
 {
-    protected $signature = 'scout:identities-confirm-merge {--apply} {--actor=} {--revert=}';
+    protected $signature = 'scout:identities-confirm-merge {--apply} {--divergentes : funde também nascimento divergente (decisão do Gustavo, 14/10/2026); mantém o nascimento do cadastro do scout} {--actor=} {--revert=}';
 
     protected $description = 'Confirma em lote as mesclas de cadastros provisórios (mesmo clube + nome compatível), com prévia e reversão';
 
@@ -25,7 +25,7 @@ class IdentitiesConfirmMerge extends Command
 
             return self::SUCCESS;
         }
-        $rows = MergeBulkConfirm::evaluate();
+        $rows = MergeBulkConfirm::evaluate((bool) $this->option('divergentes'));
         $actor = $this->option('actor') ?: 'cli';
         $userId = str_starts_with($actor, 'user:') ? (int) substr($actor, 5) : null;
         $res = $this->option('apply') ? MergeBulkConfirm::apply($rows, $userId, $actor) : null;
